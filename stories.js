@@ -916,38 +916,73 @@
     return () => sceneTypeSet({ word: year, caption: t });
   }
 
-  let cancelPlay = null;
 
-  function playStory(canvas, evt, opts = {}) {
-    if (!canvas || !evt) return;
-    const reduceMotion = !!opts.reduceMotion;
-    if (cancelPlay) { cancelPlay(); cancelPlay = null; }
-    clear(canvas);
-    canvas.classList.remove("is-holding");
-    canvas.classList.add("is-entering");
-
-    const factory = matchStory(evt);
-    const scene = factory();
-    canvas.appendChild(scene.svg);
-
-    requestAnimationFrame(() => {
-      canvas.classList.remove("is-entering");
-      canvas.classList.add("is-playing");
-    });
-
-    cancelPlay = scene.play(reduceMotion);
-    const hold = () => {
-      canvas.classList.remove("is-playing");
-      canvas.classList.add("is-holding");
-    };
-    if (reduceMotion) hold();
-    else {
-      // hold after typical duration
-      const t = setTimeout(hold, 2300);
-      const prev = cancelPlay;
-      cancelPlay = () => { clearTimeout(t); prev && prev(); };
-    }
+  /** Build the final still frame for one event (no timed play). */
+  function buildStill(evt) {
+    const wrap = document.createElement("div");
+    wrap.className = "story-panel";
+    wrap.setAttribute("aria-hidden", "true");
+    const scene = matchStory(evt)();
+    wrap.appendChild(scene.svg);
+    scene.play(true);
+    return wrap;
   }
 
-  window.__HUMANITY_STORY__ = { playStory, matchStory };
+  function panelHalfWidth(i, n, xOfIndex) {
+    const x = xOfIndex(i);
+    const xPrev = i > 0 ? xOfIndex(i - 1) : x - 420;
+    const xNext = i < n - 1 ? xOfIndex(i + 1) : x + 420;
+    return Math.min(200, Math.max(72, (xNext - xPrev) / 2 - 10));
+  }
+
+  /**
+   * Mount a continuous strip inside the scrolling track.
+   * Panel i is centered on xOf(i); width fits the gap so neighbors sit beside, not on top.
+   * scrollLeft → picture is 1:1 (same scroll always same composition).
+   */
+  function mountStrip(strip, events, xOfIndex) {
+    if (!strip) return;
+    strip.textContent = "";
+    strip.className = "story-strip";
+    const n = events.length;
+    events.forEach((evt, i) => {
+      const panel = buildStill(evt);
+      panel.dataset.index = String(i);
+      const half = panelHalfWidth(i, n, xOfIndex);
+      panel.style.left = `${xOfIndex(i)}px`;
+      panel.style.width = `${half * 2}px`;
+      strip.appendChild(panel);
+    });
+  }
+
+  function layoutStrip(strip, xOfIndex) {
+    if (!strip) return;
+    const panels = [...strip.querySelectorAll(".story-panel")];
+    const n = panels.length;
+    panels.forEach((panel) => {
+      const i = Number(panel.dataset.index);
+      if (!Number.isFinite(i)) return;
+      const half = panelHalfWidth(i, n, xOfIndex);
+      panel.style.left = `${xOfIndex(i)}px`;
+      panel.style.width = `${half * 2}px`;
+    });
+  }
+
+  /** Focus opacity from viewport center — still deterministic for a given scrollLeft. */
+  function focusStrip(strip, xOfIndex, centerX) {
+    if (!strip) return;
+    const panels = [...strip.querySelectorAll(".story-panel")];
+    const reach = 640;
+    panels.forEach((panel) => {
+      const i = Number(panel.dataset.index);
+      const x = xOfIndex(i);
+      const d = Math.abs(x - centerX);
+      const t = Math.max(0, 1 - d / reach);
+      const op = 0.05 + t * t * 0.95; /* still; sharper peak at center */
+      panel.style.opacity = String(op);
+      panel.style.zIndex = String(1 + Math.round(t * 30));
+    });
+  }
+
+  window.__HUMANITY_STORY__ = { buildStill, mountStrip, layoutStrip, focusStrip, matchStory };
 })();

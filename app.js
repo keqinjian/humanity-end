@@ -231,8 +231,7 @@
     const elTitle = $("#readout-title");
     const elBlurb = $("#readout-blurb");
     const elTags = $("#readout-tags");
-    const ghostNum = $("#field-ghost-num");
-    const fieldTag = $("#field-tag");
+    const storyStrip = { el: null };
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -298,18 +297,16 @@
         if (!y) return;
         el.style.left = `${xOf(dayStamp(`${y}-01-01`))}px`;
       });
+      if (window.__HUMANITY_STORY__ && storyStrip.el) {
+        window.__HUMANITY_STORY__.layoutStrip(storyStrip.el, (i) => xOf(stamps[i]));
+      }
       updateProgress();
     }
 
-    const storyCanvas = $("#story-canvas");
-
     function applyMotif(evt) {
-      if (ghostNum && evt) ghostNum.textContent = yearOf(evt.date);
-      if (fieldTag && evt) fieldTag.textContent = evt.era;
+      /* Pictures live on the scrub strip; selection only tags the stage. */
       stage.dataset.era = evt ? evt.era : "";
-      if (window.__HUMANITY_STORY__ && storyCanvas && evt) {
-        window.__HUMANITY_STORY__.playStory(storyCanvas, evt, { reduceMotion });
-      }
+      stage.dataset.year = evt ? yearOf(evt.date) : "";
     }
 
     function paintReadout(evt) {
@@ -389,6 +386,7 @@
       const left = Math.max(0, Math.min(max, targetLeft));
       if (instant || reduceMotion) {
         viewport.scrollLeft = left;
+        focusStories();
         return;
       }
       if (settleAnim) cancelAnimationFrame(settleAnim);
@@ -401,10 +399,12 @@
       const step = (now) => {
         const u = Math.min(1, (now - t0) / dur);
         viewport.scrollLeft = from + dist * easeOutCubic(u);
+        focusStories();
         if (u < 1) settleAnim = requestAnimationFrame(step);
         else {
           settleAnim = null;
           syncLock = false;
+          focusStories();
         }
       };
       settleAnim = requestAnimationFrame(step);
@@ -442,7 +442,14 @@
       return best;
     }
 
+    function focusStories() {
+      if (!window.__HUMANITY_STORY__ || !storyStrip.el) return;
+      const centerX = viewport.scrollLeft + viewport.clientWidth * 0.5;
+      window.__HUMANITY_STORY__.focusStrip(storyStrip.el, (i) => xOf(stamps[i]), centerX);
+    }
+
     function syncFromScroll() {
+      focusStories();
       if (syncLock || drag) return;
       const idx = nearestIndexAtCenter();
       if (idx !== selectedIndex) {
@@ -458,6 +465,15 @@
       measureEdgePad();
       track.style.width = `${edgePad + contentSpan + edgePad}px`;
       nodes.length = 0;
+
+      const strip = document.createElement("div");
+      strip.id = "story-strip";
+      strip.className = "story-strip";
+      track.append(strip);
+      storyStrip.el = strip;
+      if (window.__HUMANITY_STORY__) {
+        window.__HUMANITY_STORY__.mountStrip(strip, events, (i) => xOf(stamps[i]));
+      }
 
       const spine = document.createElement("div");
       spine.className = "axis-spine";
@@ -476,8 +492,6 @@
 
       const yStart = Number(yearOf(events[0].date));
       const yEnd = Number(yearOf(events[events.length - 1].date));
-      // Decade numerals stay off the track — a single field-ghost-num owns the back plane.
-
       uniqueEras(events).forEach((era) => {
         const idxs = events
           .map((e, i) => (e.era === era ? i : -1))
@@ -632,6 +646,7 @@
     function onPointerMove(e) {
       if (!drag) return;
       viewport.scrollLeft = drag.scroll - (e.clientX - drag.x);
+      focusStories();
       syncFromScroll();
     }
 
@@ -650,6 +665,7 @@
       e.preventDefault();
       pauseAuto(1800);
       viewport.scrollLeft = Math.max(0, Math.min(scrollMax(), viewport.scrollLeft + dominant));
+      focusStories();
       syncFromScroll();
     }
 
@@ -694,6 +710,7 @@
       let next = viewport.scrollLeft + speed * dt;
       if (next >= max - 0.5) next = 0; /* loop: last-at-center → first-at-center */
       viewport.scrollLeft = next;
+      focusStories();
       syncFromScroll();
     }
 
@@ -722,6 +739,7 @@
     }
 
     buildTrack();
+    focusStories();
     bind();
     window.addEventListener("resize", () => {
       const idx = selectedIndex;

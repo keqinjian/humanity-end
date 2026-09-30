@@ -582,65 +582,13 @@ body {
 }
 
 /* Ambient field — motif layers react to data-motif on .axis-stage */
-/* Story stage — event-specific flat sequences */
+/* Story strip — still frames scrubbed by the same scrollLeft as nodes */
 .story-stage {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.story-canvas {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(640px, 52vw);
-  height: min(480px, 52vh);
-  transform: translate(-42%, -54%);
-  opacity: 1;
-  transition: opacity 0.35s var(--ease);
-}
-
-.story-canvas.is-entering {
-  opacity: 0;
-}
-
-.story-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: visible;
-}
-
-.field-ghost-num {
-  position: absolute;
-  right: 2%;
-  top: 6%;
-  font-family: var(--serif-num);
-  font-size: clamp(3.6rem, 8vw, 5.8rem);
-  line-height: 0.85;
-  letter-spacing: -0.04em;
-  color: var(--steel);
-  opacity: 0.05;
-  pointer-events: none;
-  user-select: none;
   z-index: 0;
-  text-align: right;
-  max-width: 28%;
   overflow: hidden;
-  white-space: nowrap;
-}
-
-.field-tag {
-  position: absolute;
-  left: 4%;
-  bottom: 18%;
-  font-family: var(--sans);
-  font-size: 0.68rem;
-  letter-spacing: 0.28em;
-  color: var(--steel);
-  opacity: 0.5;
 }
 
 .field-axis-label {
@@ -651,12 +599,39 @@ body {
   letter-spacing: 0.28em;
   color: var(--steel);
   opacity: 0.4;
+  z-index: 0;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .story-canvas {
-    transition: none !important;
-  }
+.story-strip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.story-panel {
+  position: absolute;
+  top: 44%;
+  height: 280px;
+  transform: translate(-50%, -60%);
+  opacity: 0.15;
+  overflow: hidden;
+  /* width set in JS from neighbor gaps */
+}
+
+.story-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* Readout stays above the strip and clear of ghost years */
+.axis-readout {
+  z-index: 6;
 }
 
 .axis-viewport {
@@ -983,8 +958,8 @@ body {
 .readout-year {
   margin: 0;
   font-family: var(--serif-num);
-  font-size: clamp(2.8rem, 6vw, 4.4rem);
-  line-height: 0.9;
+  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+  line-height: 0.95;
   letter-spacing: -0.03em;
   color: var(--ink);
 }
