@@ -118,6 +118,9 @@
       const e = easeOut(clamp01(p));
       baseline.setAttribute("x1", String(320 - 200 * e));
       baseline.setAttribute("x2", String(320 + 210 * e));
+      baseline.setAttribute("stroke-dasharray", "12 8");
+      baseline.setAttribute("stroke-dashoffset", String((1 - e) * 80));
+      baseline.setAttribute("stroke", e > 0.55 ? "#c45c26" : "#1d4e89");
       /* Glyphs fall onto the baseline — vertical cascade, staggered. */
       letters.forEach(({ g, i, x }) => {
         const local = clamp01((e - i * 0.045) / 0.7);

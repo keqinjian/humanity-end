@@ -11,95 +11,105 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <a class="skip" href="#domains">跳到领域血条</a>
+  <a class="skip" href="#chapter-dossier">跳到领域血条</a>
 
-  <div class="page page-mast">
-    <div class="dossier-strip" aria-label="档案抬头">
-      <span class="dossier-bracket">[</span>
-      <span class="dossier-key">档案</span>
-      <time id="updated-date" datetime="2026-09-30">—</time>
-      <span class="dossier-bracket">]</span>
-      <span class="dossier-rule" aria-hidden="true"></span>
-    </div>
-
-    <header class="mast" id="top">
-      <aside class="mast-rail" aria-label="概览">
-        <h1 class="mast-title" id="site-title">记录人类完蛋全过程</h1>
-        <p class="mast-subtitle" id="site-subtitle"></p>
-
-        <div class="aggregate" aria-live="polite">
-          <p class="aggregate-value">
-            <span id="aggregate-num">—</span><span class="aggregate-unit">%</span>
-          </p>
-          <p class="aggregate-label">人类事务剩余</p>
-          <p class="aggregate-note" id="score-disclaimer"></p>
+  <main class="chapter-scroller" id="chapter-scroller">
+    <!-- PAGE 1: dossier / domain HP -->
+    <section class="chapter chapter-dossier" id="chapter-dossier" aria-label="领域血条">
+      <div class="dossier-inner page">
+        <div class="dossier-strip" aria-label="档案抬头">
+          <span class="dossier-bracket">[</span>
+          <span class="dossier-key">档案</span>
+          <time id="updated-date" datetime="2026-09-30">—</time>
+          <span class="dossier-bracket">]</span>
+          <span class="dossier-rule" aria-hidden="true"></span>
         </div>
-      </aside>
 
-      <section class="mast-domains" id="domains" aria-labelledby="domains-heading">
-        <div class="domains-head">
-          <h2 id="domains-heading" class="section-title">
-            <span class="sec-mark">01</span>
-            <span class="sec-label">领域索引</span>
-            <span class="sec-hint">点击展开子项 · 父级为叶节点算术平均</span>
-          </h2>
+        <header class="mast mast-hero" id="top">
+          <aside class="mast-rail" aria-label="概览">
+            <h1 class="mast-title" id="site-title">记录人类完蛋全过程</h1>
+            <p class="mast-subtitle" id="site-subtitle"></p>
+            <div class="aggregate" aria-live="polite">
+              <p class="aggregate-value">
+                <span id="aggregate-num">—</span><span class="aggregate-unit">%</span>
+              </p>
+              <p class="aggregate-label">人类事务剩余</p>
+              <p class="aggregate-note" id="score-disclaimer"></p>
+            </div>
+          </aside>
+
+          <section class="mast-domains" id="domains" aria-labelledby="domains-heading">
+            <div class="domains-head">
+              <h2 id="domains-heading" class="section-title">
+                <span class="sec-mark">01</span>
+                <span class="sec-label">领域索引</span>
+                <span class="sec-hint">点击展开子项 · 父级为叶节点算术平均</span>
+              </h2>
+            </div>
+            <div id="domain-tree" class="domain-tree" role="tree"></div>
+          </section>
+        </header>
+
+        <a class="chapter-cue" href="#chapter-timeline">向下进入时间线</a>
+      </div>
+    </section>
+
+    <!-- PAGE 2: timeline -->
+    <section class="chapter chapter-timeline" id="chapter-timeline" aria-label="时间线">
+      <div class="timeline-section" id="timeline" aria-labelledby="timeline-heading">
+        <div class="timeline-chrome">
+          <div class="section-head">
+            <h2 id="timeline-heading" class="section-title">
+              <span class="sec-mark">02</span>
+              <span class="sec-label">时间线</span>
+              <span class="sec-hint">自 ENIAC 起 · 点的大小与颜色表示影响力</span>
+            </h2>
+          </div>
+          <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
         </div>
-        <div id="domain-tree" class="domain-tree" role="tree"></div>
-      </section>
-    </header>
-  </div>
 
-  <section class="timeline-section" id="timeline" aria-labelledby="timeline-heading">
-    <div class="timeline-chrome">
-      <div class="section-head">
-        <h2 id="timeline-heading" class="section-title">
-          <span class="sec-mark">02</span>
-          <span class="sec-label">时间线</span>
-          <span class="sec-hint">自 ENIAC 起，只收录可核验、影响显著的里程碑</span>
-        </h2>
-      </div>
-      <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
-    </div>
+        <div class="axis-stage" id="axis-stage" data-motif="foundation">
+          <div class="story-stage" id="story-stage" aria-hidden="true">
+            <span class="field-axis-label">三轨时间轴</span>
+          </div>
+          <ul class="track-legend" aria-hidden="true">
+            <li>语言与推理</li>
+            <li>图像与创作</li>
+            <li>棋与控制</li>
+          </ul>
 
-    <div class="axis-stage" id="axis-stage" data-motif="foundation">
-      <div class="story-stage" id="story-stage" aria-hidden="true">
-        <span class="field-axis-label">三轨时间轴</span>
-      </div>
-      <ul class="track-legend" aria-hidden="true">
-        <li>语言与推理</li>
-        <li>图像与创作</li>
-        <li>棋与控制</li>
-      </ul>
+          <p class="playhead-year" id="playhead-year" aria-hidden="true">—</p>
 
-      <div
-        class="axis-viewport"
-        id="axis-viewport"
-        tabindex="0"
-        role="region"
-        aria-label="横向时间轴，可用方向键与滚轮浏览"
-        aria-roledescription="时间轴"
-      >
-        <div class="axis-track" id="timeline-list"></div>
+          <div
+            class="axis-viewport"
+            id="axis-viewport"
+            tabindex="0"
+            role="region"
+            aria-label="横向时间轴，可用方向键与滚轮浏览"
+            aria-roledescription="时间轴"
+          >
+            <div class="axis-track" id="timeline-list"></div>
+          </div>
+
+          <div class="axis-readout" id="axis-detail" aria-live="polite">
+            <p class="readout-year" id="readout-year">—</p>
+            <p class="readout-meta" id="readout-meta"></p>
+            <h3 class="readout-title" id="readout-title">选取轴上节点</h3>
+            <p class="readout-blurb" id="readout-blurb">在轴上选取一个节点，查看日期、标题与摘要。</p>
+            <div class="readout-tags" id="readout-tags"></div>
+          </div>
+
+          <p class="axis-hint" id="axis-hint">拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停</p>
+        </div>
       </div>
 
-      <div class="axis-readout" id="axis-detail" aria-live="polite">
-        <p class="readout-year" id="readout-year">—</p>
-        <p class="readout-meta" id="readout-meta"></p>
-        <h3 class="readout-title" id="readout-title">选取轴上节点</h3>
-        <p class="readout-blurb" id="readout-blurb">在轴上选取一个节点，查看日期、标题与摘要。</p>
-        <div class="readout-tags" id="readout-tags"></div>
-      </div>
+      <footer class="site-footer chapter-foot">
+        <p>血条是估算，不是测量。每天核对一次。</p>
+      </footer>
+    </section>
+  </main>
 
-      <p class="axis-hint" id="axis-hint">拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停漫游</p>
-    </div>
-  </section>
-
-  <div class="page page-foot">
-    <footer class="site-footer">
-      <p>血条是估算，不是测量。每天核对一次。</p>
-    </footer>
-  </div>
-
+  <script src="data.js"></script>
   <script src="stories.js" defer></script>
   <script src="app.js" defer></script>
 </body>

@@ -9,315 +9,693 @@
       "title": "ENIAC 公开亮相",
       "blurb": "宾夕法尼亚大学展示首台通用电子数字计算机，用电子速度处理此前人力难以完成的计算。",
       "era": "奠基",
-      "tags": ["计算机", "硬件"]
+      "tags": [
+        "计算机",
+        "硬件"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "1950-10-01",
+      "title": "图灵《计算机器与智能》",
+      "blurb": "图灵在 Mind 发表论文，提出后来被称为图灵测试的模仿游戏，追问机器能否思考。",
+      "era": "奠基",
+      "tags": [
+        "AI",
+        "学术"
+      ],
+      "impact": "high"
     },
     {
       "date": "1956-06-18",
       "title": "达特茅斯人工智能夏季研讨班",
       "blurb": "麦卡锡等人正式提出「人工智能」一词，奠定 AI 作为独立研究领域的起点。",
       "era": "奠基",
-      "tags": ["AI", "学术"]
+      "tags": [
+        "AI",
+        "学术"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "1958-07-01",
+      "title": "感知机 Perceptron",
+      "blurb": "罗森布拉特提出可学习的感知机模型，成为早期神经网络与媒体热潮的象征。",
+      "era": "奠基",
+      "tags": [
+        "神经网络",
+        "学术"
+      ],
+      "impact": "mid"
     },
     {
       "date": "1966-01-01",
       "title": "ELIZA",
       "blurb": "魏岑鲍姆在 MIT 完成早期自然语言对话程序，用模式匹配制造「理解」的幻觉。",
       "era": "奠基",
-      "tags": ["NLP", "对话"]
+      "tags": [
+        "NLP",
+        "对话"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "1986-10-09",
+      "title": "反向传播登上 Nature",
+      "blurb": "Rumelhart、Hinton 与 Williams 展示用反向传播学习内部表征，多层网络重新变得可行。",
+      "era": "奠基",
+      "tags": [
+        "神经网络",
+        "学术"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "1989-11-01",
+      "title": "LeCun 卷积网络识别邮编",
+      "blurb": "Yann LeCun 等人将卷积网络用于手写邮编识别，奠定现代计算机视觉的一条主线。",
+      "era": "奠基",
+      "tags": [
+        "视觉",
+        "CNN"
+      ],
+      "impact": "mid"
     },
     {
       "date": "1997-05-11",
       "title": "深蓝击败卡斯帕罗夫",
       "blurb": "IBM Deep Blue 在标准时制限下首次战胜国际象棋世界冠军，标志专用搜索系统的巅峰。",
       "era": "专用智能",
-      "tags": ["博弈", "搜索"]
+      "tags": [
+        "博弈",
+        "搜索"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "1997-11-15",
+      "title": "LSTM 长短期记忆",
+      "blurb": "Hochreiter 与 Schmidhuber 提出 LSTM，缓解循环网络的梯度消失，支撑其后序列建模。",
+      "era": "奠基",
+      "tags": [
+        "RNN",
+        "学术"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2006-07-01",
+      "title": "深度信念网络与深度预训练",
+      "blurb": "Hinton 等人推动深度信念网与逐层预训练，深度网络在算力回升前重新获得关注。",
+      "era": "深度学习",
+      "tags": [
+        "深度学习",
+        "学术"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2009-06-01",
+      "title": "ImageNet 数据集发布",
+      "blurb": "邓嘉等人构建大规模标注图像库，为随后的视觉竞赛与 AlexNet 突破提供燃料。",
+      "era": "深度学习",
+      "tags": [
+        "视觉",
+        "数据"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2011-02-14",
       "title": "Watson 参加《危险边缘》",
       "blurb": "IBM Watson 在 Jeopardy! 上战胜人类冠军，展示开放域问答与知识检索的能力。",
       "era": "专用智能",
-      "tags": ["问答", "知识"]
+      "tags": [
+        "问答",
+        "知识"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2011-10-04",
+      "title": "Siri 随 iPhone 4S 上线",
+      "blurb": "苹果将语音助手带进大众手机，自然语言交互第一次成为消费级入口。",
+      "era": "专用智能",
+      "tags": [
+        "对话",
+        "语音"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2012-09-30",
       "title": "AlexNet 横扫 ImageNet",
       "blurb": "深度卷积网络在 GPU 上大幅压低图像分类错误率，被视为现代深度学习起飞的时刻。",
       "era": "深度学习",
-      "tags": ["视觉", "CNN"]
+      "tags": [
+        "视觉",
+        "CNN"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2013-08-16",
+      "title": "Word2Vec 词向量",
+      "blurb": "Mikolov 等人的词嵌入方法让语义可用向量运算，重塑自然语言处理的表示层。",
+      "era": "深度学习",
+      "tags": [
+        "NLP",
+        "表示"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2014-06-10",
       "title": "生成对抗网络 GAN",
       "blurb": "Goodfellow 提出生成器与判别器相互博弈的框架，打开高保真合成图像的大门。",
       "era": "深度学习",
-      "tags": ["生成", "视觉"]
+      "tags": [
+        "生成",
+        "视觉"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2015-12-10",
+      "title": "ResNet 残差网络",
+      "blurb": "何恺明等人提出残差连接，使极深卷积网络可训练，成为视觉骨干的默认选择之一。",
+      "era": "深度学习",
+      "tags": [
+        "视觉",
+        "CNN"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2015-12-11",
+      "title": "OpenAI 成立",
+      "blurb": "非营利实验室宣布成立，随后以大规模预训练与 API 深刻改写产业格局。",
+      "era": "深度学习",
+      "tags": [
+        "产业",
+        "研究"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2016-03-15",
       "title": "AlphaGo 击败李世石",
       "blurb": "DeepMind 的强化学习系统以 4:1 战胜围棋世界冠军，证明深度 RL 可攻克直觉性博弈。",
       "era": "深度学习",
-      "tags": ["强化学习", "博弈"]
+      "tags": [
+        "强化学习",
+        "博弈"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2016-09-08",
+      "title": "WaveNet 生成语音",
+      "blurb": "DeepMind 发表原始波形级语音生成模型，展示深度生成模型在音频上的实力。",
+      "era": "深度学习",
+      "tags": [
+        "语音",
+        "生成"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2017-06-12",
       "title": "Transformer",
       "blurb": "《Attention Is All You Need》提出纯注意力架构，放弃循环与卷积，成为后续大模型底座。",
       "era": "Transformer",
-      "tags": ["架构", "NLP"]
+      "tags": [
+        "架构",
+        "NLP"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2017-12-05",
+      "title": "AlphaZero",
+      "blurb": "DeepMind 展示从零自对弈精通围棋、国际象棋与将棋，强化学习再登高峰。",
+      "era": "深度学习",
+      "tags": [
+        "强化学习",
+        "博弈"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2018-06-11",
+      "title": "GPT-1",
+      "blurb": "OpenAI 发表生成式预训练论文，用单向语言模型预训练加微调点燃 GPT 路线。",
+      "era": "Transformer",
+      "tags": [
+        "语言模型",
+        "预训练"
+      ],
+      "impact": "high"
     },
     {
       "date": "2018-10-11",
       "title": "BERT",
       "blurb": "Google 发布双向预训练语言模型，用掩码语言建模刷新多项自然语言理解基准。",
       "era": "Transformer",
-      "tags": ["预训练", "NLP"]
+      "tags": [
+        "预训练",
+        "NLP"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2019-02-14",
       "title": "GPT-2",
       "blurb": "OpenAI 展示 15 亿参数无监督语言模型，因滥用风险采取分阶段发布策略。",
       "era": "Transformer",
-      "tags": ["语言模型", "生成"]
+      "tags": [
+        "语言模型",
+        "生成"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2020-06-11",
       "title": "GPT-3 / OpenAI API",
       "blurb": "1750 亿参数少样本模型上线 API，证明规模化预训练可涌现多种任务能力。",
       "era": "Transformer",
-      "tags": ["语言模型", "API"]
+      "tags": [
+        "语言模型",
+        "API"
+      ],
+      "impact": "high"
     },
     {
       "date": "2021-01-05",
       "title": "DALL·E",
       "blurb": "OpenAI 展示从文本提示生成图像的模型，把「描述即画面」变成可演示的现实。",
       "era": "Transformer",
-      "tags": ["图像", "多模态"]
+      "tags": [
+        "图像",
+        "多模态"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2021-06-29",
+      "title": "GitHub Copilot 技术预览",
+      "blurb": "基于 Codex 的编程助手进入开发者日常，代码补全成为大模型最早的生产力场景之一。",
+      "era": "Transformer",
+      "tags": [
+        "代码",
+        "工具"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2021-07-15",
       "title": "AlphaFold 2 论文发表",
       "blurb": "DeepMind 在 Nature 发表高精度蛋白质结构预测结果，几乎解决生物学核心难题之一。",
       "era": "Transformer",
-      "tags": ["科学", "生物"]
+      "tags": [
+        "科学",
+        "生物"
+      ],
+      "impact": "high"
     },
     {
       "date": "2021-08-10",
       "title": "OpenAI Codex",
       "blurb": "在代码语料上训练的模型驱动 GitHub Copilot，自然语言到代码进入日常工具链。",
       "era": "Transformer",
-      "tags": ["代码", "工具"]
+      "tags": [
+        "代码",
+        "工具"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2022-01-27",
+      "title": "InstructGPT / RLHF 对齐",
+      "blurb": "OpenAI 展示用人类反馈强化学习让模型更跟指令，为 ChatGPT 式对话产品铺路。",
+      "era": "生成爆发",
+      "tags": [
+        "对齐",
+        "对话"
+      ],
+      "impact": "high"
     },
     {
       "date": "2022-07-12",
       "title": "Midjourney 开放测试",
       "blurb": "Discord 上的文本到图像服务进入开放测试，艺术与设计圈迅速被生成图淹没。",
       "era": "生成爆发",
-      "tags": ["图像", "创作"]
+      "tags": [
+        "图像",
+        "创作"
+      ],
+      "impact": "high"
     },
     {
       "date": "2022-08-22",
       "title": "Stable Diffusion 公开发布",
       "blurb": "Stability AI 开源潜空间扩散模型权重，人人可在消费级硬件上跑图像生成。",
       "era": "生成爆发",
-      "tags": ["图像", "开源"]
+      "tags": [
+        "图像",
+        "开源"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2022-11-30",
       "title": "ChatGPT",
       "blurb": "OpenAI 以对话界面发布 GPT-3.5 产品，生成式 AI 一夜之间进入亿级用户视野。",
       "era": "生成爆发",
-      "tags": ["对话", "产品"]
+      "tags": [
+        "对话",
+        "产品"
+      ],
+      "impact": "high"
     },
     {
       "date": "2023-02-24",
       "title": "LLaMA",
       "blurb": "Meta 发布面向研究的开放权重语言模型家族，拉开开源基座模型竞赛序幕。",
       "era": "生成爆发",
-      "tags": ["开源", "语言模型"]
+      "tags": [
+        "开源",
+        "语言模型"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2023-03-14",
       "title": "GPT-4",
       "blurb": "OpenAI 发布多模态输入旗舰模型，推理、编码与考试表现相对上一代跃升明显。",
       "era": "生成爆发",
-      "tags": ["旗舰", "多模态"]
+      "tags": [
+        "旗舰",
+        "多模态"
+      ],
+      "impact": "high"
     },
     {
       "date": "2023-03-14",
       "title": "Claude 首次公开发布",
       "blurb": "Anthropic 推出注重安全对齐的对话模型 Claude，成为 ChatGPT 的重要竞品。",
       "era": "生成爆发",
-      "tags": ["对话", "安全"]
+      "tags": [
+        "对话",
+        "安全"
+      ],
+      "impact": "high"
     },
     {
       "date": "2023-07-18",
       "title": "Llama 2",
       "blurb": "Meta 开放可商用权重与聊天变体，企业与社区得以在自有基础设施上部署强模型。",
       "era": "生成爆发",
-      "tags": ["开源", "商用"]
+      "tags": [
+        "开源",
+        "商用"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2023-12-06",
       "title": "Gemini 1.0",
       "blurb": "Google DeepMind 发布原生多模态旗舰家族，把文本、图像与代码纳入统一训练。",
       "era": "生成爆发",
-      "tags": ["多模态", "旗舰"]
+      "tags": [
+        "多模态",
+        "旗舰"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2024-02-15",
+      "title": "Sora 技术预告",
+      "blurb": "OpenAI 公布文生视频模型 Sora 的技术演示，推动视频生成进入大众视野。",
+      "era": "推理与代理",
+      "tags": [
+        "视频",
+        "多模态"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2024-03-04",
+      "title": "Claude 3 家族发布",
+      "blurb": "Anthropic 推出 Haiku / Sonnet / Opus 三代同堂，在推理与长上下文上拉开新一轮竞速。",
+      "era": "推理与代理",
+      "tags": [
+        "旗舰",
+        "对话"
+      ],
+      "impact": "high"
     },
     {
       "date": "2024-05-13",
       "title": "GPT-4o",
       "blurb": "OpenAI 推出端到端全模态模型，实时语音与视觉交互显著降低延迟。",
       "era": "推理与代理",
-      "tags": ["多模态", "语音"]
+      "tags": [
+        "多模态",
+        "语音"
+      ],
+      "impact": "high"
     },
     {
       "date": "2024-06-20",
       "title": "Claude 3.5 Sonnet",
       "blurb": "Anthropic 发布在编码与视觉上大幅领先的平衡型模型，迅速成为开发者默认选项。",
       "era": "推理与代理",
-      "tags": ["编码", "旗舰"]
+      "tags": [
+        "编码",
+        "旗舰"
+      ],
+      "impact": "high"
     },
     {
       "date": "2024-07-23",
       "title": "Llama 3.1",
       "blurb": "Meta 开源至 405B 参数的前沿开放模型，并强化工具调用与多语言能力。",
       "era": "推理与代理",
-      "tags": ["开源", "规模"]
+      "tags": [
+        "开源",
+        "规模"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2024-09-12",
       "title": "o1-preview",
       "blurb": "OpenAI 推出在回答前进行长链推理的模型，数学与复杂编码基准大幅提升。",
       "era": "推理与代理",
-      "tags": ["推理", "数学"]
+      "tags": [
+        "推理",
+        "数学"
+      ],
+      "impact": "high"
     },
     {
       "date": "2024-12-09",
       "title": "Sora 公开发布",
       "blurb": "OpenAI 将文本到视频模型以 Sora Turbo 形式对公众开放，影视与广告行业震动。",
       "era": "推理与代理",
-      "tags": ["视频", "多模态"]
+      "tags": [
+        "视频",
+        "多模态"
+      ],
+      "impact": "high"
     },
     {
       "date": "2025-01-20",
       "title": "DeepSeek-R1",
       "blurb": "深度求索开源推理模型，以蒸馏与强化学习路线证明高效推理不必依赖封闭巨头。",
       "era": "2025 浪潮",
-      "tags": ["推理", "开源"]
+      "tags": [
+        "推理",
+        "开源"
+      ],
+      "impact": "high"
     },
     {
       "date": "2025-02-24",
       "title": "Claude 3.7 Sonnet",
       "blurb": "Anthropic 推出混合推理模型，可在瞬时回答与延长思考之间切换。",
       "era": "2025 浪潮",
-      "tags": ["推理", "编码"]
+      "tags": [
+        "推理",
+        "编码"
+      ],
+      "impact": "high"
     },
     {
       "date": "2025-04-05",
       "title": "Llama 4",
       "blurb": "Meta 发布开放多模态 MoE 家族，继续压低高性能开放权重的准入门槛。",
       "era": "2025 浪潮",
-      "tags": ["开源", "多模态"]
+      "tags": [
+        "开源",
+        "多模态"
+      ],
+      "impact": "low"
     },
     {
       "date": "2025-04-16",
       "title": "o3 / o4-mini",
       "blurb": "OpenAI 推理系列升级，强化工具使用与编码，为后续统一旗舰铺路。",
       "era": "2025 浪潮",
-      "tags": ["推理", "工具"]
+      "tags": [
+        "推理",
+        "工具"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2025-05-22",
       "title": "Claude Opus 4 / Sonnet 4",
       "blurb": "Anthropic 新一代编码与智能体旗舰，在长程任务与终端基准上刷新纪录。",
       "era": "2025 浪潮",
-      "tags": ["编码", "智能体"]
+      "tags": [
+        "编码",
+        "智能体"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2025-08-07",
       "title": "GPT-5",
       "blurb": "OpenAI 将快速模型与深度推理统一为一路由系统，编码、数学与健康问答全面跃升。",
       "era": "2025 浪潮",
-      "tags": ["旗舰", "统一"]
+      "tags": [
+        "旗舰",
+        "统一"
+      ],
+      "impact": "high"
     },
     {
       "date": "2025-09-29",
       "title": "Claude Sonnet 4.5",
       "blurb": "Anthropic 称其为当时最强编码与计算机使用模型，并强化长程智能体工作流。",
       "era": "2025 浪潮",
-      "tags": ["编码", "计算机使用"]
+      "tags": [
+        "编码",
+        "计算机使用"
+      ],
+      "impact": "low"
     },
     {
       "date": "2025-09-30",
       "title": "Sora 2",
       "blurb": "OpenAI 发布新一代视频生成，物理一致性与可控性相对首版显著改善。",
       "era": "2025 浪潮",
-      "tags": ["视频", "创作"]
+      "tags": [
+        "视频",
+        "创作"
+      ],
+      "impact": "low"
     },
     {
       "date": "2025-11-18",
       "title": "Gemini 3",
       "blurb": "Google 发布新旗舰家族，在推理、多模态与编码上对标同期闭源前沿。",
       "era": "2025 浪潮",
-      "tags": ["旗舰", "多模态"]
+      "tags": [
+        "旗舰",
+        "多模态"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2025-11-24",
       "title": "Claude Opus 4.5",
       "blurb": "Anthropic 旗舰再升级，强调编码、智能体与日常知识工作中的计算机使用。",
       "era": "2025 浪潮",
-      "tags": ["编码", "智能体"]
+      "tags": [
+        "编码",
+        "智能体"
+      ],
+      "impact": "low"
     },
     {
       "date": "2025-12-11",
       "title": "GPT-5.2",
       "blurb": "OpenAI 在 GPT-5 代内继续迭代知识工作与长上下文智能体能力。",
       "era": "2025 浪潮",
-      "tags": ["旗舰", "智能体"]
+      "tags": [
+        "旗舰",
+        "智能体"
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-04-23",
       "title": "GPT-5.5",
       "blurb": "OpenAI 旗舰强化计算机使用与知识工作，成为 ChatGPT 默认一代的重要节点。",
       "era": "2026 临界",
-      "tags": ["旗舰", "计算机使用"]
+      "tags": [
+        "旗舰",
+        "计算机使用"
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-07-09",
       "title": "GPT-5.6 Sol / Terra / Luna",
       "blurb": "OpenAI 以能力层命名推出三档模型，把前沿推理铺向更广的成本曲线。",
       "era": "2026 临界",
-      "tags": ["旗舰", "分层"]
+      "tags": [
+        "旗舰",
+        "分层"
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-07-24",
       "title": "Claude Opus 5",
       "blurb": "Anthropic 新一代旗舰，面向编码、智能体、知识工作与科学研究的综合前沿。",
       "era": "2026 临界",
-      "tags": ["旗舰", "科学"]
+      "tags": [
+        "旗舰",
+        "科学"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2026-09-02",
       "title": "Gemini 3.8 Flash",
       "blurb": "Google 发布高速推理与编码工作马模型，并推出面向防御方的网络安全变体。",
       "era": "2026 临界",
-      "tags": ["编码", "安全"]
+      "tags": [
+        "编码",
+        "安全"
+      ],
+      "impact": "low"
     },
     {
       "date": "2026-09-03",
       "title": "GPT-6 Astra",
       "blurb": "OpenAI 称其为一代际跃迁，在专业工作、软件工程与计算机使用上宣称进入「AGI 时代」叙事。",
       "era": "2026 临界",
-      "tags": ["旗舰", "AGI叙事"]
+      "tags": [
+        "旗舰",
+        "AGI叙事"
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-09-28",
       "title": "Claude Sonnet 5.5",
       "blurb": "Anthropic Claude 5.5 家族第二款模型，更快更便宜，擅长日常任务、修 bug 与文档幻灯片。",
       "era": "2026 临界",
-      "tags": ["编码", "效率"]
+      "tags": [
+        "编码",
+        "效率"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [

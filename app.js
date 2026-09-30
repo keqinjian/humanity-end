@@ -226,7 +226,8 @@
       tags.has("图像") ||
       tags.has("视频") ||
       tags.has("视觉") ||
-      tags.has("CNN")
+      tags.has("CNN") ||
+      tags.has("语音")
     ) {
       return "image";
     }
@@ -272,6 +273,7 @@
     const elTitle = $("#readout-title");
     const elBlurb = $("#readout-blurb");
     const elTags = $("#readout-tags");
+    const elPlayheadYear = $("#playhead-year");
     const storyStrip = { el: null };
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -440,8 +442,12 @@
 
     function paintReadout(evt) {
       if (!evt) return;
-      elYear.textContent = yearOf(evt.date);
-      elMeta.textContent = `${formatISO(evt.date)} · ${evt.era} · ${trackMeta(trackOf(evt)).name}`;
+      const y = yearOf(evt.date);
+      elYear.textContent = y;
+      if (elPlayheadYear) elPlayheadYear.textContent = y;
+      const impact = evt.impact === "high" || evt.impact === "low" ? evt.impact : "mid";
+      const impactLabel = { high: "高影响", mid: "中影响", low: "低影响" }[impact];
+      elMeta.textContent = `${formatISO(evt.date)} · ${evt.era} · ${trackMeta(trackOf(evt)).name} · ${impactLabel}`;
       elTitle.textContent = evt.title;
       elBlurb.textContent = evt.blurb || "";
       elTags.textContent = "";
@@ -572,8 +578,12 @@
     }
 
     function focusStories() {
-      if (!window.__HUMANITY_STORY__ || !storyStrip.el) return;
       const centerX = viewport.scrollLeft + viewport.clientWidth * 0.5;
+      const near = nearestIndexAtCenter();
+      if (elPlayheadYear && events[near]) {
+        elPlayheadYear.textContent = yearOf(events[near].date);
+      }
+      if (!window.__HUMANITY_STORY__ || !storyStrip.el) return;
       window.__HUMANITY_STORY__.focusStrip(
         storyStrip.el,
         (i) => xAt(i),
@@ -671,14 +681,20 @@
         track.append(band);
       });
 
-      for (let y = Math.ceil(yStart / 5) * 5; y <= yEnd; y += 5) {
+            const yearSet = new Set();
+      for (let y = yStart; y <= yEnd; y++) {
+        const isDecade = y % 10 === 0;
+        const isFive = y % 5 === 0;
+        const late = y >= 2015;
+        if (!(isDecade || isFive || late)) continue;
+        if (yearSet.has(y)) continue;
+        yearSet.add(y);
         const tick = document.createElement("div");
-        tick.className = "axis-tick";
-        tick.dataset.year = String(y);
+        tick.className = "axis-tick" + (isDecade ? " is-decade" : late && !isFive ? " is-year" : "");
         tick.style.left = `${xOf(dayStamp(`${y}-01-01`))}px`;
         tick.setAttribute("aria-hidden", "true");
         const lab = document.createElement("span");
-        lab.className = "axis-tick-label";
+        lab.className = "axis-tick-label" + (isDecade ? " is-decade" : "");
         lab.dataset.year = String(y);
         lab.textContent = String(y);
         lab.style.left = tick.style.left;
@@ -690,11 +706,13 @@
         const meta = trackMeta(tid);
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = `axis-node track-${tid}`;
+        const impact = evt.impact === "high" || evt.impact === "low" ? evt.impact : "mid";
+        btn.className = `axis-node track-${tid} impact-${impact}`;
         btn.style.left = `${xAt(i)}px`;
         btn.style.top = meta.top;
         btn.dataset.index = String(i);
         btn.dataset.track = tid;
+        btn.dataset.impact = impact;
         btn.setAttribute(
           "aria-label",
           `${yearOf(evt.date)} ${evt.title}，${meta.name}，${evt.era}`

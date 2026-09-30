@@ -13,7 +13,19 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "计算机",
         "硬件"
-      ]
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "1950-10-01",
+      "title": "图灵《计算机器与智能》",
+      "blurb": "图灵在 Mind 发表论文，提出后来被称为图灵测试的模仿游戏，追问机器能否思考。",
+      "era": "奠基",
+      "tags": [
+        "AI",
+        "学术"
+      ],
+      "impact": "high"
     },
     {
       "date": "1956-06-18",
@@ -23,7 +35,19 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "AI",
         "学术"
-      ]
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "1958-07-01",
+      "title": "感知机 Perceptron",
+      "blurb": "罗森布拉特提出可学习的感知机模型，成为早期神经网络与媒体热潮的象征。",
+      "era": "奠基",
+      "tags": [
+        "神经网络",
+        "学术"
+      ],
+      "impact": "mid"
     },
     {
       "date": "1966-01-01",
@@ -33,7 +57,30 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "NLP",
         "对话"
-      ]
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "1986-10-09",
+      "title": "反向传播登上 Nature",
+      "blurb": "Rumelhart、Hinton 与 Williams 展示用反向传播学习内部表征，多层网络重新变得可行。",
+      "era": "奠基",
+      "tags": [
+        "神经网络",
+        "学术"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "1989-11-01",
+      "title": "LeCun 卷积网络识别邮编",
+      "blurb": "Yann LeCun 等人将卷积网络用于手写邮编识别，奠定现代计算机视觉的一条主线。",
+      "era": "奠基",
+      "tags": [
+        "视觉",
+        "CNN"
+      ],
+      "impact": "mid"
     },
     {
       "date": "1997-05-11",
@@ -43,7 +90,41 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "博弈",
         "搜索"
-      ]
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "1997-11-15",
+      "title": "LSTM 长短期记忆",
+      "blurb": "Hochreiter 与 Schmidhuber 提出 LSTM，缓解循环网络的梯度消失，支撑其后序列建模。",
+      "era": "奠基",
+      "tags": [
+        "RNN",
+        "学术"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2006-07-01",
+      "title": "深度信念网络与深度预训练",
+      "blurb": "Hinton 等人推动深度信念网与逐层预训练，深度网络在算力回升前重新获得关注。",
+      "era": "深度学习",
+      "tags": [
+        "深度学习",
+        "学术"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2009-06-01",
+      "title": "ImageNet 数据集发布",
+      "blurb": "邓嘉等人构建大规模标注图像库，为随后的视觉竞赛与 AlexNet 突破提供燃料。",
+      "era": "深度学习",
+      "tags": [
+        "视觉",
+        "数据"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2011-02-14",
@@ -53,7 +134,19 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "问答",
         "知识"
-      ]
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2011-10-04",
+      "title": "Siri 随 iPhone 4S 上线",
+      "blurb": "苹果将语音助手带进大众手机，自然语言交互第一次成为消费级入口。",
+      "era": "专用智能",
+      "tags": [
+        "对话",
+        "语音"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2012-09-30",
@@ -63,7 +156,19 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "视觉",
         "CNN"
-      ]
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2013-08-16",
+      "title": "Word2Vec 词向量",
+      "blurb": "Mikolov 等人的词嵌入方法让语义可用向量运算，重塑自然语言处理的表示层。",
+      "era": "深度学习",
+      "tags": [
+        "NLP",
+        "表示"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2014-06-10",
@@ -73,7 +178,30 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "生成",
         "视觉"
-      ]
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2015-12-10",
+      "title": "ResNet 残差网络",
+      "blurb": "何恺明等人提出残差连接，使极深卷积网络可训练，成为视觉骨干的默认选择之一。",
+      "era": "深度学习",
+      "tags": [
+        "视觉",
+        "CNN"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2015-12-11",
+      "title": "OpenAI 成立",
+      "blurb": "非营利实验室宣布成立，随后以大规模预训练与 API 深刻改写产业格局。",
+      "era": "深度学习",
+      "tags": [
+        "产业",
+        "研究"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2016-03-15",
@@ -83,7 +211,19 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "强化学习",
         "博弈"
-      ]
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2016-09-08",
+      "title": "WaveNet 生成语音",
+      "blurb": "DeepMind 发表原始波形级语音生成模型，展示深度生成模型在音频上的实力。",
+      "era": "深度学习",
+      "tags": [
+        "语音",
+        "生成"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2017-06-12",
@@ -93,7 +233,30 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "架构",
         "NLP"
-      ]
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2017-12-05",
+      "title": "AlphaZero",
+      "blurb": "DeepMind 展示从零自对弈精通围棋、国际象棋与将棋，强化学习再登高峰。",
+      "era": "深度学习",
+      "tags": [
+        "强化学习",
+        "博弈"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2018-06-11",
+      "title": "GPT-1",
+      "blurb": "OpenAI 发表生成式预训练论文，用单向语言模型预训练加微调点燃 GPT 路线。",
+      "era": "Transformer",
+      "tags": [
+        "语言模型",
+        "预训练"
+      ],
+      "impact": "high"
     },
     {
       "date": "2018-10-11",
@@ -103,7 +266,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "预训练",
         "NLP"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2019-02-14",
@@ -113,7 +277,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "语言模型",
         "生成"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2020-06-11",
@@ -123,7 +288,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "语言模型",
         "API"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2021-01-05",
@@ -133,7 +299,19 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "图像",
         "多模态"
-      ]
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2021-06-29",
+      "title": "GitHub Copilot 技术预览",
+      "blurb": "基于 Codex 的编程助手进入开发者日常，代码补全成为大模型最早的生产力场景之一。",
+      "era": "Transformer",
+      "tags": [
+        "代码",
+        "工具"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2021-07-15",
@@ -143,7 +321,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "科学",
         "生物"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2021-08-10",
@@ -153,7 +332,19 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "代码",
         "工具"
-      ]
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2022-01-27",
+      "title": "InstructGPT / RLHF 对齐",
+      "blurb": "OpenAI 展示用人类反馈强化学习让模型更跟指令，为 ChatGPT 式对话产品铺路。",
+      "era": "生成爆发",
+      "tags": [
+        "对齐",
+        "对话"
+      ],
+      "impact": "high"
     },
     {
       "date": "2022-07-12",
@@ -163,7 +354,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "图像",
         "创作"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2022-08-22",
@@ -173,7 +365,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "图像",
         "开源"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2022-11-30",
@@ -183,7 +376,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "对话",
         "产品"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2023-02-24",
@@ -193,7 +387,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "开源",
         "语言模型"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2023-03-14",
@@ -203,7 +398,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "多模态"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2023-03-14",
@@ -213,7 +409,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "对话",
         "安全"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2023-07-18",
@@ -223,7 +420,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "开源",
         "商用"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2023-12-06",
@@ -233,7 +431,30 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "多模态",
         "旗舰"
-      ]
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2024-02-15",
+      "title": "Sora 技术预告",
+      "blurb": "OpenAI 公布文生视频模型 Sora 的技术演示，推动视频生成进入大众视野。",
+      "era": "推理与代理",
+      "tags": [
+        "视频",
+        "多模态"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2024-03-04",
+      "title": "Claude 3 家族发布",
+      "blurb": "Anthropic 推出 Haiku / Sonnet / Opus 三代同堂，在推理与长上下文上拉开新一轮竞速。",
+      "era": "推理与代理",
+      "tags": [
+        "旗舰",
+        "对话"
+      ],
+      "impact": "high"
     },
     {
       "date": "2024-05-13",
@@ -243,7 +464,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "多模态",
         "语音"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2024-06-20",
@@ -253,7 +475,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "编码",
         "旗舰"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2024-07-23",
@@ -263,7 +486,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "开源",
         "规模"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2024-09-12",
@@ -273,7 +497,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "推理",
         "数学"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2024-12-09",
@@ -283,7 +508,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "视频",
         "多模态"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2025-01-20",
@@ -293,7 +519,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "推理",
         "开源"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2025-02-24",
@@ -303,7 +530,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "推理",
         "编码"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2025-04-05",
@@ -313,7 +541,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "开源",
         "多模态"
-      ]
+      ],
+      "impact": "low"
     },
     {
       "date": "2025-04-16",
@@ -323,7 +552,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "推理",
         "工具"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2025-05-22",
@@ -333,7 +563,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "编码",
         "智能体"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2025-08-07",
@@ -343,7 +574,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "统一"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2025-09-29",
@@ -353,7 +585,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "编码",
         "计算机使用"
-      ]
+      ],
+      "impact": "low"
     },
     {
       "date": "2025-09-30",
@@ -363,7 +596,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "视频",
         "创作"
-      ]
+      ],
+      "impact": "low"
     },
     {
       "date": "2025-11-18",
@@ -373,7 +607,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "多模态"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2025-11-24",
@@ -383,7 +618,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "编码",
         "智能体"
-      ]
+      ],
+      "impact": "low"
     },
     {
       "date": "2025-12-11",
@@ -393,7 +629,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "智能体"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-04-23",
@@ -403,7 +640,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "计算机使用"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-07-09",
@@ -413,7 +651,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "分层"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-07-24",
@@ -423,7 +662,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "科学"
-      ]
+      ],
+      "impact": "mid"
     },
     {
       "date": "2026-09-02",
@@ -433,7 +673,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "编码",
         "安全"
-      ]
+      ],
+      "impact": "low"
     },
     {
       "date": "2026-09-03",
@@ -443,7 +684,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "AGI叙事"
-      ]
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-09-28",
@@ -453,7 +695,8 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "编码",
         "效率"
-      ]
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
