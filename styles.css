@@ -632,9 +632,9 @@ body {
 
 .story-panel {
   position: absolute;
-  top: 42%;
-  height: min(640px, 82%);
-  transform: translate(-50%, -52%);
+  top: 40%; /* JS overrides with rail top */
+  height: min(260px, 32%);
+  transform: translate(-50%, -58%);
   opacity: 0.12;
   overflow: visible;
   display: flex;
@@ -725,23 +725,46 @@ body {
   min-width: 100%;
 }
 
-.axis-spine {
+
+/* Four parallel rails (shared time scale) */
+.axis-rail {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--steel) 1.5%,
-    var(--steel) 98.5%,
+    var(--steel) 2%,
+    var(--steel) 98%,
     transparent 100%
   );
   transform: translateY(-50%);
-  opacity: 0.9;
+  opacity: 0.55;
   pointer-events: none;
+  z-index: 1;
 }
+
+.axis-rail-label {
+  position: sticky;
+  left: 12px;
+  display: inline-block;
+  margin-top: -1.1rem;
+  padding: 0 6px;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  color: var(--steel);
+  background: var(--paper);
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.axis-spine {
+  display: none; /* replaced by .axis-rail */
+}
+
+.axis-spine-legacy-kept-for-compat { display: none; }
+
 
 .axis-spine::before,
 .axis-spine::after {
@@ -817,7 +840,7 @@ body {
 .axis-era-band {
   position: absolute;
   top: 10%;
-  bottom: 10%;
+  bottom: 6%;
   background: rgba(47, 111, 237, 0.035);
   border-left: 1px solid rgba(29, 78, 137, 0.14);
   border-right: 1px solid rgba(29, 78, 137, 0.14);
@@ -883,7 +906,7 @@ body {
 
 .axis-node {
   position: absolute;
-  top: 50%;
+  top: 50%; /* overridden per-track in JS */
   transform: translate(-50%, -50%);
   z-index: 3;
   width: 16px;
@@ -1004,7 +1027,7 @@ body {
   z-index: 6;
   isolation: isolate;
   pointer-events: none;
-  max-width: min(26rem, 34vw);
+  max-width: min(22rem, 30vw);
   transition: opacity 0.35s var(--ease), transform 0.4s var(--ease);
 }
 
@@ -1254,4 +1277,121 @@ body {
   .axis-hint {
     letter-spacing: 0.06em;
   }
+}
+
+
+.axis-node.track-lang .axis-node-mark {
+  border-radius: 1px;
+  transform: none;
+  width: 10px;
+  height: 10px;
+}
+.axis-node.track-lang.is-selected .axis-node-mark {
+  transform: scale(1.25);
+}
+.axis-node.track-image .axis-node-mark {
+  border-radius: 50%;
+  transform: none;
+}
+.axis-node.track-image.is-selected .axis-node-mark {
+  transform: scale(1.3);
+}
+.axis-node.track-control .axis-node-mark {
+  transform: rotate(45deg);
+}
+.axis-node.track-reason .axis-node-mark {
+  border-radius: 2px 2px 0 0;
+  transform: none;
+  width: 10px;
+  height: 12px;
+}
+.axis-node.track-reason.is-selected .axis-node-mark {
+  transform: scale(1.25);
+}
+
+.story-panel {
+  /* top set per track rail */
+}
+.story-panel.track-lang,
+.story-panel.track-image,
+.story-panel.track-control,
+.story-panel.track-reason {
+  transform: translate(-50%, -58%);
+}
+
+.story-plate-track {
+  margin: 0 0 2px;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  color: var(--steel);
+}
+
+.axis-progress {
+  top: 22%;
+  opacity: 0.35;
+}
+.axis-crosshair {
+  top: 8%;
+  bottom: 8%;
+}
+
+/* year ticks float above rails */
+.axis-tick {
+  top: 5% !important;
+  height: 10px !important;
+}
+.axis-tick-label {
+  top: 1.2% !important;
+  font-size: 0.62rem;
+}
+.axis-era-band {
+  top: 8% !important;
+  bottom: 6% !important;
+  opacity: 0.7;
+}
+.axis-era-band-label {
+  top: 4px;
+}
+
+.track-legend {
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  z-index: 4;
+  pointer-events: none;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  width: 5.8rem;
+}
+.track-legend li {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  color: var(--steel);
+  background: rgba(244, 247, 251, 0.94);
+  border-left: 2px solid var(--cyan);
+  padding: 2px 6px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.track-legend li:nth-child(1) { top: 22%; }
+.track-legend li:nth-child(2) { top: 40%; }
+.track-legend li:nth-child(3) { top: 58%; }
+.track-legend li:nth-child(4) { top: 76%; }
+.axis-rail-label {
+  display: none; /* fixed legend replaces sticky labels inside scroll */
+}
+.axis-rail {
+  opacity: 0.7;
+}
+.story-plate {
+  max-width: 85%;
+  padding: 4px 10px 6px;
+}
+.story-plate-title {
+  font-size: clamp(0.9rem, 1.3vw, 1.15rem);
 }

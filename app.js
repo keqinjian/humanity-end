@@ -211,7 +211,62 @@
 
   /* ——— Horizontal axis timeline ——— */
 
-    function dayStamp(iso) {
+  /* Four rails sharing one time scale — categories from existing tags only. */
+  const TRACKS = [
+    { id: "lang", name: "语言与代码", top: "22%" },
+    { id: "image", name: "图像与创作", top: "40%" },
+    { id: "control", name: "棋与控制", top: "58%" },
+    { id: "reason", name: "推理与通用", top: "76%" },
+  ];
+
+  function trackOf(evt) {
+    const tags = new Set(evt.tags || []);
+    const t = evt.title || "";
+    if (
+      /DALL|Midjourney|Stable Diffusion|Sora|AlexNet|GAN/.test(t) ||
+      tags.has("图像") ||
+      tags.has("视频") ||
+      tags.has("视觉") ||
+      tags.has("CNN")
+    ) {
+      return "image";
+    }
+    if (
+      tags.has("博弈") ||
+      tags.has("强化学习") ||
+      tags.has("硬件") ||
+      tags.has("计算机") ||
+      tags.has("计算机使用") ||
+      tags.has("智能体") ||
+      /深蓝|AlphaGo|ENIAC/.test(t)
+    ) {
+      return "control";
+    }
+    if (
+      tags.has("推理") ||
+      tags.has("科学") ||
+      tags.has("生物") ||
+      tags.has("数学") ||
+      tags.has("AGI叙事") ||
+      tags.has("统一") ||
+      tags.has("分层") ||
+      tags.has("学术") ||
+      /AlphaFold|DeepSeek|o1-preview|o3|o4|Astra/.test(t) ||
+      (tags.has("旗舰") && (tags.has("多模态") || !tags.has("编码")))
+    ) {
+      return "reason";
+    }
+    return "lang";
+  }
+
+  function trackMeta(id) {
+    return TRACKS.find((t) => t.id === id) || TRACKS[0];
+  }
+
+  window.__HUMANITY_TRACKS__ = { TRACKS, trackOf, trackMeta };
+
+
+  function dayStamp(iso) {
     const [y, m, d] = iso.split("-").map(Number);
     return Date.UTC(y, (m || 1) - 1, d || 1) / 86400000;
   }
@@ -245,9 +300,17 @@
      * stamps (year ticks) interpolate in time between neighboring events.
      * Same scrollLeft still maps 1:1 to the same picture.
      */
+    function yearFromStamp(stamp) {
+      return new Date(stamp * 86400000).getUTCFullYear();
+    }
+
+    /**
+     * Density scale with early-decade floor: 1946–1990 stays readable
+     * (wide min gaps), while 2020s still expand under KDE pressure.
+     */
     function buildDensityScale(stampList) {
       const n = stampList.length;
-      const h = 160; /* KDE bandwidth ~5 months */
+      const h = 160;
       let dens = stampList.map((t) => {
         let s = 0;
         for (let j = 0; j < n; j++) {
@@ -267,15 +330,35 @@
       const dMax = Math.max(...dens);
       const norm = dens.map((d) => (d - dMin) / Math.max(1e-9, dMax - dMin));
 
-      const MIN_GAP = 300; /* late-era nodes must not stack */
       const xs = [0];
       for (let i = 0; i < n - 1; i++) {
         const days = Math.max(0.5, stampList[i + 1] - stampList[i]);
         const nd = (norm[i] + norm[i + 1]) / 2;
-        /* Compress long empty stretches; amplify packed clusters. */
+        const y = yearFromStamp(stampList[i]);
+        /* Early decades: high floor + stronger year stretch. Late: denser KDE. */
+        let floor = 300;
+        let yearPow = 0.48;
+        let yearMul = 70;
+        if (y < 1970) {
+          floor = 520;
+          yearPow = 0.64;
+          yearMul = 130;
+        } else if (y < 2000) {
+          floor = 500;
+          yearPow = 0.62;
+          yearMul = 120;
+        } else if (y < 2012) {
+          floor = 440;
+          yearPow = 0.58;
+          yearMul = 100;
+        } else if (y < 2018) {
+          floor = 360;
+          yearPow = 0.5;
+          yearMul = 80;
+        }
         const gap = Math.max(
-          MIN_GAP,
-          70 * Math.pow(days / 365, 0.48) + 140 + nd * 340
+          floor,
+          yearMul * Math.pow(days / 365, yearPow) + 140 + nd * 340
         );
         xs.push(xs[i] + gap);
       }
@@ -331,6 +414,7 @@
       track.style.width = `${edgePad + contentSpan + edgePad}px`;
       nodes.forEach((btn, i) => {
         btn.style.left = `${xAt(i)}px`;
+        btn.style.top = trackMeta(trackOf(events[i])).top;
       });
       track.querySelectorAll(".axis-era-band").forEach((band) => {
         const era = band.dataset.era;
@@ -356,15 +440,18 @@
     }
 
     function applyMotif(evt) {
-      /* Pictures live on the scrub strip; selection only tags the stage. */
       stage.dataset.era = evt ? evt.era : "";
       stage.dataset.year = evt ? yearOf(evt.date) : "";
+      const tid = evt ? trackOf(evt) : "";
+      stage.dataset.track = tid;
+      const meta = tid ? trackMeta(tid) : null;
+      stage.dataset.trackName = meta ? meta.name : "";
     }
 
     function paintReadout(evt) {
       if (!evt) return;
       elYear.textContent = yearOf(evt.date);
-      elMeta.textContent = `${formatISO(evt.date)} · ${evt.era}`;
+      elMeta.textContent = `${formatISO(evt.date)} · ${evt.era} · ${trackMeta(trackOf(evt)).name}`;
       elTitle.textContent = evt.title;
       elBlurb.textContent = evt.blurb || "";
       elTags.textContent = "";
@@ -529,13 +616,22 @@
       track.append(strip);
       storyStrip.el = strip;
       if (window.__HUMANITY_STORY__) {
-        window.__HUMANITY_STORY__.mountStrip(strip, events, (i) => xAt(i));
+        window.__HUMANITY_STORY__.mountStrip(strip, events, (i) => xAt(i), trackOf);
       }
 
-      const spine = document.createElement("div");
-      spine.className = "axis-spine";
-      spine.setAttribute("aria-hidden", "true");
-      track.append(spine);
+      /* Four parallel rails sharing the density time scale. */
+      TRACKS.forEach((tr) => {
+        const rail = document.createElement("div");
+        rail.className = "axis-rail";
+        rail.dataset.track = tr.id;
+        rail.style.top = tr.top;
+        rail.setAttribute("aria-hidden", "true");
+        const railLab = document.createElement("span");
+        railLab.className = "axis-rail-label";
+        railLab.textContent = tr.name;
+        rail.append(railLab);
+        track.append(rail);
+      });
 
       const progress = document.createElement("div");
       progress.className = "axis-progress";
@@ -596,14 +692,18 @@
       }
 
       events.forEach((evt, i) => {
+        const tid = trackOf(evt);
+        const meta = trackMeta(tid);
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "axis-node";
+        btn.className = `axis-node track-${tid}`;
         btn.style.left = `${xAt(i)}px`;
+        btn.style.top = meta.top;
         btn.dataset.index = String(i);
+        btn.dataset.track = tid;
         btn.setAttribute(
           "aria-label",
-          `${yearOf(evt.date)} ${evt.title}，${evt.era}`
+          `${yearOf(evt.date)} ${evt.title}，${meta.name}，${evt.era}`
         );
         btn.setAttribute("aria-current", "false");
 
@@ -616,7 +716,7 @@
         mark.setAttribute("aria-hidden", "true");
 
         const label = document.createElement("span");
-        label.className = `axis-node-label ${i % 2 === 0 ? "is-above" : "is-below"}`;
+        label.className = "axis-node-label is-above";
         label.innerHTML = `<span class="axis-node-year">${escapeHtml(
           yearOf(evt.date)
         )}</span><span class="axis-node-title">${escapeHtml(evt.title)}</span>`;
@@ -656,7 +756,7 @@
       if (hint) {
         hint.textContent = era
           ? `已定位「${era}」区间 · 拖拽 / ← → 继续浏览`
-          : "拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停漫游";
+          : "四轨时间轴 · 拖拽/滚轮横移 · ← → 选点 · 悬停暂停";
       }
     }
 
@@ -789,7 +889,7 @@
       document.addEventListener("keydown", onKey);
       if (!reduceMotion) {
         animFrame = requestAnimationFrame(tick);
-        if (hint) hint.textContent = "拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停漫游";
+        if (hint) hint.textContent = "四轨时间轴 · 拖拽/滚轮横移 · ← → 选点 · 悬停暂停";
       } else if (hint) {
         hint.textContent = "已关闭自动漫游 · 拖拽或滚轮横向浏览 · ← → 选点";
       }
