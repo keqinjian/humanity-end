@@ -13,7 +13,7 @@
 <body>
   <a class="skip" href="#domains">跳到领域血条</a>
 
-  <div class="page">
+  <div class="page page-mast">
     <div class="dossier-strip" aria-label="档案抬头">
       <span class="dossier-bracket">[</span>
       <span class="dossier-key">档案</span>
@@ -47,49 +47,61 @@
         <div id="domain-tree" class="domain-tree" role="tree"></div>
       </section>
     </header>
+  </div>
 
-    <main>
-      <section class="timeline-section" id="timeline" aria-labelledby="timeline-heading">
-        <div class="section-head">
-          <h2 id="timeline-heading" class="section-title">
-            <span class="sec-mark">02</span>
-            <span class="sec-label">时间线</span>
-            <span class="sec-hint">自 ENIAC 起，只收录可核验、影响显著的里程碑</span>
-          </h2>
-        </div>
-        <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
+  <section class="timeline-section" id="timeline" aria-labelledby="timeline-heading">
+    <div class="timeline-chrome">
+      <div class="section-head">
+        <h2 id="timeline-heading" class="section-title">
+          <span class="sec-mark">02</span>
+          <span class="sec-label">时间线</span>
+          <span class="sec-hint">自 ENIAC 起，只收录可核验、影响显著的里程碑</span>
+        </h2>
+      </div>
+      <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
+    </div>
 
-        <div class="axis-stage" id="axis-stage">
-          <div
-            class="axis-viewport"
-            id="axis-viewport"
-            tabindex="0"
-            role="region"
-            aria-label="横向时间轴，可用方向键与滚轮浏览"
-            aria-roledescription="时间轴"
-          >
-            <div class="axis-bleed" aria-hidden="true">
-              <span class="axis-bleed-arc axis-bleed-arc--a"></span>
-              <span class="axis-bleed-arc axis-bleed-arc--b"></span>
-              <span class="axis-bleed-arc axis-bleed-arc--c"></span>
-              <span class="axis-bleed-label">X AXIS</span>
-            </div>
-            <div class="axis-track" id="timeline-list">
-              <!-- rendered by app.js -->
-            </div>
-          </div>
+    <div class="axis-stage" id="axis-stage" data-motif="foundation">
+      <div class="axis-field" id="axis-field" aria-hidden="true">
+        <div class="field-grid"></div>
+        <div class="field-links"></div>
+        <span class="field-ring field-ring--a"></span>
+        <span class="field-ring field-ring--b"></span>
+        <span class="field-ring field-ring--c"></span>
+        <span class="field-arc field-arc--1"></span>
+        <span class="field-arc field-arc--2"></span>
+        <span class="field-arc field-arc--3"></span>
+        <span class="field-arc field-arc--4"></span>
+        <div class="field-ticks" id="field-ticks"></div>
+        <span class="field-ghost-num" id="field-ghost-num">1946</span>
+        <span class="field-tag" id="field-tag">奠基</span>
+        <span class="field-axis-label">X AXIS</span>
+      </div>
 
-          <div class="axis-meta">
-            <p class="axis-hint" id="axis-hint">拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停漫游</p>
-            <div class="axis-detail" id="axis-detail" aria-live="polite">
-              <p class="axis-detail-empty">在轴上选取一个节点，查看日期、标题与摘要。</p>
-            </div>
-          </div>
-        </div>
+      <div
+        class="axis-viewport"
+        id="axis-viewport"
+        tabindex="0"
+        role="region"
+        aria-label="横向时间轴，可用方向键与滚轮浏览"
+        aria-roledescription="时间轴"
+      >
+        <div class="axis-track" id="timeline-list"></div>
+      </div>
 
-      </section>
-    </main>
+      <div class="axis-readout" id="axis-detail" aria-live="polite">
+        <p class="readout-year" id="readout-year">—</p>
+        <p class="readout-meta" id="readout-meta"></p>
+        <h3 class="readout-title" id="readout-title">选取轴上节点</h3>
+        <p class="readout-blurb" id="readout-blurb">在轴上选取一个节点，查看日期、标题与摘要。</p>
+        <div class="readout-tags" id="readout-tags"></div>
+      </div>
 
+      <p class="axis-hint" id="axis-hint">拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停漫游</p>
+    </div>
+  </section>
+
+  <div class="page page-foot">
     <footer class="site-footer">
       <p>血条是估算，不是测量。每天核对一次。</p>
     </footer>

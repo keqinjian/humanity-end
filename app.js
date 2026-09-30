@@ -211,6 +211,22 @@
 
   /* ——— Horizontal axis timeline ——— */
 
+  const ERA_MOTIF = {
+    "奠基": "foundation",
+    "专用智能": "specialist",
+    "深度学习": "deep",
+    "Transformer": "transformer",
+    "生成爆发": "generation",
+    "推理与代理": "reason",
+    "2025 浪潮": "wave",
+    "2026 临界": "critical",
+  };
+
+  function motifFor(evt) {
+    if (!evt) return "foundation";
+    return ERA_MOTIF[evt.era] || "foundation";
+  }
+
   function dayStamp(iso) {
     const [y, m, d] = iso.split("-").map(Number);
     return Date.UTC(y, (m || 1) - 1, d || 1) / 86400000;
@@ -223,9 +239,17 @@
   function createAxisController(events) {
     const viewport = $("#axis-viewport");
     const track = $("#timeline-list");
-    const detail = $("#axis-detail");
     const stage = $("#axis-stage");
     const hint = $("#axis-hint");
+    const readout = $("#axis-detail");
+    const elYear = $("#readout-year");
+    const elMeta = $("#readout-meta");
+    const elTitle = $("#readout-title");
+    const elBlurb = $("#readout-blurb");
+    const elTags = $("#readout-tags");
+    const ghostNum = $("#field-ghost-num");
+    const fieldTag = $("#field-tag");
+    const fieldTicks = $("#field-ticks");
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -234,10 +258,12 @@
     const tMax = Math.max(...stamps);
     const span = Math.max(1, tMax - tMin);
 
-    // Wide editorial track: ~56px per year of span, floor for density
-    const yearSpan = Math.max(1, Number(yearOf(events[events.length - 1].date)) - Number(yearOf(events[0].date)));
-    const trackWidth = Math.max(1600, Math.round(yearSpan * 58 + 320));
-    const padX = 96;
+    const yearSpan = Math.max(
+      1,
+      Number(yearOf(events[events.length - 1].date)) - Number(yearOf(events[0].date))
+    );
+    const trackWidth = Math.max(2200, Math.round(yearSpan * 72 + 480));
+    const padX = 140;
 
     let selectedIndex = events.length - 1;
     let filterEra = null;
@@ -247,6 +273,8 @@
     let animFrame = 0;
     let lastTs = 0;
     let settleAnim = null;
+    let fadeTimer = null;
+    let syncLock = false;
 
     const nodes = [];
 
@@ -254,29 +282,74 @@
       return padX + ((stamp - tMin) / span) * (trackWidth - padX * 2);
     }
 
-    function renderDetail(evt) {
-      if (!evt) {
-        detail.innerHTML = `<p class="axis-detail-empty">在轴上选取一个节点，查看日期、标题与摘要。</p>`;
-        return;
+    function buildFieldTicks() {
+      if (!fieldTicks) return;
+      fieldTicks.textContent = "";
+      for (let i = 0; i < 48; i++) {
+        const t = document.createElement("span");
+        t.className = "field-tick";
+        t.style.left = `${(i / 47) * 100}%`;
+        t.style.height = i % 4 === 0 ? "22px" : "10px";
+        t.style.marginTop = i % 4 === 0 ? "-11px" : "-5px";
+        fieldTicks.append(t);
       }
-      const tags =
-        evt.tags && evt.tags.length
-          ? `<div class="axis-detail-tags">${evt.tags
-              .map((t) => `<span class="tag">${escapeHtml(t)}</span>`)
-              .join("")}</div>`
-          : "";
-      detail.innerHTML = `
-        <p class="axis-detail-date">${escapeHtml(yearOf(evt.date))}<span>${escapeHtml(
-        formatISO(evt.date)
-      )} · ${escapeHtml(evt.era)}</span></p>
-        <h3 class="axis-detail-title">${escapeHtml(evt.title)}</h3>
-        <p class="axis-detail-blurb">${escapeHtml(evt.blurb)}</p>
-        ${tags}
-      `;
     }
 
-    function setSelected(index, { scroll = true, instant = false } = {}) {
+    function applyMotif(evt) {
+      const motif = motifFor(evt);
+      if (stage.dataset.motif !== motif) {
+        stage.dataset.motif = motif;
+      }
+      if (ghostNum && evt) {
+        ghostNum.textContent = yearOf(evt.date);
+      }
+      if (fieldTag && evt) {
+        fieldTag.textContent = evt.era;
+      }
+    }
+
+    function paintReadout(evt) {
+      if (!evt) return;
+      elYear.textContent = yearOf(evt.date);
+      elMeta.textContent = `${formatISO(evt.date)} · ${evt.era}`;
+      elTitle.textContent = evt.title;
+      elBlurb.textContent = evt.blurb || "";
+      elTags.textContent = "";
+      (evt.tags || []).forEach((t) => {
+        const span = document.createElement("span");
+        span.className = "tag";
+        span.textContent = t;
+        elTags.append(span);
+      });
+    }
+
+    let readoutReady = false;
+    let syncPaintTimer = null;
+
+    function renderDetail(evt, { soft = false } = {}) {
+      if (!evt) return;
+      applyMotif(evt);
+      if (reduceMotion || !readoutReady || soft) {
+        paintReadout(evt);
+        readout.classList.remove("is-fading");
+        readoutReady = true;
+        return;
+      }
+      readout.classList.add("is-fading");
+      if (fadeTimer) clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(() => {
+        paintReadout(evt);
+        readout.classList.remove("is-fading");
+      }, 160);
+    }
+
+    function setSelected(index, { scroll = true, instant = false, fromSync = false } = {}) {
       if (index < 0 || index >= events.length) return;
+      if (index === selectedIndex && fromSync) {
+        applyMotif(events[index]);
+        updateProgress();
+        return;
+      }
       selectedIndex = index;
       nodes.forEach((btn, i) => {
         const on = i === selectedIndex;
@@ -285,9 +358,18 @@
         const dim = filterEra && events[i].era !== filterEra;
         btn.classList.toggle("is-dim", !!dim);
       });
-      renderDetail(events[selectedIndex]);
-      updateProgress();
-      if (scroll) scrollToIndex(selectedIndex, instant);
+      if (fromSync) {
+        applyMotif(events[selectedIndex]);
+        updateProgress();
+        if (syncPaintTimer) clearTimeout(syncPaintTimer);
+        syncPaintTimer = setTimeout(() => {
+          renderDetail(events[selectedIndex], { soft: false });
+        }, 90);
+      } else {
+        renderDetail(events[selectedIndex]);
+        updateProgress();
+      }
+      if (scroll && !fromSync) scrollToIndex(selectedIndex, instant);
     }
 
     function updateProgress() {
@@ -309,20 +391,24 @@
       const from = viewport.scrollLeft;
       const dist = left - from;
       if (Math.abs(dist) < 1) return;
+      syncLock = true;
       const dur = Math.min(1100, 420 + Math.abs(dist) * 0.35);
       const t0 = performance.now();
       const step = (now) => {
         const u = Math.min(1, (now - t0) / dur);
         viewport.scrollLeft = from + dist * easeOutCubic(u);
         if (u < 1) settleAnim = requestAnimationFrame(step);
-        else settleAnim = null;
+        else {
+          settleAnim = null;
+          syncLock = false;
+        }
       };
       settleAnim = requestAnimationFrame(step);
     }
 
     function scrollToIndex(index, instant) {
       const x = xOf(stamps[index]);
-      const target = x - viewport.clientWidth * 0.42;
+      const target = x - viewport.clientWidth * 0.38;
       scrollToX(target, instant);
     }
 
@@ -336,6 +422,31 @@
       const mid = (x0 + x1) / 2;
       scrollToX(mid - viewport.clientWidth * 0.5, false);
       setSelected(idxs[0], { scroll: false });
+    }
+
+    function nearestIndexAtCenter() {
+      const center = viewport.scrollLeft + viewport.clientWidth * 0.38;
+      let best = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < stamps.length; i++) {
+        const d = Math.abs(xOf(stamps[i]) - center);
+        if (d < bestDist) {
+          bestDist = d;
+          best = i;
+        }
+      }
+      return best;
+    }
+
+    function syncFromScroll() {
+      if (syncLock || drag) return;
+      const idx = nearestIndexAtCenter();
+      if (idx !== selectedIndex) {
+        setSelected(idx, { scroll: false, fromSync: true });
+      } else {
+        applyMotif(events[idx]);
+        updateProgress();
+      }
     }
 
     function buildTrack() {
@@ -358,7 +469,6 @@
       crosshair.setAttribute("aria-hidden", "true");
       track.append(crosshair);
 
-      // Ghost years for editorial depth
       const yStart = Number(yearOf(events[0].date));
       const yEnd = Number(yearOf(events[events.length - 1].date));
       for (let y = Math.ceil(yStart / 10) * 10; y <= yEnd; y += 10) {
@@ -369,9 +479,7 @@
         track.append(ghost);
       }
 
-      // Era bands
-      const eras = uniqueEras(events);
-      eras.forEach((era) => {
+      uniqueEras(events).forEach((era) => {
         const idxs = events
           .map((e, i) => (e.era === era ? i : -1))
           .filter((i) => i >= 0);
@@ -381,8 +489,8 @@
         const band = document.createElement("div");
         band.className = "axis-era-band";
         band.dataset.era = era;
-        band.style.left = `${x0 - 28}px`;
-        band.style.width = `${Math.max(48, x1 - x0 + 56)}px`;
+        band.style.left = `${x0 - 36}px`;
+        band.style.width = `${Math.max(56, x1 - x0 + 72)}px`;
         const lab = document.createElement("span");
         lab.className = "axis-era-band-label";
         lab.textContent = era;
@@ -390,7 +498,6 @@
         track.append(band);
       });
 
-      // Decade ticks
       for (let y = Math.ceil(yStart / 5) * 5; y <= yEnd; y += 5) {
         const tick = document.createElement("div");
         tick.className = "axis-tick";
@@ -498,7 +605,6 @@
       drag = {
         x: e.clientX,
         scroll: viewport.scrollLeft,
-        pointerId: e.pointerId,
       };
       viewport.classList.add("is-dragging");
       pauseAuto(0);
@@ -511,8 +617,8 @@
 
     function onPointerMove(e) {
       if (!drag) return;
-      const dx = e.clientX - drag.x;
-      viewport.scrollLeft = drag.scroll - dx;
+      viewport.scrollLeft = drag.scroll - (e.clientX - drag.x);
+      syncFromScroll();
     }
 
     function onPointerUp() {
@@ -520,6 +626,7 @@
       drag = null;
       viewport.classList.remove("is-dragging");
       resumeAutoSoon();
+      syncFromScroll();
     }
 
     function onWheel(e) {
@@ -529,6 +636,7 @@
       e.preventDefault();
       pauseAuto(1800);
       viewport.scrollLeft += dominant;
+      syncFromScroll();
     }
 
     function onKey(e) {
@@ -536,7 +644,6 @@
       const tag = e.target.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       if (!viewport.contains(e.target) && e.target !== viewport) {
-        // Still allow arrows when focus is inside stage
         if (!stage.contains(document.activeElement) && document.activeElement !== viewport)
           return;
       }
@@ -569,11 +676,11 @@
       lastTs = ts;
       const max = Math.max(0, track.scrollWidth - viewport.clientWidth);
       if (max <= 0) return;
-      // Slow drift ~ track in ~95s
-      const speed = max / 95;
+      const speed = max / 110;
       let next = viewport.scrollLeft + speed * dt;
       if (next >= max - 0.5) next = 0;
       viewport.scrollLeft = next;
+      syncFromScroll();
     }
 
     function bind() {
@@ -582,6 +689,9 @@
       viewport.addEventListener("pointerup", onPointerUp);
       viewport.addEventListener("pointercancel", onPointerUp);
       viewport.addEventListener("wheel", onWheel, { passive: false });
+      viewport.addEventListener("scroll", () => {
+        if (!drag && !syncLock) syncFromScroll();
+      }, { passive: true });
       viewport.addEventListener("mouseenter", () => pauseAuto(0));
       viewport.addEventListener("mouseleave", () => {
         if (!drag) resumeAutoSoon();
@@ -597,13 +707,13 @@
       }
     }
 
+    buildFieldTicks();
     buildTrack();
     bind();
-    // Start near the present (end), then ease back a touch so the axis feels alive
     setSelected(events.length - 1, { scroll: true, instant: true });
     if (!reduceMotion) {
       requestAnimationFrame(() => {
-        scrollToIndex(Math.max(0, events.length - 8), false);
+        scrollToIndex(Math.max(0, events.length - 10), false);
       });
     }
 
@@ -612,6 +722,7 @@
       destroy() {
         cancelAnimationFrame(animFrame);
         if (settleAnim) cancelAnimationFrame(settleAnim);
+        if (fadeTimer) clearTimeout(fadeTimer);
       },
     };
   }
