@@ -211,24 +211,7 @@
 
   /* ——— Horizontal axis timeline ——— */
 
-  /* Four flat-print scenes (众生行记 / 月行水上 language). */
-  const ERA_MOTIF = {
-    "奠基": "foundation",
-    "专用智能": "foundation",
-    "深度学习": "deep",
-    "Transformer": "orbit",
-    "生成爆发": "orbit",
-    "推理与代理": "lock",
-    "2025 浪潮": "lock",
-    "2026 临界": "lock",
-  };
-
-  function motifFor(evt) {
-    if (!evt) return "foundation";
-    return ERA_MOTIF[evt.era] || "foundation";
-  }
-
-  function dayStamp(iso) {
+    function dayStamp(iso) {
     const [y, m, d] = iso.split("-").map(Number);
     return Date.UTC(y, (m || 1) - 1, d || 1) / 86400000;
   }
@@ -318,20 +301,14 @@
       updateProgress();
     }
 
+    const storyCanvas = $("#story-canvas");
+
     function applyMotif(evt) {
-      const motif = motifFor(evt);
-      stage.dataset.motif = motif;
-      document.querySelectorAll(".motif-scene").forEach((g) => {
-        const on = g.classList.contains(`motif-scene--${motif}`);
-        g.classList.toggle("is-on", on);
-        // SVG <g> sometimes ignores CSS opacity cascade; set attribute too.
-        g.setAttribute("opacity", on ? "1" : "0");
-      });
-      if (ghostNum && evt) {
-        ghostNum.textContent = yearOf(evt.date);
-      }
-      if (fieldTag && evt) {
-        fieldTag.textContent = evt.era;
+      if (ghostNum && evt) ghostNum.textContent = yearOf(evt.date);
+      if (fieldTag && evt) fieldTag.textContent = evt.era;
+      stage.dataset.era = evt ? evt.era : "";
+      if (window.__HUMANITY_STORY__ && storyCanvas && evt) {
+        window.__HUMANITY_STORY__.playStory(storyCanvas, evt, { reduceMotion });
       }
     }
 

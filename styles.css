@@ -582,28 +582,47 @@ body {
 }
 
 /* Ambient field — motif layers react to data-motif on .axis-stage */
-.axis-field {
+/* Story stage — event-specific flat sequences */
+.story-stage {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
+}
+
+.story-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(640px, 52vw);
+  height: min(480px, 52vh);
+  transform: translate(-42%, -54%);
+  opacity: 1;
+  transition: opacity 0.35s var(--ease);
+}
+
+.story-canvas.is-entering {
+  opacity: 0;
+}
+
+.story-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
 }
 
 .field-ghost-num {
   position: absolute;
   right: 2%;
   top: 6%;
-  left: auto;
-  bottom: auto;
   font-family: var(--serif-num);
   font-size: clamp(3.6rem, 8vw, 5.8rem);
   line-height: 0.85;
   letter-spacing: -0.04em;
   color: var(--steel);
-  opacity: 0.055;
-  transition: opacity 0.45s var(--ease), transform 0.55s var(--ease);
-  transform: none;
+  opacity: 0.05;
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -621,8 +640,7 @@ body {
   font-size: 0.68rem;
   letter-spacing: 0.28em;
   color: var(--steel);
-  opacity: 0.55;
-  transition: opacity 0.4s, transform 0.45s var(--ease);
+  opacity: 0.5;
 }
 
 .field-axis-label {
@@ -635,102 +653,9 @@ body {
   opacity: 0.4;
 }
 
-/* SVG flat-print scenes — centered on viewport mid (active node home) */
-.motif-svg {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(560px, 46vw);
-  height: min(560px, 46vw);
-  transform: translate(-50%, -50%);
-  overflow: visible;
-  z-index: 1;
-}
-
-.motif-scene {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.45s var(--ease);
-  pointer-events: none;
-}
-
-.motif-scene.is-on {
-  opacity: 1;
-  visibility: visible;
-}
-
-.axis-stage[data-motif="lock"] .field-ghost-num {
-  opacity: 0.09;
-  color: var(--cyan);
-}
-
-.axis-stage[data-motif="lock"] .field-tag {
-  color: var(--cyan);
-  opacity: 0.75;
-}
-
-@keyframes motif-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-@keyframes motif-spin-rev {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
-}
-@keyframes motif-pulse {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.85; }
-}
-@keyframes motif-tick-drift {
-  from { transform: translateX(0); }
-  to { transform: translateX(-36px); }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .motif-spin-slow,
-  .motif-spin-rev,
-  .motif-spin-fast {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-  .motif-spin-slow {
-    animation: motif-spin 42s linear infinite;
-  }
-  .motif-spin-rev {
-    animation: motif-spin-rev 36s linear infinite;
-  }
-  .motif-spin-fast {
-    animation: motif-spin 14s linear infinite;
-  }
-  .motif-pulse {
-    animation: motif-pulse 3.6s ease-in-out infinite;
-  }
-  .motif-tick-drift {
-    animation: motif-tick-drift 4.5s linear infinite;
-  }
-  .axis-stage[data-motif="lock"] .motif-spin-fast {
-    animation-duration: 10s;
-  }
-  .axis-stage[data-motif="lock"] .motif-tick-drift {
-    animation-duration: 2.8s;
-  }
-  .axis-stage.is-paused .motif-spin-slow,
-  .axis-stage.is-paused .motif-spin-rev,
-  .axis-stage.is-paused .motif-spin-fast,
-  .axis-stage.is-paused .motif-pulse,
-  .axis-stage.is-paused .motif-tick-drift,
-  .axis-stage.is-paused .motif-crescent {
-    animation-play-state: paused;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .motif-spin-slow,
-  .motif-spin-rev,
-  .motif-spin-fast,
-  .motif-pulse,
-  .motif-tick-drift {
-    animation: none !important;
+  .story-canvas {
+    transition: none !important;
   }
 }
 
@@ -851,10 +776,6 @@ body {
   background: transparent;
 }
 
-.axis-stage[data-motif="lock"] .axis-crosshair {
-  opacity: 0.9;
-  width: 2px;
-}
 
 .axis-year-ghost {
   display: none;
