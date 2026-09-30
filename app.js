@@ -211,12 +211,11 @@
 
   /* ——— Horizontal axis timeline ——— */
 
-  /* Four rails sharing one time scale — categories from existing tags only. */
+  /* Three interlocking rails — mind merges 语言/推理; image & control stay. */
   const TRACKS = [
-    { id: "lang", name: "语言与代码", top: "22%" },
-    { id: "image", name: "图像与创作", top: "40%" },
-    { id: "control", name: "棋与控制", top: "58%" },
-    { id: "reason", name: "推理与通用", top: "76%" },
+    { id: "mind", name: "语言与推理", top: "34%" },
+    { id: "image", name: "图像与创作", top: "52%" },
+    { id: "control", name: "棋与控制", top: "70%" },
   ];
 
   function trackOf(evt) {
@@ -242,21 +241,8 @@
     ) {
       return "control";
     }
-    if (
-      tags.has("推理") ||
-      tags.has("科学") ||
-      tags.has("生物") ||
-      tags.has("数学") ||
-      tags.has("AGI叙事") ||
-      tags.has("统一") ||
-      tags.has("分层") ||
-      tags.has("学术") ||
-      /AlphaFold|DeepSeek|o1-preview|o3|o4|Astra/.test(t) ||
-      (tags.has("旗舰") && (tags.has("多模态") || !tags.has("编码")))
-    ) {
-      return "reason";
-    }
-    return "lang";
+    /* 语言、代码、推理、旗舰、科学 → 同一条「语言与推理」 */
+    return "mind";
   }
 
   function trackMeta(id) {
@@ -415,6 +401,10 @@
       nodes.forEach((btn, i) => {
         btn.style.left = `${xAt(i)}px`;
         btn.style.top = trackMeta(trackOf(events[i])).top;
+      });
+      track.querySelectorAll(".axis-vrule").forEach((rule) => {
+        const i = Number(rule.dataset.index);
+        if (Number.isFinite(i)) rule.style.left = `${xAt(i)}px`;
       });
       track.querySelectorAll(".axis-era-band").forEach((band) => {
         const era = band.dataset.era;
@@ -619,18 +609,22 @@
         window.__HUMANITY_STORY__.mountStrip(strip, events, (i) => xAt(i), trackOf);
       }
 
-      /* Four parallel rails sharing the density time scale. */
+      /* Three interlocking rails + shared vertical rules at each event. */
       TRACKS.forEach((tr) => {
         const rail = document.createElement("div");
         rail.className = "axis-rail";
         rail.dataset.track = tr.id;
         rail.style.top = tr.top;
         rail.setAttribute("aria-hidden", "true");
-        const railLab = document.createElement("span");
-        railLab.className = "axis-rail-label";
-        railLab.textContent = tr.name;
-        rail.append(railLab);
         track.append(rail);
+      });
+      events.forEach((evt, i) => {
+        const rule = document.createElement("div");
+        rule.className = "axis-vrule";
+        rule.style.left = `${xAt(i)}px`;
+        rule.dataset.index = String(i);
+        rule.setAttribute("aria-hidden", "true");
+        track.append(rule);
       });
 
       const progress = document.createElement("div");
@@ -756,7 +750,7 @@
       if (hint) {
         hint.textContent = era
           ? `已定位「${era}」区间 · 拖拽 / ← → 继续浏览`
-          : "四轨时间轴 · 拖拽/滚轮横移 · ← → 选点 · 悬停暂停";
+          : "三轨时间轴 · 拖拽/滚轮横移 · ← → 选点 · 悬停暂停";
       }
     }
 
@@ -889,7 +883,7 @@
       document.addEventListener("keydown", onKey);
       if (!reduceMotion) {
         animFrame = requestAnimationFrame(tick);
-        if (hint) hint.textContent = "四轨时间轴 · 拖拽/滚轮横移 · ← → 选点 · 悬停暂停";
+        if (hint) hint.textContent = "三轨时间轴 · 拖拽/滚轮横移 · ← → 选点 · 悬停暂停";
       } else if (hint) {
         hint.textContent = "已关闭自动漫游 · 拖拽或滚轮横向浏览 · ← → 选点";
       }

@@ -49,13 +49,17 @@
     if (window.__HUMANITY_TRACKS__ && window.__HUMANITY_TRACKS__.trackMeta) {
       return window.__HUMANITY_TRACKS__.trackMeta(id);
     }
-    return { id: "lang", name: "语言与代码", top: "22%" };
+    return { id: "mind", name: "语言与推理", top: "30%" };
   }
 
   /* ——— 语言与代码：排印 / 括号 / 行 cascade（非侧滑盒子） ——— */
   function sceneLang(evt) {
     const title = evt.title || "";
-    const glyphs = [...title.replace(/\s+/g, " ")].slice(0, 14);
+    /* Letterforms as print objects — short mark, not a second caption of the full title. */
+    const mark = /[\u4e00-\u9fff]/.test(title)
+      ? title.replace(/\s+/g, "").slice(0, 4)
+      : title.replace(/\s+/g, " ").slice(0, 12);
+    const glyphs = [...mark];
     const baseline = el("line", {
       x1: 320, y1: 268, x2: 320, y2: 268,
       stroke: "#1d4e89", "stroke-width": 1.6, "stroke-linecap": "round"
@@ -85,7 +89,7 @@
       ]);
       return { g, i, x };
     });
-    const codeLine = clipBlurb(evt.blurb, 42);
+    const codeLine = ((evt.tags || []).slice(0, 3).join(" · ")) || "print";
     const codeClip = el("clipPath", { id: `clip-lang-${Math.random().toString(36).slice(2, 8)}` }, [
       el("rect", { x: 140, y: 300, width: 0, height: 36 })
     ]);
@@ -97,13 +101,17 @@
       el("rect", { x: 140, y: 300, width: 360, height: 36, fill: "#e8eef6" }),
       codeText
     ]);
-    const trackTag = el("text", {
-      x: 320, y: 168, "text-anchor": "middle", fill: "#1d4e89",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 14, "letter-spacing": "0.28em"
-    }, ["语言与代码"]);
-    const tagG = el("g", {}, [trackTag]);
+    const tagG = el("g", {});
+    const vbridge = el("line", {
+      x1: 320, y1: 40, x2: 320, y2: 40,
+      stroke: "#2f6fed", "stroke-width": 1, "stroke-dasharray": "3 5", opacity: 0.55
+    });
+    const crossArm = el("line", {
+      x1: 320, y1: 300, x2: 320, y2: 300,
+      stroke: "#d5deea", "stroke-width": 1
+    });
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
-      codeClip, tagG, baseline, brLG, brRG, caret, ...letters.map((L) => L.g), codeG
+      vbridge, crossArm, codeClip, tagG, baseline, brLG, brRG, caret, ...letters.map((L) => L.g), codeG
     ]);
 
     function apply(p) {
@@ -125,6 +133,12 @@
       const clipRect = codeClip.firstChild;
       clipRect.setAttribute("width", String(360 * e * e));
       setTransform(tagG, `translate(0 ${((1 - e) * -24).toFixed(2)})`);
+      /* Vertical bridge grows through neighboring rail bands. */
+      vbridge.setAttribute("y2", String(40 + 400 * e));
+      crossArm.setAttribute("x1", String(320 - 90 * e));
+      crossArm.setAttribute("x2", String(320 + 90 * e));
+      crossArm.setAttribute("y1", String(360));
+      crossArm.setAttribute("y2", String(360));
     }
 
     return { svg, apply };
@@ -165,18 +179,18 @@
     const prompt = el("text", {
       x: 176, y: 138, fill: "#1d4e89",
       "font-family": "Noto Sans SC, sans-serif", "font-size": 13, "letter-spacing": "0.08em"
-    }, [clipBlurb(evt.title, 28)]);
+    }, [clipBlurb((evt.tags && evt.tags.join(" · ")) || "图像", 28)]);
     const promptG = el("g", {}, [prompt]);
-    const tag = el("text", {
-      x: 320, y: 388, "text-anchor": "middle", fill: "#1d4e89",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 14, "letter-spacing": "0.28em"
-    }, ["图像与创作"]);
-    const tagG = el("g", {}, [tag]);
+    const tagG = el("g", {});
     const rule = el("line", {
       x1: 320, y1: 370, x2: 320, y2: 370, stroke: "#1d4e89", "stroke-width": 1.4
     });
+    const vbridge = el("line", {
+      x1: 320, y1: 60, x2: 320, y2: 60,
+      stroke: "#2f6fed", "stroke-width": 1, "stroke-dasharray": "2 6", opacity: 0.5
+    });
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
-      sprocketG, ...crops.map((c) => c.g), frameG, ...shapes, promptG, rule, tagG
+      vbridge, sprocketG, ...crops.map((c) => c.g), frameG, ...shapes, promptG, rule, tagG
     ]);
 
     function apply(p) {
@@ -203,6 +217,8 @@
       rule.setAttribute("x1", String(320 - 160 * e));
       rule.setAttribute("x2", String(320 + 160 * e));
       setTransform(tagG, `translate(0 ${((1 - e) * 30).toFixed(2)})`);
+      vbridge.setAttribute("y1", String(60 - 40 * e));
+      vbridge.setAttribute("y2", String(60 + 360 * e));
     }
 
     return { svg, apply };
@@ -249,27 +265,19 @@
         }
       }
     }
-    const tag = el("text", {
-      x: 320, y: 400, "text-anchor": "middle", fill: "#1d4e89",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 14, "letter-spacing": "0.28em"
-    }, ["棋与控制"]);
-    const title = el("text", {
-      x: 320, y: 130, "text-anchor": "middle", fill: "#102033",
-      "font-family": "Noto Serif SC, serif", "font-size": 22
-    }, [clipBlurb(evt.title, 18)]);
-    const titleG = el("g", {}, [title]);
-    const tagG = el("g", {}, [tag]);
+    const tagG = el("g", {});
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
-      ...grid, crossH, crossV, ...cells, ...cabinets, piece, cursor, titleG, tagG
+      ...grid, crossH, crossV, ...cells, ...cabinets, piece, cursor, tagG
     ]);
 
     function apply(p) {
       const e = easeOut(clamp01(p));
-      const arm = 120 * e;
+      const arm = 140 * e;
       crossH.setAttribute("x1", String(320 - arm));
       crossH.setAttribute("x2", String(320 + arm));
-      crossV.setAttribute("y1", String(240 - arm));
-      crossV.setAttribute("y2", String(240 + arm));
+      /* Vertical arm reaches into neighboring rails. */
+      crossV.setAttribute("y1", String(240 - 160 * e));
+      crossV.setAttribute("y2", String(240 + 160 * e));
       grid.forEach((ln, i) => {
         const local = clamp01((e - (i % 5) * 0.06) / 0.85);
         if (i < 5) {
@@ -298,7 +306,6 @@
         const cy = 160 + Math.floor(i / 4) * 40 + 18;
         setTransform(cell, `translate(${cx} ${cy}) scale(${sc.toFixed(3)}) translate(${-cx} ${-cy})`);
       });
-      setTransform(titleG, `translate(0 ${((1 - e) * -20).toFixed(2)})`);
       setTransform(tagG, `translate(0 ${((1 - e) * 24).toFixed(2)})`);
     }
 
@@ -340,7 +347,7 @@
       el("text", {
         x: 320, y: 372, "text-anchor": "middle", fill: "#102033",
         "font-family": "Noto Serif SC, serif", "font-size": 18
-      }, [clipBlurb(evt.title, 16)]),
+      }, [(evt.tags && evt.tags[0]) || "结论"]),
     ]);
     const ticks = [];
     for (let i = 0; i < 6; i++) {
@@ -349,18 +356,14 @@
         stroke: "#1d4e89", "stroke-width": 1.5
       }));
     }
-    const tag = el("text", {
-      x: 320, y: 118, "text-anchor": "middle", fill: "#1d4e89",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 14, "letter-spacing": "0.28em"
-    }, ["推理与通用"]);
-    const tagG = el("g", {}, [tag]);
-    const blurb = el("text", {
-      x: 320, y: 420, "text-anchor": "middle", fill: "#5a6b7d",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 12
-    }, [clipBlurb(evt.blurb, 36)]);
-    const blurbG = el("g", {}, [blurb]);
+    const tagG = el("g", {});
+    const blurbG = el("g", {});
+    const vbridge = el("line", {
+      x1: 320, y1: 50, x2: 320, y2: 50,
+      stroke: "#2f6fed", "stroke-width": 1, "stroke-dasharray": "3 5", opacity: 0.5
+    });
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
-      tagG, ...ticks, arc, ...layers.map((L) => L.g), ...beadGs, plate, blurbG
+      vbridge, tagG, ...ticks, arc, ...layers.map((L) => L.g), ...beadGs, plate, blurbG
     ]);
 
     function pointOnArc(u) {
@@ -399,6 +402,7 @@
       });
       setTransform(tagG, `translate(0 ${((1 - e) * -18).toFixed(2)})`);
       setTransform(blurbG, `translate(0 ${((1 - e) * 20).toFixed(2)})`);
+      vbridge.setAttribute("y2", String(50 + 380 * e));
     }
 
     return { svg, apply };
@@ -408,38 +412,29 @@
     const id = trackOf(evt);
     if (id === "image") return () => sceneImage(evt);
     if (id === "control") return () => sceneControl(evt);
-    if (id === "reason") return () => sceneReason(evt);
+    /* mind = 语言与推理：排印 + 推理层叠融合 */
+    if (id === "mind" && (/推理|DeepSeek|o1|o3|o4|AlphaFold|Astra|旗舰|科学/.test(
+      (evt.title || "") + (evt.tags || []).join(",")
+    ) || (evt.tags || []).some((t) => ["推理", "科学", "数学", "AGI叙事", "旗舰"].includes(t)))) {
+      return () => sceneReason(evt);
+    }
     return () => sceneLang(evt);
   }
 
   function buildStill(evt) {
     const wrap = document.createElement("div");
     const tid = trackOf(evt);
-    const meta = trackMeta(tid);
     wrap.className = `story-panel track-${tid}`;
     wrap.dataset.track = tid;
     wrap.setAttribute("aria-hidden", "true");
     const scene = matchStory(evt)();
-    scene.svg.setAttribute("viewBox", "40 90 560 340");
+    /* Tall crop so art can bridge neighboring rails. */
+    scene.svg.setAttribute("viewBox", "20 20 600 440");
     scene.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
     wrap.appendChild(scene.svg);
     wrap.__apply = scene.apply;
     scene.apply(0, 1);
-
-    const plate = document.createElement("div");
-    plate.className = "story-plate";
-    const trackLab = document.createElement("p");
-    trackLab.className = "story-plate-track";
-    trackLab.textContent = meta.name;
-    const title = document.createElement("p");
-    title.className = "story-plate-title";
-    title.textContent = evt.title || "";
-    const blurb = document.createElement("p");
-    blurb.className = "story-plate-blurb";
-    blurb.textContent = clipBlurb(evt.blurb, 72);
-    plate.append(trackLab, title, blurb);
-    wrap.appendChild(plate);
-    wrap.__plate = plate;
+    /* No in-strip title plate — axis readout is the sole caption. */
     return wrap;
   }
 
@@ -493,14 +488,10 @@
       const signed = delta / reach;
       const p = reduceMotion ? 1 : clamp01(1 - Math.abs(signed));
       if (typeof panel.__apply === "function") panel.__apply(p, signed);
-      if (panel.__plate) {
-        panel.__plate.style.transform = `translateY(${((1 - p) * 22).toFixed(1)}px)`;
-      }
-      /* Neighbor plates tuck away — focused scene owns the rail band. */
-      const vis = p < 0.18 ? 0.04 : Math.pow(p, 1.35);
+      /* Neighbors stay faintly visible so rails feel woven, not empty lanes. */
+      const vis = p < 0.12 ? 0.08 : 0.12 + Math.pow(p, 1.2) * 0.88;
       panel.style.opacity = String(vis);
       panel.style.zIndex = String(1 + Math.round(p * 40));
-      if (panel.__plate) panel.__plate.style.opacity = String(p > 0.55 ? 1 : Math.max(0, (p - 0.25) / 0.4));
     });
   }
 
