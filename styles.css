@@ -661,6 +661,7 @@ body {
   text-align: center;
   border-top: 1px solid rgba(29, 78, 137, 0.28);
   background: rgba(244, 247, 251, 0.88);
+  /* transform set from scroll progress in JS — no CSS keyframes */
 }
 
 .story-plate-title {

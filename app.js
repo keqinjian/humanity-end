@@ -497,7 +497,12 @@
     function focusStories() {
       if (!window.__HUMANITY_STORY__ || !storyStrip.el) return;
       const centerX = viewport.scrollLeft + viewport.clientWidth * 0.5;
-      window.__HUMANITY_STORY__.focusStrip(storyStrip.el, (i) => xAt(i), centerX);
+      window.__HUMANITY_STORY__.focusStrip(
+        storyStrip.el,
+        (i) => xAt(i),
+        centerX,
+        reduceMotion
+      );
     }
 
     function syncFromScroll() {

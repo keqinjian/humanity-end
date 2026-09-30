@@ -28,91 +28,141 @@
     return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
-  /** Run a timeline of {at, run} steps. Returns cancel fn. */
+  function clamp01(t) {
+    return Math.max(0, Math.min(1, t));
+  }
+
+  /** Bake a legacy timed scene to its final pose (used only at mount). */
   function runTimeline(steps, duration, reduceMotion, onDone) {
-    if (reduceMotion) {
-      steps.forEach((s) => s.run(1));
-      onDone && onDone();
-      return () => {};
-    }
-    let raf = 0;
-    let dead = false;
-    const t0 = performance.now();
-    const tick = (now) => {
-      if (dead) return;
-      const u = Math.min(1, (now - t0) / duration);
-      steps.forEach((s) => {
-        const local = Math.max(0, Math.min(1, (u - s.at) / (s.dur || 0.001)));
-        if (u >= s.at) s.run(s.ease ? s.ease(local) : local);
-      });
-      if (u < 1) raf = requestAnimationFrame(tick);
-      else onDone && onDone();
-    };
-    raf = requestAnimationFrame(tick);
-    return () => {
-      dead = true;
-      cancelAnimationFrame(raf);
-    };
+    steps.forEach((s) => s.run(1));
+    onDone && onDone();
+    return () => {};
   }
 
   function setOpacity(node, v) {
     node.setAttribute("opacity", String(v));
   }
 
-  function setTransform(node, t) {
-    node.setAttribute("transform", t);
+  function setTransform(node, tr) {
+    node.setAttribute("transform", tr);
   }
 
-  /* ——— Scene builders: each returns {svg, play(reduceMotion)->cancel} ——— */
+  function forceOpaque(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll("[opacity]").forEach((n) => n.setAttribute("opacity", "1"));
+    if (root.hasAttribute && root.hasAttribute("opacity")) root.setAttribute("opacity", "1");
+  }
+
+  /** Wrap each element child in a motion <g> so transforms do not fight x/y attrs. */
+  function wrapMotionParts(svg) {
+    const parts = [];
+    [...svg.children].forEach((kid, i) => {
+      if (kid.namespaceURI !== NS) return;
+      const g = el("g", { class: "motion-part", "data-i": String(i) });
+      svg.insertBefore(g, kid);
+      g.appendChild(kid);
+      parts.push(g);
+    });
+    return parts;
+  }
+
+  function genericApply(parts) {
+    return (p, signed) => {
+      const e = easeOut(clamp01(p));
+      const side = signed === 0 || !Number.isFinite(signed) ? 1 : Math.sign(signed);
+      parts.forEach((g, i) => {
+        const dir = (i % 2 === 0 ? -1 : 1) * (side || 1);
+        const dx = dir * (110 + i * 26) * (1 - e);
+        const dy = (32 + (i % 4) * 16) * (1 - e);
+        const rot = dir * (14 + i * 4) * (1 - e);
+        const sc = 0.68 + 0.32 * e;
+        setTransform(
+          g,
+          `translate(320 240) rotate(${rot.toFixed(2)}) scale(${sc.toFixed(3)}) translate(-320 -240) translate(${dx.toFixed(2)} ${dy.toFixed(2)})`
+        );
+      });
+    };
+  }
+
+  /* ——— Scene builders: return {svg, apply(progress, signed)} — progress from scroll only ——— */
 
   function sceneEniac(props) {
-    const floor = el("line", { x1: 70, y1: 400, x2: 580, y2: 400, stroke: "#1d4e89", "stroke-width": 1.5, opacity: 0 });
-    const wall = el("line", { x1: 70, y1: 110, x2: 70, y2: 400, stroke: "#d5deea", "stroke-width": 1.5, opacity: 0 });
-    const racks = [];
-    const panels = [];
+    const floor = el("line", {
+      x1: 320, y1: 400, x2: 320, y2: 400,
+      stroke: "#1d4e89", "stroke-width": 1.5, opacity: 1
+    });
+    const wall = el("line", {
+      x1: 70, y1: 255, x2: 70, y2: 255,
+      stroke: "#d5deea", "stroke-width": 1.5, opacity: 1
+    });
+    const rackGroups = [];
+    const panelGroups = [];
     for (let i = 0; i < 6; i++) {
       const x = 90 + i * 82;
-      racks.push(el("rect", {
+      const rack = el("rect", {
         x, y: 130, width: 68, height: 250,
-        fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2, opacity: 0
-      }));
+        fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2, opacity: 1
+      });
+      const rg = el("g", { class: "eniac-rack", "data-i": String(i) }, [rack]);
+      const pgs = [];
       for (let row = 0; row < 6; row++) {
-        panels.push(el("rect", {
+        const panel = el("rect", {
           x: x + 10, y: 148 + row * 36, width: 48, height: 22,
-          fill: "none", stroke: "#2f6fed", "stroke-width": 1.4, opacity: 0
-        }));
+          fill: "none", stroke: "#2f6fed", "stroke-width": 1.4, opacity: 1
+        });
+        const pg = el("g", { class: "eniac-panel" }, [panel]);
+        pgs.push(pg);
+        panelGroups.push({ g: pg, i, row });
       }
+      rg.append(...pgs);
+      rackGroups.push(rg);
     }
     const pulse = el("text", {
       x: 320, y: 118, "text-anchor": "middle", fill: "#1d4e89",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 20, "letter-spacing": "0.28em", opacity: 0
+      "font-family": "Noto Sans SC, sans-serif", "font-size": 20, "letter-spacing": "0.28em", opacity: 1
     }, ["机房 · 百平柜机"]);
-    const mark = el("g", { class: "st-mark", opacity: 0 }, [
+    const pulseG = el("g", { class: "eniac-label" }, [pulse]);
+    const markInner = el("g", {}, [
       el("rect", { x: 250, y: 220, width: 140, height: 64, fill: "#f4f7fb", stroke: "#2f6fed", "stroke-width": 2.2 }),
       el("text", {
         x: 320, y: 262, "text-anchor": "middle", fill: "#102033",
         "font-family": "Instrument Serif, serif", "font-size": 34
       }, ["CALC"]),
     ]);
+    const mark = el("g", { class: "eniac-mark" }, [markInner]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
-      wall, floor, pulse, ...racks, ...panels, mark
+      wall, floor, pulseG, ...rackGroups, mark
     ]);
-    return {
-      svg,
-      play(rm) {
-        return runTimeline([
-          { at: 0, dur: 0.25, run: (t) => { setOpacity(floor, t * 0.7); setOpacity(wall, t * 0.8); setOpacity(pulse, t); } },
-          { at: 0.1, dur: 0.45, ease: easeOut, run: (t) => racks.forEach((r, i) => setOpacity(r, Math.min(1, Math.max(0, (t - i * 0.05) * 1.4)))) },
-          { at: 0.3, dur: 0.35, run: (t) => panels.forEach((p, i) => setOpacity(p, t * (0.4 + (i % 3) * 0.2))) },
-          { at: 0.55, dur: 0.4, ease: easeOut, run: (t) => {
-            setOpacity(mark, t);
-            racks.forEach((r) => setOpacity(r, 1));
-            panels.forEach((p) => setOpacity(p, 0.55 + t * 0.25));
-            setOpacity(pulse, 1);
-          }},
-        ], 2000, rm);
-      },
-    };
+
+    function apply(p) {
+      const e = easeOut(clamp01(p));
+      /* Floor rule grows from center; wall drops from midline — geometry, not fade. */
+      floor.setAttribute("x1", String(320 - 250 * e));
+      floor.setAttribute("x2", String(320 + 260 * e));
+      wall.setAttribute("y1", String(255 - 145 * e));
+      wall.setAttribute("y2", String(255 + 145 * e));
+      /* Cabinets slide in from alternating sides and settle into a stack. */
+      rackGroups.forEach((g, i) => {
+        const fromX = (i < 3 ? -1 : 1) * (340 + (i % 3) * 48);
+        const start = i * 0.08;
+        const t = clamp01((e - start) / Math.max(0.001, 1 - start));
+        const local = t * t; /* ease-in so mid-progress stays visibly offset */
+        const dx = fromX * (1 - local);
+        const dy = 48 * (1 - local);
+        const rot = (i < 3 ? -1 : 1) * 16 * (1 - local);
+        setTransform(g, `translate(${dx.toFixed(2)} ${dy.toFixed(2)}) rotate(${rot.toFixed(2)})`);
+      });
+      panelGroups.forEach(({ g, row }) => {
+        const local = easeOut(clamp01((e - 0.15 - row * 0.04) / 0.7));
+        const dy = (1 - local) * -18;
+        setTransform(g, `translate(0 ${dy.toFixed(2)})`);
+      });
+      setTransform(pulseG, `translate(0 ${((1 - e) * -40).toFixed(2)})`);
+      const ms = 0.45 + 0.55 * e;
+      setTransform(mark, `translate(320 252) scale(${ms.toFixed(3)}) translate(-320 -252) translate(0 ${((1 - e) * 72).toFixed(2)})`);
+    }
+
+    return { svg, apply };
   }
 
   function sceneTypeSet(props) {
@@ -346,55 +396,70 @@
 
   function sceneTransformer(props) {
     const tokens = (props.tokens || ["Attention", "Is", "All", "You", "Need"]).slice(0, 5);
-    const boxes = tokens.map((tok, i) => {
-      const x = 40 + i * 118;
-      return {
-        g: el("g", { opacity: 0 }, [
-          el("rect", { x, y: 210, width: 108, height: 48, fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2 }),
-          el("text", { x: x + 54, y: 240, "text-anchor": "middle", fill: "#102033",
-            "font-family": "Noto Sans SC, sans-serif", "font-size": 15, "font-weight": "500" }, [tok]),
-        ]),
-        x: x + 54,
-      };
+    const home = tokens.map((tok, i) => ({ tok, x: 40 + i * 118, cx: 40 + i * 118 + 54 }));
+    const boxes = home.map((h, i) => {
+      const g = el("g", { class: "tf-token", "data-i": String(i), opacity: 1 }, [
+        el("rect", { x: h.x, y: 210, width: 108, height: 48, fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2 }),
+        el("text", { x: h.cx, y: 240, "text-anchor": "middle", fill: "#102033",
+          "font-family": "Noto Sans SC, sans-serif", "font-size": 15, "font-weight": "500" }, [h.tok]),
+      ]);
+      return { g, cx: h.cx, i };
     });
-    const lines = [];
-    // attention from middle token to others with different weights
     const src = 2;
+    const lines = [];
     boxes.forEach((b, i) => {
       if (i === src) return;
-      const w = i === 1 || i === 3 ? 2.2 : 0.8;
-      lines.push(el("line", {
-        x1: boxes[src].x, y1: 210, x2: boxes[src].x, y2: 210,
-        stroke: "#2f6fed", "stroke-width": w + 0.6, opacity: 0,
-        "data-tx": b.x, "data-ty": 210
-      }));
+      const w = i === 1 || i === 3 ? 2.8 : 1.4;
+      const ln = el("path", {
+        class: "tf-attn",
+        d: `M${boxes[src].cx} 210 Q${(boxes[src].cx + b.cx) / 2} 140 ${b.cx} 210`,
+        fill: "none", stroke: "#2f6fed", "stroke-width": w, opacity: 1,
+        "stroke-linecap": "round"
+      });
+      const len = 220;
+      ln.setAttribute("stroke-dasharray", String(len));
+      ln.setAttribute("stroke-dashoffset", String(len));
+      ln._dash = len;
+      lines.push({ ln, i });
     });
-    const title = el("text", {
-      x: 320, y: 150, "text-anchor": "middle", fill: "#1d4e89",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 18, "letter-spacing": "0.22em", opacity: 0
-    }, [props.caption || "自注意力"]);
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
-      title, ...lines, ...boxes.map((b) => b.g)
+    const titleG = el("g", { class: "tf-title" }, [
+      el("text", {
+        x: 320, y: 150, "text-anchor": "middle", fill: "#1d4e89",
+        "font-family": "Noto Sans SC, sans-serif", "font-size": 18, "letter-spacing": "0.22em", opacity: 1
+      }, [props.caption || "自注意力"])
     ]);
-    return {
-      svg,
-      play(rm) {
-        return runTimeline([
-          { at: 0, dur: 0.2, run: (t) => setOpacity(title, t) },
-          ...boxes.map((b, i) => ({
-            at: 0.1 + i * 0.08, dur: 0.2, ease: easeOut,
-            run: (t) => setOpacity(b.g, t)
-          })),
-          { at: 0.55, dur: 0.4, ease: easeOut, run: (t) => {
-            lines.forEach((ln) => {
-              setOpacity(ln, t * 0.85);
-              ln.setAttribute("x2", String(boxes[src].x + (Number(ln.getAttribute("data-tx")) - boxes[src].x) * t));
-              ln.setAttribute("y2", String(210 - 55 * t));
-            });
-          }},
-        ], 2000, rm);
-      },
-    };
+    const rule = el("line", {
+      class: "tf-rule", x1: 320, y1: 280, x2: 320, y2: 280,
+      stroke: "#1d4e89", "stroke-width": 1.5, opacity: 1
+    });
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
+      titleG, rule, ...lines.map((L) => L.ln), ...boxes.map((b) => b.g)
+    ]);
+
+    function apply(p) {
+      const e = easeOut(clamp01(p));
+      /* Tokens start stacked at center, then separate along x. */
+      boxes.forEach((b) => {
+        const targetX = home[b.i].cx;
+        const fromX = 320;
+        const spread = e * e; /* ease-in separation */
+        const x = fromX + (targetX - fromX) * spread;
+        const dx = x - targetX;
+        const dy = (1 - e) * 36;
+        const rot = (b.i - src) * 12 * (1 - e);
+        setTransform(b.g, `translate(${dx.toFixed(2)} ${dy.toFixed(2)}) rotate(${rot.toFixed(2)})`);
+      });
+      lines.forEach(({ ln }, idx) => {
+        const local = clamp01((e - 0.28 - idx * 0.06) / 0.62);
+        const draw = local * local;
+        ln.setAttribute("stroke-dashoffset", String(ln._dash * (1 - draw)));
+      });
+      setTransform(titleG, `translate(0 ${((1 - e) * -36).toFixed(2)})`);
+      rule.setAttribute("x1", String(320 - 200 * e));
+      rule.setAttribute("x2", String(320 + 200 * e));
+    }
+
+    return { svg, apply };
   }
 
   function sceneMask(props) {
@@ -659,47 +724,79 @@
 
   function sceneReasonChain(props) {
     const steps = props.steps || ["读题", "分解", "演算", "核验"];
-    const nodes = steps.map((s, i) =>
-      el("g", { opacity: 0 }, [
-        el("circle", { cx: 100 + i * 145, cy: 195, r: 36, fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2.4 }),
-        el("text", { x: 100 + i * 145, y: 202, "text-anchor": "middle", fill: "#102033", "font-size": 17,
+    const rail = el("line", {
+      class: "rc-rail", x1: 80, y1: 195, x2: 80, y2: 195,
+      stroke: "#d5deea", "stroke-width": 3, opacity: 1, "stroke-linecap": "round"
+    });
+    const nodes = steps.map((s, i) => {
+      const cx = 100 + i * 145;
+      const g = el("g", { class: "rc-step", "data-i": String(i), opacity: 1 }, [
+        el("circle", { cx, cy: 195, r: 36, fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2.4 }),
+        el("text", { x: cx, y: 202, "text-anchor": "middle", fill: "#102033", "font-size": 17,
           "font-family": "Noto Sans SC, sans-serif" }, [s]),
-      ])
-    );
+      ]);
+      return { g, cx, i };
+    });
     const links = [];
     for (let i = 0; i < steps.length - 1; i++) {
-      links.push(el("line", {
-        x1: 136 + i * 145, y1: 195, x2: 136 + i * 145, y2: 195,
-        stroke: "#2f6fed", "stroke-width": 2.4, opacity: 0, "data-x2": 64 + (i + 1) * 145
-      }));
+      const x1 = 136 + i * 145;
+      const x2 = 64 + (i + 1) * 145;
+      const ln = el("line", {
+        class: "rc-link", x1, y1: 195, x2: x1, y2: 195,
+        stroke: "#2f6fed", "stroke-width": 2.4, opacity: 1, "stroke-linecap": "round"
+      });
+      ln._x1 = x1;
+      ln._x2 = x2;
+      links.push(ln);
     }
-    const answer = el("g", { opacity: 0 }, [
+    const answer = el("g", { class: "rc-answer", opacity: 1 }, [
       el("rect", { x: 150, y: 270, width: 340, height: 70, fill: "#e8eef6", stroke: "#2f6fed", "stroke-width": 2.4 }),
       el("text", { x: 320, y: 315, "text-anchor": "middle", fill: "#102033", "font-size": 24,
         "font-family": "Noto Serif SC, serif" }, [props.answer || "答案"]),
     ]);
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...links, ...nodes, answer]);
-    return {
-      svg,
-      play(rm) {
-        return runTimeline([
-          ...nodes.map((n, i) => ({ at: 0.05 + i * 0.12, dur: 0.2, run: (t) => setOpacity(n, t) })),
-          ...links.map((ln, i) => ({
-            at: 0.15 + i * 0.12, dur: 0.2, ease: easeOut,
-            run: (t) => {
-              setOpacity(ln, t);
-              ln.setAttribute("x2", String(136 + i * 145 + (Number(ln.getAttribute("data-x2")) - (136 + i * 145)) * t));
-            }
-          })),
-          { at: 0.65, dur: 0.3, ease: easeOut, run: (t) => {
-            nodes.forEach((n) => setOpacity(n, 1));
-            links.forEach((ln) => setOpacity(ln, 1));
-            setOpacity(answer, t);
-            setTransform(answer, `translate(0 ${(1 - t) * 12})`);
-          }},
-        ], 2200, rm);
-      },
-    };
+    const cap = el("g", { class: "rc-cap" }, [
+      el("text", {
+        x: 320, y: 130, "text-anchor": "middle", fill: "#1d4e89",
+        "font-family": "Noto Sans SC, sans-serif", "font-size": 16, "letter-spacing": "0.18em", opacity: 1
+      }, [props.caption || "推理链"])
+    ]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
+      rail, ...links, ...nodes.map((n) => n.g), answer, cap
+    ]);
+
+    function apply(p) {
+      const e = easeOut(clamp01(p));
+      rail.setAttribute("x2", String(80 + 480 * e));
+      /* Steps travel along the rail from the left with stagger. */
+      nodes.forEach((n) => {
+        const start = n.i * 0.1;
+        const t = clamp01((e - start) / Math.max(0.001, 1 - start));
+        const local = t * t;
+        const fromX = -40;
+        const dx = (fromX - n.cx) * (1 - local);
+        const dy = (1 - local) * 70;
+        const sc = 0.55 + 0.45 * local;
+        setTransform(
+          n.g,
+          `translate(${(n.cx + dx).toFixed(2)} ${(195 + dy).toFixed(2)}) scale(${sc.toFixed(3)}) translate(${(-n.cx).toFixed(2)} -195)`
+        );
+      });
+      links.forEach((ln, i) => {
+        const local = easeOut(clamp01((e - 0.2 - i * 0.1) / 0.65));
+        ln.setAttribute("x2", String(ln._x1 + (ln._x2 - ln._x1) * local));
+      });
+      /* Result plate rises from below and settles. */
+      const ap = easeOut(clamp01((e - 0.35) / 0.65));
+      const ay = (1 - ap) * 90;
+      const asc = 0.8 + 0.2 * ap;
+      setTransform(
+        answer,
+        `translate(320 ${(305 + ay).toFixed(2)}) scale(${asc.toFixed(3)}) translate(-320 -305)`
+      );
+      setTransform(cap, `translate(0 ${((1 - e) * -30).toFixed(2)})`);
+    }
+
+    return { svg, apply };
   }
 
   function sceneFilm(props) {
@@ -923,17 +1020,35 @@
     return t.slice(0, n - 1) + "…";
   }
 
-  /** Build the final still frame for one event (no timed play). */
+  /**
+   * Normalize any scene to {svg, apply(p, signed)}.
+   * Legacy play()-only scenes are baked once, then wrapped with geometric scrub motion.
+   */
+  function toScrollScene(scene) {
+    if (!scene) return null;
+    if (typeof scene.apply === "function") {
+      forceOpaque(scene.svg);
+      return scene;
+    }
+    if (typeof scene.play === "function") {
+      scene.play(true);
+    }
+    forceOpaque(scene.svg);
+    const parts = wrapMotionParts(scene.svg);
+    return { svg: scene.svg, apply: genericApply(parts) };
+  }
+
+  /** Build one scrub-driven panel (no clock-based play). */
   function buildStill(evt) {
     const wrap = document.createElement("div");
     wrap.className = "story-panel";
     wrap.setAttribute("aria-hidden", "true");
-    const scene = matchStory(evt)();
-    /* Crop empty margins so the print fills the large panel. */
+    const scene = toScrollScene(matchStory(evt)());
     scene.svg.setAttribute("viewBox", "30 70 580 340");
     scene.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
     wrap.appendChild(scene.svg);
-    scene.play(true); /* jump to composed still — not a running timeline */
+    wrap.__apply = scene.apply;
+    scene.apply(0, 1); /* approach pose until focusStrip runs */
 
     const plate = document.createElement("div");
     plate.className = "story-plate";
@@ -945,10 +1060,10 @@
     blurb.textContent = clipBlurb(evt.blurb, 72);
     plate.append(title, blurb);
     wrap.appendChild(plate);
+    wrap.__plate = plate;
     return wrap;
   }
 
-  /** Wide panels so art is readable; neighbors may peek under focus opacity. */
   function panelHalfWidth(i, n, xOfIndex) {
     const x = xOfIndex(i);
     const xPrev = i > 0 ? xOfIndex(i - 1) : x - 900;
@@ -957,10 +1072,6 @@
     return Math.min(560, Math.max(400, gapBased));
   }
 
-  /**
-   * Mount a continuous strip inside the scrolling track.
-   * Panel i is centered on xAt(i). scrollLeft → picture is 1:1.
-   */
   function mountStrip(strip, events, xOfIndex) {
     if (!strip) return;
     strip.textContent = "";
@@ -989,21 +1100,33 @@
     });
   }
 
-  /** Focus opacity from viewport center — deterministic for a given scrollLeft. */
-  function focusStrip(strip, xOfIndex, centerX) {
+  /**
+   * Bind every panel's parts to scroll: progress = 1 at viewport center.
+   * Scrubbing back reverses transforms exactly. No CSS keyframe clocks.
+   */
+  function focusStrip(strip, xOfIndex, centerX, reduceMotion) {
     if (!strip) return;
     const panels = [...strip.querySelectorAll(".story-panel")];
-    const reach = 900;
+    const reach = 820;
     panels.forEach((panel) => {
       const i = Number(panel.dataset.index);
       const x = xOfIndex(i);
-      const d = Math.abs(x - centerX);
-      const t = Math.max(0, 1 - d / reach);
-      const op = 0.04 + t * t * 0.96;
-      panel.style.opacity = String(op);
-      panel.style.zIndex = String(1 + Math.round(t * 40));
+      const delta = x - centerX;
+      const signed = delta / reach;
+      let p = reduceMotion ? 1 : clamp01(1 - Math.abs(signed));
+      if (typeof panel.__apply === "function") {
+        panel.__apply(p, signed);
+      }
+      /* Plate rides up as the scene resolves — still scroll-bound. */
+      if (panel.__plate) {
+        const lift = (1 - p) * 28;
+        panel.__plate.style.transform = `translateY(${lift.toFixed(1)}px)`;
+      }
+      /* Keep near panels readable; far ones tuck back — not the primary motion. */
+      panel.style.opacity = String(0.12 + p * p * 0.88);
+      panel.style.zIndex = String(1 + Math.round(p * 40));
     });
   }
 
-  window.__HUMANITY_STORY__ = { buildStill, mountStrip, layoutStrip, focusStrip, matchStory };
+  window.__HUMANITY_STORY__ = { buildStill, mountStrip, layoutStrip, focusStrip, matchStory, toScrollScene };
 })();
