@@ -14,33 +14,35 @@
   <a class="skip" href="#domains">跳到领域血条</a>
 
   <div class="page">
+    <div class="dossier-strip" aria-label="档案抬头">
+      <span class="dossier-bracket">[</span>
+      <span class="dossier-key">档案</span>
+      <time id="updated-date" datetime="2026-09-30">—</time>
+      <span class="dossier-bracket">]</span>
+      <span class="dossier-rule" aria-hidden="true"></span>
+    </div>
+
     <header class="mast" id="top">
       <aside class="mast-rail" aria-label="概览">
-        <p class="mast-meta">
-          <span class="meta-label">档案更新</span>
-          <time id="updated-date" datetime="2026-09-30">—</time>
-        </p>
         <h1 class="mast-title" id="site-title">记录人类完蛋全过程</h1>
         <p class="mast-subtitle" id="site-subtitle"></p>
 
         <div class="aggregate" aria-live="polite">
-          <p class="aggregate-label">人类事务 · 剩余</p>
           <p class="aggregate-value">
             <span id="aggregate-num">—</span><span class="aggregate-unit">%</span>
           </p>
+          <p class="aggregate-label">人类事务剩余</p>
           <p class="aggregate-note" id="score-disclaimer"></p>
         </div>
-
-        <nav class="mast-nav" aria-label="页面导航">
-          <a href="#domains">领域血条</a>
-          <a href="#timeline">时间线</a>
-        </nav>
       </aside>
 
       <section class="mast-domains" id="domains" aria-labelledby="domains-heading">
         <div class="domains-head">
-          <h2 id="domains-heading" class="section-title">领域 · 人类剩余血条</h2>
-          <p class="section-desc">点击展开子项。父级为叶节点算术平均（取整）。骨色为人类剩余，血色为已被 AI 占据。</p>
+          <h2 id="domains-heading" class="section-title">
+            <span class="sec-mark">01</span>
+            <span class="sec-label">领域索引</span>
+            <span class="sec-hint">点击展开子项 · 父级为叶节点算术平均</span>
+          </h2>
         </div>
         <div id="domain-tree" class="domain-tree" role="tree"></div>
       </section>
@@ -49,8 +51,11 @@
     <main>
       <section class="timeline-section" id="timeline" aria-labelledby="timeline-heading">
         <div class="section-head">
-          <h2 id="timeline-heading" class="section-title">时间线 · 值得记下的节点</h2>
-          <p class="section-desc">自 ENIAC 起，只收录可核验、影响显著的里程碑与模型发布。</p>
+          <h2 id="timeline-heading" class="section-title">
+            <span class="sec-mark">02</span>
+            <span class="sec-label">时间线</span>
+            <span class="sec-hint">自 ENIAC 起，只收录可核验、影响显著的里程碑</span>
+          </h2>
         </div>
         <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
         <div id="timeline-list" class="timeline-list"></div>

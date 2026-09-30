@@ -17,13 +17,15 @@
   }
 
   function pctClass(n) {
-    if (n >= 55) return "high";
     if (n <= 25) return "critical";
     return "";
   }
 
-  function barClass(n) {
-    return n >= 55 ? "survive-high" : "";
+  function formatArchiveDate(iso) {
+    if (!iso) return "";
+    const parts = iso.split("-");
+    if (parts.length < 2) return iso;
+    return `${parts[1]}.${parts[2] || ""}`;
   }
 
   function formatISO(iso) {
@@ -50,7 +52,7 @@
     $("#site-subtitle").textContent = data.subtitle || "";
     const t = $("#updated-date");
     t.dateTime = data.updated;
-    t.textContent = formatISO(data.updated);
+    t.textContent = formatArchiveDate(data.updated);
     $("#aggregate-num").textContent = String(aggregate);
     $("#score-disclaimer").textContent =
       data.scoreDisclaimer ||
@@ -62,7 +64,7 @@
     wrap.className = "bar-wrap";
 
     const bar = document.createElement("div");
-    bar.className = `bar ${barClass(remaining)}`.trim();
+    bar.className = "bar";
     bar.setAttribute("role", "img");
     bar.setAttribute(
       "aria-label",
@@ -71,9 +73,15 @@
 
     const fill = document.createElement("div");
     fill.className = "bar-fill";
-    fill.style.width = `${Math.max(0, Math.min(100, remaining))}%`;
+    const clamped = Math.max(0, Math.min(100, remaining));
+    fill.style.width = `${clamped}%`;
 
-    bar.append(fill);
+    // Steel segment = taken by AI (right side)
+    const lost = document.createElement("div");
+    lost.className = "bar-lost";
+    lost.style.width = `${100 - clamped}%`;
+
+    bar.append(fill, lost);
     wrap.append(bar);
     return wrap;
   }
@@ -89,8 +97,9 @@
     const root = $("#domain-tree");
     root.textContent = "";
 
-    domains.forEach((domain) => {
+    domains.forEach((domain, i) => {
       const remaining = avgLeaves(domain);
+      const idx = String(i + 1).padStart(2, "0");
       const row = document.createElement("div");
       row.className = "domain-row";
       row.setAttribute("role", "treeitem");
@@ -103,13 +112,18 @@
       btn.setAttribute("aria-controls", `domain-kids-${domain.id}`);
       btn.id = `domain-btn-${domain.id}`;
 
+      const idxEl = document.createElement("span");
+      idxEl.className = "domain-idx";
+      idxEl.textContent = idx;
+      idxEl.setAttribute("aria-hidden", "true");
+
       const name = document.createElement("span");
       name.className = "domain-name";
       name.innerHTML = `<span class="chev" aria-hidden="true"></span><span class="domain-name-text">${escapeHtml(
         domain.name
       )}</span>`;
 
-      btn.append(name, makeBar(remaining), makePct(remaining));
+      btn.append(idxEl, name, makeBar(remaining), makePct(remaining));
 
       const kids = document.createElement("div");
       kids.className = "domain-children";
@@ -132,6 +146,11 @@
         cr.className = "child-row";
         cr.setAttribute("role", "treeitem");
 
+        const spacer = document.createElement("span");
+        spacer.className = "domain-idx child-idx";
+        spacer.setAttribute("aria-hidden", "true");
+        spacer.textContent = "·";
+
         const cn = document.createElement("div");
         cn.className = "child-name";
         cn.textContent = child.name;
@@ -146,7 +165,7 @@
             : ""
         } <strong>· 估算</strong>`;
 
-        cr.append(cn, makeBar(child.remaining), makePct(child.remaining), meta);
+        cr.append(spacer, cn, makeBar(child.remaining), makePct(child.remaining), meta);
         inner.append(cr);
       });
 
@@ -330,7 +349,7 @@
     if (t) {
       t.textContent =
         "数据文件加载失败。请用本地服务器打开，或确认 data.json 与本页同目录。";
-      t.style.color = "#d85a3a";
+      t.style.color = "#c45c26";
     }
   });
 })();
