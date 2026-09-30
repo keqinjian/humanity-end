@@ -58,7 +58,35 @@
           </h2>
         </div>
         <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
-        <div id="timeline-list" class="timeline-list"></div>
+
+        <div class="axis-stage" id="axis-stage">
+          <div
+            class="axis-viewport"
+            id="axis-viewport"
+            tabindex="0"
+            role="region"
+            aria-label="横向时间轴，可用方向键与滚轮浏览"
+            aria-roledescription="时间轴"
+          >
+            <div class="axis-bleed" aria-hidden="true">
+              <span class="axis-bleed-arc axis-bleed-arc--a"></span>
+              <span class="axis-bleed-arc axis-bleed-arc--b"></span>
+              <span class="axis-bleed-arc axis-bleed-arc--c"></span>
+              <span class="axis-bleed-label">X AXIS</span>
+            </div>
+            <div class="axis-track" id="timeline-list">
+              <!-- rendered by app.js -->
+            </div>
+          </div>
+
+          <div class="axis-meta">
+            <p class="axis-hint" id="axis-hint">拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停漫游</p>
+            <div class="axis-detail" id="axis-detail" aria-live="polite">
+              <p class="axis-detail-empty">在轴上选取一个节点，查看日期、标题与摘要。</p>
+            </div>
+          </div>
+        </div>
+
       </section>
     </main>
 
