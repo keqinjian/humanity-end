@@ -238,14 +238,52 @@
     const stamps = events.map((e) => dayStamp(e.date));
     const tMin = Math.min(...stamps);
     const tMax = Math.max(...stamps);
-    const span = Math.max(1, tMax - tMin);
 
-    const yearSpan = Math.max(
-      1,
-      Number(yearOf(events[events.length - 1].date)) - Number(yearOf(events[0].date))
-    );
-    /* Content span between first and last event; edge pads let ends reach viewport center. */
-    const contentSpan = Math.max(2200, Math.round(yearSpan * 72 + 480));
+    /**
+     * Density scale: KDE over event days → smooth stretch so packed years
+     * claim more horizontal pixels. Positions are cumulative gaps; arbitrary
+     * stamps (year ticks) interpolate in time between neighboring events.
+     * Same scrollLeft still maps 1:1 to the same picture.
+     */
+    function buildDensityScale(stampList) {
+      const n = stampList.length;
+      const h = 160; /* KDE bandwidth ~5 months */
+      let dens = stampList.map((t) => {
+        let s = 0;
+        for (let j = 0; j < n; j++) {
+          const u = (t - stampList[j]) / h;
+          s += Math.exp(-0.5 * u * u);
+        }
+        return s;
+      });
+      for (let pass = 0; pass < 2; pass++) {
+        dens = dens.map((d, i) => {
+          const a = dens[Math.max(0, i - 1)];
+          const b = dens[Math.min(n - 1, i + 1)];
+          return 0.2 * a + 0.6 * d + 0.2 * b;
+        });
+      }
+      const dMin = Math.min(...dens);
+      const dMax = Math.max(...dens);
+      const norm = dens.map((d) => (d - dMin) / Math.max(1e-9, dMax - dMin));
+
+      const MIN_GAP = 300; /* late-era nodes must not stack */
+      const xs = [0];
+      for (let i = 0; i < n - 1; i++) {
+        const days = Math.max(0.5, stampList[i + 1] - stampList[i]);
+        const nd = (norm[i] + norm[i + 1]) / 2;
+        /* Compress long empty stretches; amplify packed clusters. */
+        const gap = Math.max(
+          MIN_GAP,
+          70 * Math.pow(days / 365, 0.48) + 140 + nd * 340
+        );
+        xs.push(xs[i] + gap);
+      }
+      return { xs, contentSpan: xs[n - 1], norm };
+    }
+
+    const density = buildDensityScale(stamps);
+    let contentSpan = density.contentSpan;
 
     let selectedIndex = events.length - 1;
     let filterEra = null;
@@ -265,8 +303,22 @@
       edgePad = Math.max(1, viewport.clientWidth * 0.5);
     }
 
+    /** Event-indexed position (handles same-day milestones). */
+    function xAt(i) {
+      return edgePad + density.xs[i];
+    }
+
+    /** Continuous stamp → x for year ticks / scrub math between events. */
     function xOf(stamp) {
-      return edgePad + ((stamp - tMin) / span) * contentSpan;
+      const n = stamps.length;
+      if (stamp <= stamps[0]) return xAt(0);
+      if (stamp >= stamps[n - 1]) return xAt(n - 1);
+      let i = 0;
+      while (i < n - 1 && stamps[i + 1] < stamp) i += 1;
+      const t0 = stamps[i];
+      const t1 = stamps[i + 1];
+      const u = t1 === t0 ? 0 : (stamp - t0) / (t1 - t0);
+      return xAt(i) + u * (xAt(i + 1) - xAt(i));
     }
 
     function scrollMax() {
@@ -278,7 +330,7 @@
       measureEdgePad();
       track.style.width = `${edgePad + contentSpan + edgePad}px`;
       nodes.forEach((btn, i) => {
-        btn.style.left = `${xOf(stamps[i])}px`;
+        btn.style.left = `${xAt(i)}px`;
       });
       track.querySelectorAll(".axis-era-band").forEach((band) => {
         const era = band.dataset.era;
@@ -286,8 +338,8 @@
           .map((e, i) => (e.era === era ? i : -1))
           .filter((i) => i >= 0);
         if (!idxs.length) return;
-        const x0 = xOf(stamps[idxs[0]]);
-        const x1 = xOf(stamps[idxs[idxs.length - 1]]);
+        const x0 = xAt(idxs[0]);
+        const x1 = xAt(idxs[idxs.length - 1]);
         const bandW = Math.max(56, x1 - x0 + 72);
         band.style.left = `${x0 - 36}px`;
         band.style.width = `${bandW}px`;
@@ -298,7 +350,7 @@
         el.style.left = `${xOf(dayStamp(`${y}-01-01`))}px`;
       });
       if (window.__HUMANITY_STORY__ && storyStrip.el) {
-        window.__HUMANITY_STORY__.layoutStrip(storyStrip.el, (i) => xOf(stamps[i]));
+        window.__HUMANITY_STORY__.layoutStrip(storyStrip.el, (i) => xAt(i));
       }
       updateProgress();
     }
@@ -374,7 +426,7 @@
     }
 
     function updateProgress() {
-      const x = xOf(stamps[selectedIndex]);
+      const x = xAt(selectedIndex);
       const prog = track.querySelector(".axis-progress");
       if (prog) prog.style.width = `${x}px`;
       const cross = track.querySelector(".axis-crosshair");
@@ -411,7 +463,7 @@
     }
 
     function scrollToIndex(index, instant) {
-      const x = xOf(stamps[index]);
+      const x = xAt(index);
       const target = x - viewport.clientWidth * 0.5;
       scrollToX(target, instant);
     }
@@ -421,8 +473,8 @@
         .map((e, i) => (e.era === era ? i : -1))
         .filter((i) => i >= 0);
       if (!idxs.length) return;
-      const x0 = xOf(stamps[idxs[0]]);
-      const x1 = xOf(stamps[idxs[idxs.length - 1]]);
+      const x0 = xAt(idxs[0]);
+      const x1 = xAt(idxs[idxs.length - 1]);
       const mid = (x0 + x1) / 2;
       scrollToX(mid - viewport.clientWidth * 0.5, false); /* era span mid → center */
       setSelected(idxs[0], { scroll: false });
@@ -433,7 +485,7 @@
       let best = 0;
       let bestDist = Infinity;
       for (let i = 0; i < stamps.length; i++) {
-        const d = Math.abs(xOf(stamps[i]) - center);
+        const d = Math.abs(xAt(i) - center);
         if (d < bestDist) {
           bestDist = d;
           best = i;
@@ -445,7 +497,7 @@
     function focusStories() {
       if (!window.__HUMANITY_STORY__ || !storyStrip.el) return;
       const centerX = viewport.scrollLeft + viewport.clientWidth * 0.5;
-      window.__HUMANITY_STORY__.focusStrip(storyStrip.el, (i) => xOf(stamps[i]), centerX);
+      window.__HUMANITY_STORY__.focusStrip(storyStrip.el, (i) => xAt(i), centerX);
     }
 
     function syncFromScroll() {
@@ -472,7 +524,7 @@
       track.append(strip);
       storyStrip.el = strip;
       if (window.__HUMANITY_STORY__) {
-        window.__HUMANITY_STORY__.mountStrip(strip, events, (i) => xOf(stamps[i]));
+        window.__HUMANITY_STORY__.mountStrip(strip, events, (i) => xAt(i));
       }
 
       const spine = document.createElement("div");
@@ -497,8 +549,8 @@
           .map((e, i) => (e.era === era ? i : -1))
           .filter((i) => i >= 0);
         if (!idxs.length) return;
-        const x0 = xOf(stamps[idxs[0]]);
-        const x1 = xOf(stamps[idxs[idxs.length - 1]]);
+        const x0 = xAt(idxs[0]);
+        const x1 = xAt(idxs[idxs.length - 1]);
         const bandW = Math.max(56, x1 - x0 + 72);
         const band = document.createElement("div");
         band.className = "axis-era-band";
@@ -542,7 +594,7 @@
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "axis-node";
-        btn.style.left = `${xOf(stamps[i])}px`;
+        btn.style.left = `${xAt(i)}px`;
         btn.dataset.index = String(i);
         btn.setAttribute(
           "aria-label",

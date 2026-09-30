@@ -66,32 +66,32 @@
   /* ——— Scene builders: each returns {svg, play(reduceMotion)->cancel} ——— */
 
   function sceneEniac(props) {
-    const floor = el("line", { x1: 80, y1: 390, x2: 560, y2: 390, stroke: "#1d4e89", "stroke-width": 1, opacity: 0 });
-    const wall = el("line", { x1: 80, y1: 140, x2: 80, y2: 390, stroke: "#d5deea", "stroke-width": 1, opacity: 0 });
+    const floor = el("line", { x1: 70, y1: 400, x2: 580, y2: 400, stroke: "#1d4e89", "stroke-width": 1.5, opacity: 0 });
+    const wall = el("line", { x1: 70, y1: 110, x2: 70, y2: 400, stroke: "#d5deea", "stroke-width": 1.5, opacity: 0 });
     const racks = [];
     const panels = [];
     for (let i = 0; i < 6; i++) {
-      const x = 120 + i * 70;
+      const x = 90 + i * 82;
       racks.push(el("rect", {
-        x, y: 170, width: 54, height: 200,
-        fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 1.2, opacity: 0
+        x, y: 130, width: 68, height: 250,
+        fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2, opacity: 0
       }));
-      for (let row = 0; row < 5; row++) {
+      for (let row = 0; row < 6; row++) {
         panels.push(el("rect", {
-          x: x + 8, y: 185 + row * 34, width: 38, height: 18,
-          fill: "none", stroke: "#2f6fed", "stroke-width": 1, opacity: 0
+          x: x + 10, y: 148 + row * 36, width: 48, height: 22,
+          fill: "none", stroke: "#2f6fed", "stroke-width": 1.4, opacity: 0
         }));
       }
     }
     const pulse = el("text", {
-      x: 320, y: 160, "text-anchor": "middle", fill: "#1d4e89",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 12, "letter-spacing": "0.28em", opacity: 0
+      x: 320, y: 118, "text-anchor": "middle", fill: "#1d4e89",
+      "font-family": "Noto Sans SC, sans-serif", "font-size": 20, "letter-spacing": "0.28em", opacity: 0
     }, ["机房 · 百平柜机"]);
     const mark = el("g", { class: "st-mark", opacity: 0 }, [
-      el("rect", { x: 270, y: 250, width: 100, height: 48, fill: "#f4f7fb", stroke: "#2f6fed", "stroke-width": 1.5 }),
+      el("rect", { x: 250, y: 220, width: 140, height: 64, fill: "#f4f7fb", stroke: "#2f6fed", "stroke-width": 2.2 }),
       el("text", {
-        x: 320, y: 280, "text-anchor": "middle", fill: "#102033",
-        "font-family": "Instrument Serif, serif", "font-size": 22
+        x: 320, y: 262, "text-anchor": "middle", fill: "#102033",
+        "font-family": "Instrument Serif, serif", "font-size": 34
       }, ["CALC"]),
     ]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
@@ -106,9 +106,9 @@
           { at: 0.3, dur: 0.35, run: (t) => panels.forEach((p, i) => setOpacity(p, t * (0.4 + (i % 3) * 0.2))) },
           { at: 0.55, dur: 0.4, ease: easeOut, run: (t) => {
             setOpacity(mark, t);
-            racks.forEach((r) => setOpacity(r, 1 - t * 0.85));
-            panels.forEach((p) => setOpacity(p, Math.max(0, 0.8 - t)));
-            setOpacity(pulse, 1 - t * 0.5);
+            racks.forEach((r) => setOpacity(r, 1));
+            panels.forEach((p) => setOpacity(p, 0.55 + t * 0.25));
+            setOpacity(pulse, 1);
           }},
         ], 2000, rm);
       },
@@ -126,7 +126,7 @@
         "text-anchor": "middle",
         fill: "#102033",
         "font-family": "Noto Serif SC, serif",
-        "font-size": 52,
+        "font-size": 64,
         opacity: 0,
       }, [ch])
     );
@@ -347,14 +347,14 @@
   function sceneTransformer(props) {
     const tokens = (props.tokens || ["Attention", "Is", "All", "You", "Need"]).slice(0, 5);
     const boxes = tokens.map((tok, i) => {
-      const x = 80 + i * 110;
+      const x = 40 + i * 118;
       return {
         g: el("g", { opacity: 0 }, [
-          el("rect", { x, y: 200, width: 90, height: 36, fill: "none", stroke: "#1d4e89", "stroke-width": 1.2 }),
-          el("text", { x: x + 45, y: 223, "text-anchor": "middle", fill: "#102033",
-            "font-family": "Noto Sans SC, sans-serif", "font-size": 12 }, [tok]),
+          el("rect", { x, y: 210, width: 108, height: 48, fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2 }),
+          el("text", { x: x + 54, y: 240, "text-anchor": "middle", fill: "#102033",
+            "font-family": "Noto Sans SC, sans-serif", "font-size": 15, "font-weight": "500" }, [tok]),
         ]),
-        x: x + 45,
+        x: x + 54,
       };
     });
     const lines = [];
@@ -364,14 +364,14 @@
       if (i === src) return;
       const w = i === 1 || i === 3 ? 2.2 : 0.8;
       lines.push(el("line", {
-        x1: boxes[src].x, y1: 200, x2: boxes[src].x, y2: 200,
-        stroke: "#2f6fed", "stroke-width": w, opacity: 0,
-        "data-tx": b.x, "data-ty": 200
+        x1: boxes[src].x, y1: 210, x2: boxes[src].x, y2: 210,
+        stroke: "#2f6fed", "stroke-width": w + 0.6, opacity: 0,
+        "data-tx": b.x, "data-ty": 210
       }));
     });
     const title = el("text", {
-      x: 320, y: 160, "text-anchor": "middle", fill: "#1d4e89",
-      "font-family": "Noto Sans SC, sans-serif", "font-size": 12, "letter-spacing": "0.2em", opacity: 0
+      x: 320, y: 150, "text-anchor": "middle", fill: "#1d4e89",
+      "font-family": "Noto Sans SC, sans-serif", "font-size": 18, "letter-spacing": "0.22em", opacity: 0
     }, [props.caption || "自注意力"]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [
       title, ...lines, ...boxes.map((b) => b.g)
@@ -389,7 +389,7 @@
             lines.forEach((ln) => {
               setOpacity(ln, t * 0.85);
               ln.setAttribute("x2", String(boxes[src].x + (Number(ln.getAttribute("data-tx")) - boxes[src].x) * t));
-              ln.setAttribute("y2", String(200 - 40 * t));
+              ln.setAttribute("y2", String(210 - 55 * t));
             });
           }},
         ], 2000, rm);
@@ -459,8 +459,8 @@
 
   function sceneFrameFill(props) {
     const frame = el("rect", {
-      x: 170, y: 140, width: 300, height: 200,
-      fill: "#f4f7fb", stroke: "#1d4e89", "stroke-width": 1.5, opacity: 0
+      x: 120, y: 110, width: 400, height: 250,
+      fill: "#f4f7fb", stroke: "#1d4e89", "stroke-width": 2.2, opacity: 0
     });
     const shapes = [];
     const specs = props.shapes || [
@@ -475,7 +475,7 @@
       else shapes.push(el("line", { x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2, stroke: "#1d4e89", "stroke-width": 1.2, opacity: 0 }));
     });
     const prompt = el("text", {
-      x: 180, y: 130, fill: "#1d4e89", "font-size": 11, "letter-spacing": "0.12em", opacity: 0,
+      x: 130, y: 96, fill: "#1d4e89", "font-size": 16, "letter-spacing": "0.12em", opacity: 0,
       "font-family": "Noto Sans SC, sans-serif"
     }, [props.prompt || "a constructed still life"]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [prompt, frame, ...shapes]);
@@ -661,22 +661,22 @@
     const steps = props.steps || ["读题", "分解", "演算", "核验"];
     const nodes = steps.map((s, i) =>
       el("g", { opacity: 0 }, [
-        el("circle", { cx: 140 + i * 120, cy: 220, r: 16, fill: "none", stroke: "#1d4e89", "stroke-width": 1.4 }),
-        el("text", { x: 140 + i * 120, y: 225, "text-anchor": "middle", fill: "#102033", "font-size": 11,
+        el("circle", { cx: 100 + i * 145, cy: 195, r: 36, fill: "#e8eef6", stroke: "#1d4e89", "stroke-width": 2.4 }),
+        el("text", { x: 100 + i * 145, y: 202, "text-anchor": "middle", fill: "#102033", "font-size": 17,
           "font-family": "Noto Sans SC, sans-serif" }, [s]),
       ])
     );
     const links = [];
     for (let i = 0; i < steps.length - 1; i++) {
       links.push(el("line", {
-        x1: 156 + i * 120, y1: 220, x2: 156 + i * 120, y2: 220,
-        stroke: "#2f6fed", "stroke-width": 1.5, opacity: 0, "data-x2": 124 + (i + 1) * 120
+        x1: 136 + i * 145, y1: 195, x2: 136 + i * 145, y2: 195,
+        stroke: "#2f6fed", "stroke-width": 2.4, opacity: 0, "data-x2": 64 + (i + 1) * 145
       }));
     }
     const answer = el("g", { opacity: 0 }, [
-      el("rect", { x: 220, y: 280, width: 200, height: 44, fill: "#e8eef6", stroke: "#2f6fed", "stroke-width": 1.5 }),
-      el("text", { x: 320, y: 308, "text-anchor": "middle", fill: "#102033", "font-size": 14,
-        "font-family": "Noto Sans SC, sans-serif" }, [props.answer || "答案"]),
+      el("rect", { x: 150, y: 270, width: 340, height: 70, fill: "#e8eef6", stroke: "#2f6fed", "stroke-width": 2.4 }),
+      el("text", { x: 320, y: 315, "text-anchor": "middle", fill: "#102033", "font-size": 24,
+        "font-family": "Noto Serif SC, serif" }, [props.answer || "答案"]),
     ]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...links, ...nodes, answer]);
     return {
@@ -688,14 +688,14 @@
             at: 0.15 + i * 0.12, dur: 0.2, ease: easeOut,
             run: (t) => {
               setOpacity(ln, t);
-              ln.setAttribute("x2", String(156 + i * 120 + (Number(ln.getAttribute("data-x2")) - (156 + i * 120)) * t));
+              ln.setAttribute("x2", String(136 + i * 145 + (Number(ln.getAttribute("data-x2")) - (136 + i * 145)) * t));
             }
           })),
           { at: 0.65, dur: 0.3, ease: easeOut, run: (t) => {
-            nodes.forEach((n) => setOpacity(n, 1 - t * 0.7));
-            links.forEach((ln) => setOpacity(ln, 1 - t * 0.7));
+            nodes.forEach((n) => setOpacity(n, 1));
+            links.forEach((ln) => setOpacity(ln, 1));
             setOpacity(answer, t);
-            setTransform(answer, `translate(0 ${(1 - t) * 20})`);
+            setTransform(answer, `translate(0 ${(1 - t) * 12})`);
           }},
         ], 2200, rm);
       },
@@ -917,28 +917,49 @@
   }
 
 
+  function clipBlurb(s, n) {
+    const t = String(s || "").trim();
+    if (t.length <= n) return t;
+    return t.slice(0, n - 1) + "…";
+  }
+
   /** Build the final still frame for one event (no timed play). */
   function buildStill(evt) {
     const wrap = document.createElement("div");
     wrap.className = "story-panel";
     wrap.setAttribute("aria-hidden", "true");
     const scene = matchStory(evt)();
+    /* Crop empty margins so the print fills the large panel. */
+    scene.svg.setAttribute("viewBox", "30 70 580 340");
+    scene.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
     wrap.appendChild(scene.svg);
-    scene.play(true);
+    scene.play(true); /* jump to composed still — not a running timeline */
+
+    const plate = document.createElement("div");
+    plate.className = "story-plate";
+    const title = document.createElement("p");
+    title.className = "story-plate-title";
+    title.textContent = evt.title || "";
+    const blurb = document.createElement("p");
+    blurb.className = "story-plate-blurb";
+    blurb.textContent = clipBlurb(evt.blurb, 72);
+    plate.append(title, blurb);
+    wrap.appendChild(plate);
     return wrap;
   }
 
+  /** Wide panels so art is readable; neighbors may peek under focus opacity. */
   function panelHalfWidth(i, n, xOfIndex) {
     const x = xOfIndex(i);
-    const xPrev = i > 0 ? xOfIndex(i - 1) : x - 420;
-    const xNext = i < n - 1 ? xOfIndex(i + 1) : x + 420;
-    return Math.min(200, Math.max(72, (xNext - xPrev) / 2 - 10));
+    const xPrev = i > 0 ? xOfIndex(i - 1) : x - 900;
+    const xNext = i < n - 1 ? xOfIndex(i + 1) : x + 900;
+    const gapBased = (xNext - xPrev) / 2 - 8;
+    return Math.min(560, Math.max(400, gapBased));
   }
 
   /**
    * Mount a continuous strip inside the scrolling track.
-   * Panel i is centered on xOf(i); width fits the gap so neighbors sit beside, not on top.
-   * scrollLeft → picture is 1:1 (same scroll always same composition).
+   * Panel i is centered on xAt(i). scrollLeft → picture is 1:1.
    */
   function mountStrip(strip, events, xOfIndex) {
     if (!strip) return;
@@ -968,19 +989,19 @@
     });
   }
 
-  /** Focus opacity from viewport center — still deterministic for a given scrollLeft. */
+  /** Focus opacity from viewport center — deterministic for a given scrollLeft. */
   function focusStrip(strip, xOfIndex, centerX) {
     if (!strip) return;
     const panels = [...strip.querySelectorAll(".story-panel")];
-    const reach = 640;
+    const reach = 900;
     panels.forEach((panel) => {
       const i = Number(panel.dataset.index);
       const x = xOfIndex(i);
       const d = Math.abs(x - centerX);
       const t = Math.max(0, 1 - d / reach);
-      const op = 0.05 + t * t * 0.95; /* still; sharper peak at center */
+      const op = 0.04 + t * t * 0.96;
       panel.style.opacity = String(op);
-      panel.style.zIndex = String(1 + Math.round(t * 30));
+      panel.style.zIndex = String(1 + Math.round(t * 40));
     });
   }
 

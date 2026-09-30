@@ -80,12 +80,12 @@ body {
 }
 
 .page-mast .mast {
-  padding: 10px 0 8px;
+  padding: 6px 0 4px;
 }
 
 .page-mast .mast-title {
-  font-size: 1.45rem;
-  line-height: 1.25;
+  font-size: 1.25rem;
+  line-height: 1.2;
 }
 
 .page-mast .mast-subtitle {
@@ -98,12 +98,12 @@ body {
 }
 
 .page-mast .aggregate {
-  margin-top: 12px;
-  padding-top: 10px;
+  margin-top: 6px;
+  padding-top: 6px;
 }
 
 .page-mast .aggregate-value {
-  font-size: 3.6rem;
+  font-size: 2.8rem;
 }
 
 .page-mast .aggregate-note {
@@ -116,7 +116,25 @@ body {
 }
 
 .page-mast .domain-btn {
-  height: 26px;
+  height: 22px;
+}
+
+.page-mast .mast-subtitle {
+  -webkit-line-clamp: 1;
+}
+
+.page-mast .dossier-strip {
+  padding-top: 6px;
+}
+
+.page-mast .mast {
+  grid-template-columns: minmax(200px, 240px) minmax(0, 1fr);
+  gap: 0 28px;
+}
+
+.page-mast .domain-tree {
+  max-height: 9.5rem;
+  overflow: hidden;
 }
 
 .page-mast .sec-hint {
@@ -512,7 +530,7 @@ body {
   width: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 14px var(--pad-x) 0;
+  padding: 8px var(--pad-x) 0;
 }
 
 .timeline-chrome .section-head {
@@ -570,8 +588,8 @@ body {
 .axis-stage {
   position: relative;
   width: 100%;
-  min-height: clamp(420px, 62vh, 720px);
-  height: clamp(420px, 62vh, 720px);
+  min-height: clamp(560px, 78vh, 960px);
+  height: clamp(560px, 78vh, 960px);
   margin: 0;
   overflow: hidden;
   background:
@@ -614,19 +632,58 @@ body {
 
 .story-panel {
   position: absolute;
-  top: 44%;
-  height: 280px;
-  transform: translate(-50%, -60%);
-  opacity: 0.15;
-  overflow: hidden;
-  /* width set in JS from neighbor gaps */
+  top: 42%;
+  height: min(640px, 82%);
+  transform: translate(-50%, -52%);
+  opacity: 0.12;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  /* width set in JS from density gaps */
 }
 
 .story-svg {
   width: 100%;
-  height: 100%;
+  flex: 1 1 auto;
+  min-height: 72%;
+  height: 72%;
   display: block;
   overflow: visible;
+}
+
+.story-plate {
+  flex: 0 0 auto;
+  margin: -4px auto 0;
+  padding: 6px 16px 8px;
+  max-width: 90%;
+  text-align: center;
+  border-top: 1px solid rgba(29, 78, 137, 0.28);
+  background: rgba(244, 247, 251, 0.88);
+}
+
+.story-plate-title {
+  margin: 0;
+  font-family: var(--serif-cn);
+  font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.story-plate-blurb {
+  margin: 4px 0 0;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: var(--ink-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Readout stays above the strip and clear of ghost years */
@@ -940,13 +997,13 @@ body {
 /* In-stage readout */
 .axis-readout {
   position: absolute;
-  left: max(24px, 4vw);
-  right: max(24px, 42%);
-  bottom: 14%;
-  z-index: 5;
+  left: max(20px, 3vw);
+  right: auto;
+  bottom: 10%;
+  z-index: 6;
   isolation: isolate;
   pointer-events: none;
-  max-width: 36rem;
+  max-width: min(26rem, 34vw);
   transition: opacity 0.35s var(--ease), transform 0.4s var(--ease);
 }
 
@@ -958,10 +1015,11 @@ body {
 .readout-year {
   margin: 0;
   font-family: var(--serif-num);
-  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  color: var(--ink);
+  font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  opacity: 0.9;
 }
 
 .readout-meta {
@@ -1060,8 +1118,8 @@ body {
   }
 
   .axis-stage {
-    min-height: clamp(380px, 58vh, 640px);
-    height: clamp(380px, 58vh, 640px);
+    min-height: clamp(500px, 74vh, 880px);
+    height: clamp(500px, 74vh, 880px);
   }
 }
 
@@ -1106,8 +1164,8 @@ body {
   }
 
   .axis-stage {
-    min-height: clamp(360px, 60vh, 580px);
-    height: clamp(360px, 60vh, 580px);
+    min-height: clamp(420px, 68vh, 720px);
+    height: clamp(420px, 68vh, 720px);
   }
 
   .sec-hint {
