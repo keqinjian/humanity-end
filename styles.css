@@ -590,99 +590,6 @@ body {
   overflow: hidden;
 }
 
-.field-grid {
-  position: absolute;
-  inset: 8% 0;
-  background-image:
-    linear-gradient(rgba(29, 78, 137, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(29, 78, 137, 0.07) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: 0.35;
-  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-  transition: opacity 0.55s var(--ease), background-size 0.7s var(--ease);
-}
-
-.field-links {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.5s var(--ease);
-  background:
-    radial-gradient(circle at 30% 42%, rgba(47, 111, 237, 0.12) 0 2px, transparent 3px),
-    radial-gradient(circle at 48% 58%, rgba(29, 78, 137, 0.14) 0 2px, transparent 3px),
-    radial-gradient(circle at 62% 40%, rgba(47, 111, 237, 0.1) 0 2px, transparent 3px),
-    radial-gradient(circle at 72% 55%, rgba(22, 50, 79, 0.12) 0 1.5px, transparent 2.5px),
-    radial-gradient(circle at 38% 52%, rgba(29, 78, 137, 0.1) 0 1.5px, transparent 2.5px);
-}
-
-.field-links::before,
-.field-links::after {
-  content: "";
-  position: absolute;
-  left: 22%;
-  top: 44%;
-  width: 42%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(29, 78, 137, 0.28), transparent);
-  transform-origin: left center;
-}
-
-.field-links::before { transform: rotate(-8deg); }
-.field-links::after { top: 52%; transform: rotate(6deg); width: 48%; left: 28%; }
-
-.field-ring {
-  position: absolute;
-  border: 1px solid rgba(29, 78, 137, 0.2);
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: opacity 0.55s var(--ease), width 0.7s var(--ease), height 0.7s var(--ease), border-color 0.4s;
-}
-
-.field-ring--a { width: 220px; height: 220px; }
-.field-ring--b { width: 360px; height: 360px; border-style: dashed; opacity: 0; }
-.field-ring--c { width: 520px; height: 520px; border-color: rgba(47, 111, 237, 0.14); }
-
-.field-arc {
-  position: absolute;
-  border: 1.5px solid transparent;
-  border-top-color: rgba(47, 111, 237, 0.28);
-  border-radius: 50%;
-  top: 50%;
-  left: 52%;
-  opacity: 0;
-  transform: translate(-50%, -50%) rotate(0deg);
-  transition: opacity 0.5s var(--ease);
-}
-
-.field-arc--1 { width: 280px; height: 280px; }
-.field-arc--2 { width: 340px; height: 340px; border-top-color: rgba(29, 78, 137, 0.22); }
-.field-arc--3 { width: 410px; height: 410px; border-top-color: rgba(47, 111, 237, 0.18); left: 48%; }
-.field-arc--4 { width: 480px; height: 480px; border-top-color: rgba(22, 50, 79, 0.16); left: 55%; }
-
-.field-ticks {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 40px;
-  transform: translateY(-50%);
-  opacity: 0.4;
-  transition: opacity 0.4s;
-}
-
-.field-tick {
-  position: absolute;
-  top: 50%;
-  width: 1px;
-  height: 14px;
-  margin-top: -7px;
-  background: var(--steel);
-  opacity: 0.35;
-}
-
 .field-ghost-num {
   position: absolute;
   right: 2%;
@@ -728,164 +635,102 @@ body {
   opacity: 0.4;
 }
 
-/* Motif states */
-.axis-stage[data-motif="foundation"] .field-grid {
-  opacity: 0.55;
-  background-size: 64px 64px;
+/* SVG flat-print scenes — centered on viewport mid (active node home) */
+.motif-svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(560px, 46vw);
+  height: min(560px, 46vw);
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  z-index: 1;
 }
-.axis-stage[data-motif="foundation"] .field-ring--a {
-  opacity: 0.7;
-  width: 260px;
-  height: 260px;
-  border-color: rgba(29, 78, 137, 0.35);
-}
-.axis-stage[data-motif="foundation"] .field-links { opacity: 0; }
-.axis-stage[data-motif="foundation"] .field-arc { opacity: 0; }
 
-.axis-stage[data-motif="specialist"] .field-grid {
-  opacity: 0.4;
-  background-size: 52px 52px;
+.motif-scene {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.45s var(--ease);
+  pointer-events: none;
 }
-.axis-stage[data-motif="specialist"] .field-ring--a,
-.axis-stage[data-motif="specialist"] .field-ring--b { opacity: 0.55; }
-.axis-stage[data-motif="specialist"] .field-links { opacity: 0.45; }
-.axis-stage[data-motif="specialist"] .field-arc--1 { opacity: 0.35; }
 
-.axis-stage[data-motif="deep"] .field-grid {
-  opacity: 0.28;
-  background-size: 36px 36px;
+.motif-scene.is-on {
+  opacity: 1;
+  visibility: visible;
 }
-.axis-stage[data-motif="deep"] .field-links { opacity: 0.85; }
-.axis-stage[data-motif="deep"] .field-ring--a,
-.axis-stage[data-motif="deep"] .field-ring--b { opacity: 0.4; }
-.axis-stage[data-motif="deep"] .field-arc--1,
-.axis-stage[data-motif="deep"] .field-arc--2 { opacity: 0.4; }
 
-.axis-stage[data-motif="transformer"] .field-grid { opacity: 0.18; }
-.axis-stage[data-motif="transformer"] .field-links { opacity: 0.35; }
-.axis-stage[data-motif="transformer"] .field-arc--1,
-.axis-stage[data-motif="transformer"] .field-arc--2,
-.axis-stage[data-motif="transformer"] .field-arc--3 { opacity: 0.7; }
-.axis-stage[data-motif="transformer"] .field-ring--c { opacity: 0.35; }
+.axis-stage[data-motif="lock"] .field-ghost-num {
+  opacity: 0.09;
+  color: var(--cyan);
+}
 
-.axis-stage[data-motif="generation"] .field-grid { opacity: 0.12; }
-.axis-stage[data-motif="generation"] .field-arc { opacity: 0.75; }
-.axis-stage[data-motif="generation"] .field-ring--a,
-.axis-stage[data-motif="generation"] .field-ring--b,
-.axis-stage[data-motif="generation"] .field-ring--c { opacity: 0.3; }
-.axis-stage[data-motif="generation"] .field-links { opacity: 0.25; }
+.axis-stage[data-motif="lock"] .field-tag {
+  color: var(--cyan);
+  opacity: 0.75;
+}
 
-.axis-stage[data-motif="reason"] .field-grid { opacity: 0.2; background-size: 28px 28px; }
-.axis-stage[data-motif="reason"] .field-ring--a,
-.axis-stage[data-motif="reason"] .field-ring--b,
-.axis-stage[data-motif="reason"] .field-ring--c {
-  opacity: 0.55;
-  border-color: rgba(47, 111, 237, 0.35);
+@keyframes motif-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
-.axis-stage[data-motif="reason"] .field-arc--1,
-.axis-stage[data-motif="reason"] .field-arc--2 { opacity: 0.45; }
-.axis-stage[data-motif="reason"] .field-links { opacity: 0.5; }
-
-.axis-stage[data-motif="wave"] .field-grid { opacity: 0.15; background-size: 24px 24px; }
-.axis-stage[data-motif="wave"] .field-ring--a,
-.axis-stage[data-motif="wave"] .field-ring--b,
-.axis-stage[data-motif="wave"] .field-ring--c {
-  opacity: 0.65;
-  border-color: rgba(47, 111, 237, 0.45);
+@keyframes motif-spin-rev {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
 }
-.axis-stage[data-motif="wave"] .field-arc { opacity: 0.55; }
-.axis-stage[data-motif="wave"] .field-ticks { opacity: 0.7; }
-.axis-stage[data-motif="wave"] .field-ghost-num { opacity: 0.1; color: var(--cyan); }
-
-.axis-stage[data-motif="critical"] .field-grid { opacity: 0.22; background-size: 20px 20px; }
-.axis-stage[data-motif="critical"] .field-ring--a,
-.axis-stage[data-motif="critical"] .field-ring--b,
-.axis-stage[data-motif="critical"] .field-ring--c {
-  opacity: 0.8;
-  border-color: var(--cyan);
-}
-.axis-stage[data-motif="critical"] .field-arc { opacity: 0.65; border-top-color: rgba(47, 111, 237, 0.45); }
-.axis-stage[data-motif="critical"] .field-ticks { opacity: 0.85; }
-.axis-stage[data-motif="critical"] .field-ghost-num { opacity: 0.12; color: var(--cyan); }
-.axis-stage[data-motif="critical"] .field-tag { color: var(--cyan); opacity: 0.75; }
-
-/* Looping motion (disabled under reduced-motion) */
-@keyframes field-spin-slow {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-@keyframes field-spin-rev {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(-360deg); }
-}
-@keyframes field-drift {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(-18px); }
-}
-@keyframes field-pulse {
-  0%, 100% { opacity: 0.45; }
+@keyframes motif-pulse {
+  0%, 100% { opacity: 0.35; }
   50% { opacity: 0.85; }
 }
-@keyframes tick-drift {
-  from { transform: translateY(-50%) translateX(0); }
-  to { transform: translateY(-50%) translateX(-40px); }
+@keyframes motif-tick-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-36px); }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .axis-stage[data-motif="foundation"] .field-ring--a {
-    animation: field-spin-slow 48s linear infinite;
+  .motif-spin-slow,
+  .motif-spin-rev,
+  .motif-spin-fast {
+    transform-box: fill-box;
+    transform-origin: center;
   }
-  .axis-stage[data-motif="specialist"] .field-ring--b {
-    animation: field-spin-rev 56s linear infinite;
+  .motif-spin-slow {
+    animation: motif-spin 42s linear infinite;
   }
-  .axis-stage[data-motif="deep"] .field-links {
-    animation: field-pulse 4.5s ease-in-out infinite;
+  .motif-spin-rev {
+    animation: motif-spin-rev 36s linear infinite;
   }
-  .axis-stage[data-motif="transformer"] .field-arc--1 {
-    animation: field-spin-slow 32s linear infinite;
+  .motif-spin-fast {
+    animation: motif-spin 14s linear infinite;
   }
-  .axis-stage[data-motif="transformer"] .field-arc--2 {
-    animation: field-spin-rev 40s linear infinite;
+  .motif-pulse {
+    animation: motif-pulse 3.6s ease-in-out infinite;
   }
-  .axis-stage[data-motif="transformer"] .field-arc--3 {
-    animation: field-spin-slow 28s linear infinite;
+  .motif-tick-drift {
+    animation: motif-tick-drift 4.5s linear infinite;
   }
-  .axis-stage[data-motif="generation"] .field-arc--1,
-  .axis-stage[data-motif="generation"] .field-arc--3 {
-    animation: field-spin-slow 22s linear infinite;
+  .axis-stage[data-motif="lock"] .motif-spin-fast {
+    animation-duration: 10s;
   }
-  .axis-stage[data-motif="generation"] .field-arc--2,
-  .axis-stage[data-motif="generation"] .field-arc--4 {
-    animation: field-spin-rev 26s linear infinite;
+  .axis-stage[data-motif="lock"] .motif-tick-drift {
+    animation-duration: 2.8s;
   }
-  .axis-stage[data-motif="reason"] .field-ring--a {
-    animation: field-spin-slow 24s linear infinite;
-  }
-  .axis-stage[data-motif="reason"] .field-ring--c {
-    animation: field-spin-rev 36s linear infinite;
-  }
-  .axis-stage[data-motif="wave"] .field-ticks {
-    animation: tick-drift 6s linear infinite;
-  }
-  .axis-stage[data-motif="wave"] .field-ring--a {
-    animation: field-spin-slow 16s linear infinite, field-pulse 2.8s ease-in-out infinite;
-  }
-  .axis-stage[data-motif="critical"] .field-ticks {
-    animation: tick-drift 3.2s linear infinite;
-  }
-  .axis-stage[data-motif="critical"] .field-ring--a,
-  .axis-stage[data-motif="critical"] .field-ring--b {
-    animation: field-spin-slow 12s linear infinite, field-pulse 1.8s ease-in-out infinite;
-  }
-  .axis-stage[data-motif="critical"] .field-ghost-num {
-    animation: field-drift 8s ease-in-out infinite;
-  }
-  .axis-stage.is-paused .field-ring,
-  .axis-stage.is-paused .field-arc,
-  .axis-stage.is-paused .field-ticks,
-  .axis-stage.is-paused .field-links,
-  .axis-stage.is-paused .field-ghost-num {
+  .axis-stage.is-paused .motif-spin-slow,
+  .axis-stage.is-paused .motif-spin-rev,
+  .axis-stage.is-paused .motif-spin-fast,
+  .axis-stage.is-paused .motif-pulse,
+  .axis-stage.is-paused .motif-tick-drift,
+  .axis-stage.is-paused .motif-crescent {
     animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motif-spin-slow,
+  .motif-spin-rev,
+  .motif-spin-fast,
+  .motif-pulse,
+  .motif-tick-drift {
+    animation: none !important;
   }
 }
 
@@ -1006,9 +851,8 @@ body {
   background: transparent;
 }
 
-.axis-stage[data-motif="wave"] .axis-crosshair,
-.axis-stage[data-motif="critical"] .axis-crosshair {
-  opacity: 0.85;
+.axis-stage[data-motif="lock"] .axis-crosshair {
+  opacity: 0.9;
   width: 2px;
 }
 

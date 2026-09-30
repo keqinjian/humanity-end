@@ -63,19 +63,81 @@
 
     <div class="axis-stage" id="axis-stage" data-motif="foundation">
       <div class="axis-field" id="axis-field" aria-hidden="true">
-        <div class="field-grid"></div>
-        <div class="field-links"></div>
-        <span class="field-ring field-ring--a"></span>
-        <span class="field-ring field-ring--b"></span>
-        <span class="field-ring field-ring--c"></span>
-        <span class="field-arc field-arc--1"></span>
-        <span class="field-arc field-arc--2"></span>
-        <span class="field-arc field-arc--3"></span>
-        <span class="field-arc field-arc--4"></span>
-        <div class="field-ticks" id="field-ticks"></div>
         <span class="field-ghost-num" id="field-ghost-num">1946</span>
         <span class="field-tag" id="field-tag">奠基</span>
         <span class="field-axis-label">X AXIS</span>
+        <svg class="motif-svg" id="motif-svg" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
+          <!-- 奠基: sparse ruled grid + single ring -->
+          <g class="motif-scene motif-scene--foundation" data-scene="foundation">
+            <g class="motif-rules" stroke="#1d4e89" stroke-width="1" fill="none" opacity="0.35">
+              <line x1="80" y1="200" x2="560" y2="200"/>
+              <line x1="80" y1="320" x2="560" y2="320"/>
+              <line x1="80" y1="440" x2="560" y2="440"/>
+              <line x1="160" y1="120" x2="160" y2="520"/>
+              <line x1="320" y1="120" x2="320" y2="520"/>
+              <line x1="480" y1="120" x2="480" y2="520"/>
+            </g>
+            <circle class="motif-spin-slow" cx="320" cy="320" r="118" fill="none" stroke="#1d4e89" stroke-width="1.25" opacity="0.55"/>
+            <circle cx="320" cy="320" r="4" fill="#2f6fed" opacity="0.7"/>
+            <path d="M320 190 L324 200 L320 210 L316 200 Z" fill="#1d4e89" opacity="0.5"/>
+          </g>
+          <!-- 深度学习: denser linked nodes -->
+          <g class="motif-scene motif-scene--deep" data-scene="deep">
+            <g stroke="#1d4e89" stroke-width="1" fill="none" opacity="0.4">
+              <line class="motif-pulse" x1="180" y1="260" x2="280" y2="320"/>
+              <line class="motif-pulse" x1="280" y1="320" x2="400" y2="250"/>
+              <line class="motif-pulse" x1="280" y1="320" x2="360" y2="400"/>
+              <line x1="400" y1="250" x2="480" y2="300"/>
+              <line x1="360" y1="400" x2="460" y2="380"/>
+              <line x1="180" y1="260" x2="220" y2="380"/>
+              <line x1="220" y1="380" x2="360" y2="400"/>
+              <line x1="400" y1="250" x2="360" y2="400"/>
+            </g>
+            <g fill="#2f6fed">
+              <circle cx="180" cy="260" r="5"/><circle cx="280" cy="320" r="7"/>
+              <circle cx="400" cy="250" r="5"/><circle cx="360" cy="400" r="5"/>
+              <circle cx="480" cy="300" r="4"/><circle cx="460" cy="380" r="4"/>
+              <circle cx="220" cy="380" r="4"/>
+            </g>
+            <circle class="motif-spin-rev" cx="320" cy="320" r="160" fill="none" stroke="#1d4e89" stroke-dasharray="4 10" stroke-width="1" opacity="0.35"/>
+          </g>
+          <!-- Transformer / 生成爆发: offset arcs + crescent disk -->
+          <g class="motif-scene motif-scene--orbit" data-scene="orbit">
+            <circle class="motif-spin-slow" cx="320" cy="320" r="90" fill="none" stroke="#2f6fed" stroke-width="1.5" opacity="0.45"/>
+            <circle class="motif-spin-rev" cx="320" cy="320" r="140" fill="none" stroke="#1d4e89" stroke-dasharray="2 8" stroke-width="1.25" opacity="0.5"/>
+            <circle class="motif-spin-slow" cx="320" cy="320" r="190" fill="none" stroke="#16324f" stroke-dasharray="14 12" stroke-width="1" opacity="0.35"/>
+            <circle class="motif-spin-rev" cx="320" cy="320" r="240" fill="none" stroke="#2f6fed" stroke-width="0.75" opacity="0.3"/>
+            <g class="motif-crescent">
+              <circle cx="320" cy="320" r="56" fill="#16324f" opacity="0.12"/>
+              <circle cx="338" cy="308" r="48" fill="#f4f7fb"/>
+              <circle cx="320" cy="320" r="56" fill="none" stroke="#1d4e89" stroke-width="1.25" opacity="0.55"/>
+            </g>
+            <g fill="none" stroke="#2f6fed" stroke-width="1.25" opacity="0.55">
+              <path class="motif-spin-slow" d="M200 320 A120 120 0 0 1 320 200"/>
+              <path class="motif-spin-rev" d="M440 320 A120 120 0 0 1 320 440"/>
+              <path d="M320 200 A120 120 0 0 1 440 320"/>
+            </g>
+          </g>
+          <!-- 2025–2026: tight crosshair lock + drifting ticks -->
+          <g class="motif-scene motif-scene--lock" data-scene="lock">
+            <circle class="motif-spin-fast" cx="320" cy="320" r="70" fill="none" stroke="#2f6fed" stroke-width="1.5" opacity="0.7"/>
+            <circle class="motif-spin-rev" cx="320" cy="320" r="110" fill="none" stroke="#2f6fed" stroke-dasharray="3 7" stroke-width="1.25" opacity="0.55"/>
+            <circle cx="320" cy="320" r="160" fill="none" stroke="#1d4e89" stroke-width="1" opacity="0.3"/>
+            <g stroke="#2f6fed" stroke-width="1.25" opacity="0.75">
+              <line x1="320" y1="120" x2="320" y2="250"/>
+              <line x1="320" y1="390" x2="320" y2="520"/>
+              <line x1="120" y1="320" x2="250" y2="320"/>
+              <line x1="390" y1="320" x2="520" y2="320"/>
+            </g>
+            <rect x="300" y="300" width="40" height="40" fill="none" stroke="#2f6fed" stroke-width="1.25" opacity="0.8" transform="rotate(45 320 320)"/>
+            <g class="motif-tick-drift" stroke="#1d4e89" stroke-width="1.5" opacity="0.55">
+              <line x1="140" y1="300" x2="140" y2="340"/><line x1="170" y1="310" x2="170" y2="330"/>
+              <line x1="200" y1="305" x2="200" y2="335"/><line x1="440" y1="300" x2="440" y2="340"/>
+              <line x1="470" y1="310" x2="470" y2="330"/><line x1="500" y1="305" x2="500" y2="335"/>
+            </g>
+            <circle cx="320" cy="320" r="3" fill="#2f6fed"/>
+          </g>
+        </svg>
       </div>
 
       <div
