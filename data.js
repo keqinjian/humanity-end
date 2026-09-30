@@ -1,0 +1,1014 @@
+/* Synced from data.json for file:// opening. */
+window.__HUMANITY_DATA__ = {
+  "updated": "2026-09-30",
+  "title": "记录人类完蛋全过程",
+  "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-09-30。",
+  "events": [
+    {
+      "date": "1946-02-14",
+      "title": "ENIAC 公开亮相",
+      "blurb": "宾夕法尼亚大学展示首台通用电子数字计算机，用电子速度处理此前人力难以完成的计算。",
+      "era": "奠基",
+      "tags": [
+        "计算机",
+        "硬件"
+      ]
+    },
+    {
+      "date": "1956-06-18",
+      "title": "达特茅斯人工智能夏季研讨班",
+      "blurb": "麦卡锡等人正式提出「人工智能」一词，奠定 AI 作为独立研究领域的起点。",
+      "era": "奠基",
+      "tags": [
+        "AI",
+        "学术"
+      ]
+    },
+    {
+      "date": "1966-01-01",
+      "title": "ELIZA",
+      "blurb": "魏岑鲍姆在 MIT 完成早期自然语言对话程序，用模式匹配制造「理解」的幻觉。",
+      "era": "奠基",
+      "tags": [
+        "NLP",
+        "对话"
+      ]
+    },
+    {
+      "date": "1997-05-11",
+      "title": "深蓝击败卡斯帕罗夫",
+      "blurb": "IBM Deep Blue 在标准时制限下首次战胜国际象棋世界冠军，标志专用搜索系统的巅峰。",
+      "era": "专用智能",
+      "tags": [
+        "博弈",
+        "搜索"
+      ]
+    },
+    {
+      "date": "2011-02-14",
+      "title": "Watson 参加《危险边缘》",
+      "blurb": "IBM Watson 在 Jeopardy! 上战胜人类冠军，展示开放域问答与知识检索的能力。",
+      "era": "专用智能",
+      "tags": [
+        "问答",
+        "知识"
+      ]
+    },
+    {
+      "date": "2012-09-30",
+      "title": "AlexNet 横扫 ImageNet",
+      "blurb": "深度卷积网络在 GPU 上大幅压低图像分类错误率，被视为现代深度学习起飞的时刻。",
+      "era": "深度学习",
+      "tags": [
+        "视觉",
+        "CNN"
+      ]
+    },
+    {
+      "date": "2014-06-10",
+      "title": "生成对抗网络 GAN",
+      "blurb": "Goodfellow 提出生成器与判别器相互博弈的框架，打开高保真合成图像的大门。",
+      "era": "深度学习",
+      "tags": [
+        "生成",
+        "视觉"
+      ]
+    },
+    {
+      "date": "2016-03-15",
+      "title": "AlphaGo 击败李世石",
+      "blurb": "DeepMind 的强化学习系统以 4:1 战胜围棋世界冠军，证明深度 RL 可攻克直觉性博弈。",
+      "era": "深度学习",
+      "tags": [
+        "强化学习",
+        "博弈"
+      ]
+    },
+    {
+      "date": "2017-06-12",
+      "title": "Transformer",
+      "blurb": "《Attention Is All You Need》提出纯注意力架构，放弃循环与卷积，成为后续大模型底座。",
+      "era": "Transformer",
+      "tags": [
+        "架构",
+        "NLP"
+      ]
+    },
+    {
+      "date": "2018-10-11",
+      "title": "BERT",
+      "blurb": "Google 发布双向预训练语言模型，用掩码语言建模刷新多项自然语言理解基准。",
+      "era": "Transformer",
+      "tags": [
+        "预训练",
+        "NLP"
+      ]
+    },
+    {
+      "date": "2019-02-14",
+      "title": "GPT-2",
+      "blurb": "OpenAI 展示 15 亿参数无监督语言模型，因滥用风险采取分阶段发布策略。",
+      "era": "Transformer",
+      "tags": [
+        "语言模型",
+        "生成"
+      ]
+    },
+    {
+      "date": "2020-06-11",
+      "title": "GPT-3 / OpenAI API",
+      "blurb": "1750 亿参数少样本模型上线 API，证明规模化预训练可涌现多种任务能力。",
+      "era": "Transformer",
+      "tags": [
+        "语言模型",
+        "API"
+      ]
+    },
+    {
+      "date": "2021-01-05",
+      "title": "DALL·E",
+      "blurb": "OpenAI 展示从文本提示生成图像的模型，把「描述即画面」变成可演示的现实。",
+      "era": "Transformer",
+      "tags": [
+        "图像",
+        "多模态"
+      ]
+    },
+    {
+      "date": "2021-07-15",
+      "title": "AlphaFold 2 论文发表",
+      "blurb": "DeepMind 在 Nature 发表高精度蛋白质结构预测结果，几乎解决生物学核心难题之一。",
+      "era": "Transformer",
+      "tags": [
+        "科学",
+        "生物"
+      ]
+    },
+    {
+      "date": "2021-08-10",
+      "title": "OpenAI Codex",
+      "blurb": "在代码语料上训练的模型驱动 GitHub Copilot，自然语言到代码进入日常工具链。",
+      "era": "Transformer",
+      "tags": [
+        "代码",
+        "工具"
+      ]
+    },
+    {
+      "date": "2022-07-12",
+      "title": "Midjourney 开放测试",
+      "blurb": "Discord 上的文本到图像服务进入开放测试，艺术与设计圈迅速被生成图淹没。",
+      "era": "生成爆发",
+      "tags": [
+        "图像",
+        "创作"
+      ]
+    },
+    {
+      "date": "2022-08-22",
+      "title": "Stable Diffusion 公开发布",
+      "blurb": "Stability AI 开源潜空间扩散模型权重，人人可在消费级硬件上跑图像生成。",
+      "era": "生成爆发",
+      "tags": [
+        "图像",
+        "开源"
+      ]
+    },
+    {
+      "date": "2022-11-30",
+      "title": "ChatGPT",
+      "blurb": "OpenAI 以对话界面发布 GPT-3.5 产品，生成式 AI 一夜之间进入亿级用户视野。",
+      "era": "生成爆发",
+      "tags": [
+        "对话",
+        "产品"
+      ]
+    },
+    {
+      "date": "2023-02-24",
+      "title": "LLaMA",
+      "blurb": "Meta 发布面向研究的开放权重语言模型家族，拉开开源基座模型竞赛序幕。",
+      "era": "生成爆发",
+      "tags": [
+        "开源",
+        "语言模型"
+      ]
+    },
+    {
+      "date": "2023-03-14",
+      "title": "GPT-4",
+      "blurb": "OpenAI 发布多模态输入旗舰模型，推理、编码与考试表现相对上一代跃升明显。",
+      "era": "生成爆发",
+      "tags": [
+        "旗舰",
+        "多模态"
+      ]
+    },
+    {
+      "date": "2023-03-14",
+      "title": "Claude 首次公开发布",
+      "blurb": "Anthropic 推出注重安全对齐的对话模型 Claude，成为 ChatGPT 的重要竞品。",
+      "era": "生成爆发",
+      "tags": [
+        "对话",
+        "安全"
+      ]
+    },
+    {
+      "date": "2023-07-18",
+      "title": "Llama 2",
+      "blurb": "Meta 开放可商用权重与聊天变体，企业与社区得以在自有基础设施上部署强模型。",
+      "era": "生成爆发",
+      "tags": [
+        "开源",
+        "商用"
+      ]
+    },
+    {
+      "date": "2023-12-06",
+      "title": "Gemini 1.0",
+      "blurb": "Google DeepMind 发布原生多模态旗舰家族，把文本、图像与代码纳入统一训练。",
+      "era": "生成爆发",
+      "tags": [
+        "多模态",
+        "旗舰"
+      ]
+    },
+    {
+      "date": "2024-05-13",
+      "title": "GPT-4o",
+      "blurb": "OpenAI 推出端到端全模态模型，实时语音与视觉交互显著降低延迟。",
+      "era": "推理与代理",
+      "tags": [
+        "多模态",
+        "语音"
+      ]
+    },
+    {
+      "date": "2024-06-20",
+      "title": "Claude 3.5 Sonnet",
+      "blurb": "Anthropic 发布在编码与视觉上大幅领先的平衡型模型，迅速成为开发者默认选项。",
+      "era": "推理与代理",
+      "tags": [
+        "编码",
+        "旗舰"
+      ]
+    },
+    {
+      "date": "2024-07-23",
+      "title": "Llama 3.1",
+      "blurb": "Meta 开源至 405B 参数的前沿开放模型，并强化工具调用与多语言能力。",
+      "era": "推理与代理",
+      "tags": [
+        "开源",
+        "规模"
+      ]
+    },
+    {
+      "date": "2024-09-12",
+      "title": "o1-preview",
+      "blurb": "OpenAI 推出在回答前进行长链推理的模型，数学与复杂编码基准大幅提升。",
+      "era": "推理与代理",
+      "tags": [
+        "推理",
+        "数学"
+      ]
+    },
+    {
+      "date": "2024-12-09",
+      "title": "Sora 公开发布",
+      "blurb": "OpenAI 将文本到视频模型以 Sora Turbo 形式对公众开放，影视与广告行业震动。",
+      "era": "推理与代理",
+      "tags": [
+        "视频",
+        "多模态"
+      ]
+    },
+    {
+      "date": "2025-01-20",
+      "title": "DeepSeek-R1",
+      "blurb": "深度求索开源推理模型，以蒸馏与强化学习路线证明高效推理不必依赖封闭巨头。",
+      "era": "2025 浪潮",
+      "tags": [
+        "推理",
+        "开源"
+      ]
+    },
+    {
+      "date": "2025-02-24",
+      "title": "Claude 3.7 Sonnet",
+      "blurb": "Anthropic 推出混合推理模型，可在瞬时回答与延长思考之间切换。",
+      "era": "2025 浪潮",
+      "tags": [
+        "推理",
+        "编码"
+      ]
+    },
+    {
+      "date": "2025-04-05",
+      "title": "Llama 4",
+      "blurb": "Meta 发布开放多模态 MoE 家族，继续压低高性能开放权重的准入门槛。",
+      "era": "2025 浪潮",
+      "tags": [
+        "开源",
+        "多模态"
+      ]
+    },
+    {
+      "date": "2025-04-16",
+      "title": "o3 / o4-mini",
+      "blurb": "OpenAI 推理系列升级，强化工具使用与编码，为后续统一旗舰铺路。",
+      "era": "2025 浪潮",
+      "tags": [
+        "推理",
+        "工具"
+      ]
+    },
+    {
+      "date": "2025-05-22",
+      "title": "Claude Opus 4 / Sonnet 4",
+      "blurb": "Anthropic 新一代编码与智能体旗舰，在长程任务与终端基准上刷新纪录。",
+      "era": "2025 浪潮",
+      "tags": [
+        "编码",
+        "智能体"
+      ]
+    },
+    {
+      "date": "2025-08-07",
+      "title": "GPT-5",
+      "blurb": "OpenAI 将快速模型与深度推理统一为一路由系统，编码、数学与健康问答全面跃升。",
+      "era": "2025 浪潮",
+      "tags": [
+        "旗舰",
+        "统一"
+      ]
+    },
+    {
+      "date": "2025-09-29",
+      "title": "Claude Sonnet 4.5",
+      "blurb": "Anthropic 称其为当时最强编码与计算机使用模型，并强化长程智能体工作流。",
+      "era": "2025 浪潮",
+      "tags": [
+        "编码",
+        "计算机使用"
+      ]
+    },
+    {
+      "date": "2025-09-30",
+      "title": "Sora 2",
+      "blurb": "OpenAI 发布新一代视频生成，物理一致性与可控性相对首版显著改善。",
+      "era": "2025 浪潮",
+      "tags": [
+        "视频",
+        "创作"
+      ]
+    },
+    {
+      "date": "2025-11-18",
+      "title": "Gemini 3",
+      "blurb": "Google 发布新旗舰家族，在推理、多模态与编码上对标同期闭源前沿。",
+      "era": "2025 浪潮",
+      "tags": [
+        "旗舰",
+        "多模态"
+      ]
+    },
+    {
+      "date": "2025-11-24",
+      "title": "Claude Opus 4.5",
+      "blurb": "Anthropic 旗舰再升级，强调编码、智能体与日常知识工作中的计算机使用。",
+      "era": "2025 浪潮",
+      "tags": [
+        "编码",
+        "智能体"
+      ]
+    },
+    {
+      "date": "2025-12-11",
+      "title": "GPT-5.2",
+      "blurb": "OpenAI 在 GPT-5 代内继续迭代知识工作与长上下文智能体能力。",
+      "era": "2025 浪潮",
+      "tags": [
+        "旗舰",
+        "智能体"
+      ]
+    },
+    {
+      "date": "2026-04-23",
+      "title": "GPT-5.5",
+      "blurb": "OpenAI 旗舰强化计算机使用与知识工作，成为 ChatGPT 默认一代的重要节点。",
+      "era": "2026 临界",
+      "tags": [
+        "旗舰",
+        "计算机使用"
+      ]
+    },
+    {
+      "date": "2026-07-09",
+      "title": "GPT-5.6 Sol / Terra / Luna",
+      "blurb": "OpenAI 以能力层命名推出三档模型，把前沿推理铺向更广的成本曲线。",
+      "era": "2026 临界",
+      "tags": [
+        "旗舰",
+        "分层"
+      ]
+    },
+    {
+      "date": "2026-07-24",
+      "title": "Claude Opus 5",
+      "blurb": "Anthropic 新一代旗舰，面向编码、智能体、知识工作与科学研究的综合前沿。",
+      "era": "2026 临界",
+      "tags": [
+        "旗舰",
+        "科学"
+      ]
+    },
+    {
+      "date": "2026-09-02",
+      "title": "Gemini 3.8 Flash",
+      "blurb": "Google 发布高速推理与编码工作马模型，并推出面向防御方的网络安全变体。",
+      "era": "2026 临界",
+      "tags": [
+        "编码",
+        "安全"
+      ]
+    },
+    {
+      "date": "2026-09-03",
+      "title": "GPT-6 Astra",
+      "blurb": "OpenAI 称其为一代际跃迁，在专业工作、软件工程与计算机使用上宣称进入「AGI 时代」叙事。",
+      "era": "2026 临界",
+      "tags": [
+        "旗舰",
+        "AGI叙事"
+      ]
+    },
+    {
+      "date": "2026-09-28",
+      "title": "Claude Sonnet 5.5",
+      "blurb": "Anthropic Claude 5.5 家族第二款模型，更快更便宜，擅长日常任务、修 bug 与文档幻灯片。",
+      "era": "2026 临界",
+      "tags": [
+        "编码",
+        "效率"
+      ]
+    }
+  ],
+  "domains": [
+    {
+      "id": "software",
+      "name": "软件开发",
+      "note": "代码生成与审查已被模型深度嵌入 IDE；架构与品味仍偏人类，但差距在收窄。",
+      "children": [
+        {
+          "id": "fe-ui",
+          "name": "前端组件与页面",
+          "remaining": 18,
+          "note": "从设计稿到可用页面已高度自动化，复杂状态与无障碍细节仍需人把关。",
+          "movedBy": "GPT-6 Astra / Claude Opus 5"
+        },
+        {
+          "id": "fe-ux",
+          "name": "前端交互与动效",
+          "remaining": 28,
+          "note": "常规动效与表单流可一键生成；产品感觉与性能权衡仍靠人。",
+          "movedBy": "Claude Sonnet 5.5"
+        },
+        {
+          "id": "be-api",
+          "name": "后端 API 与业务逻辑",
+          "remaining": 22,
+          "note": "CRUD 与常见业务规则几乎可端到端生成；跨服务一致性与合规仍脆弱。",
+          "movedBy": "GPT-5 / Claude Opus 4.5"
+        },
+        {
+          "id": "be-arch",
+          "name": "后端架构设计",
+          "remaining": 48,
+          "note": "模型能提出像样方案，但组织约束、遗留债与长期演进仍以人为主。",
+          "movedBy": "GPT-6 Astra"
+        },
+        {
+          "id": "test-unit",
+          "name": "单元测试",
+          "remaining": 15,
+          "note": "覆盖率与边界用例生成极强；测什么有价值仍需人定义。",
+          "movedBy": "Claude Sonnet 4.5"
+        },
+        {
+          "id": "test-e2e",
+          "name": "集成与 E2E 测试",
+          "remaining": 32,
+          "note": "脚本与选择器可自动写，但环境抖动与产品意图判断仍费人。",
+          "movedBy": "GPT-5.5"
+        },
+        {
+          "id": "devops-ci",
+          "name": "CI/CD 流水线",
+          "remaining": 30,
+          "note": "YAML 与常见流水线模板已被吃透；发布策略与事故文化仍是人类领地。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "devops-iac",
+          "name": "基础设施即代码",
+          "remaining": 35,
+          "note": "Terraform/K8s 清单生成很快，生产变更的风险责任仍在人。",
+          "movedBy": "GPT-5.6 Sol"
+        },
+        {
+          "id": "code-review",
+          "name": "代码审查",
+          "remaining": 20,
+          "note": "风格、缺陷与安全模式匹配极强；意图对齐与产品取舍仍需人。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "db-query",
+          "name": "SQL 查询与建模",
+          "remaining": 25,
+          "note": "复杂查询与 schema 草稿已很可靠；数据语义与历史包袱仍靠人。",
+          "movedBy": "GPT-5"
+        },
+        {
+          "id": "db-ops",
+          "name": "数据库运维调优",
+          "remaining": 42,
+          "note": "索引建议与慢查询分析可用；容量规划与故障指挥仍偏人类。",
+          "movedBy": "Gemini 3.8 Flash"
+        }
+      ]
+    },
+    {
+      "id": "systems",
+      "name": "系统",
+      "note": "用户态与脚本层被侵蚀最快；内核、驱动与实时约束仍明显依赖专家。",
+      "children": [
+        {
+          "id": "linux-ops",
+          "name": "Linux 日常运维",
+          "remaining": 38,
+          "note": "排障步骤与命令组合可自动给出；线上责任与变更窗口仍是人的。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "shell-debug",
+          "name": "Shell 脚本与故障排查",
+          "remaining": 28,
+          "note": "脚本生成与日志解读已很强；诡异硬件与组织流程问题仍难自动化。",
+          "movedBy": "GPT-5.5"
+        },
+        {
+          "id": "kernel",
+          "name": "内核开发",
+          "remaining": 72,
+          "note": "可辅助读代码与写补丁草稿，但合并标准、并发正确性与 ABI 仍极人类。",
+          "movedBy": "GPT-6 Astra"
+        },
+        {
+          "id": "drivers",
+          "name": "驱动开发",
+          "remaining": 68,
+          "note": "模板与寄存器文档理解进步明显，真机时序与厂商生态仍靠人。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "embedded-fw",
+          "name": "嵌入式固件",
+          "remaining": 62,
+          "note": "外设驱动与协议栈可加速；功耗、认证与现场失效分析仍人类主导。",
+          "movedBy": "GPT-5.6 Sol"
+        },
+        {
+          "id": "rtos",
+          "name": "实时与安全关键系统",
+          "remaining": 75,
+          "note": "文档与测试用例辅助有用，认证证据与最坏执行时间仍几乎全靠人。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "compiler-fe",
+          "name": "编译器前端",
+          "remaining": 55,
+          "note": "语法与类型错误修复建议变强；语言设计与规范演进仍是人的游戏。",
+          "movedBy": "GPT-6 Astra"
+        },
+        {
+          "id": "compiler-opt",
+          "name": "编译器优化",
+          "remaining": 60,
+          "note": "可提示优化思路与补丁，但性能悬崖与正确性证明仍需资深工程师。",
+          "movedBy": "Gemini 3"
+        }
+      ]
+    },
+    {
+      "id": "science",
+      "name": "科学",
+      "note": "竞赛数学与结构预测已被大幅占领；实验设计与新范式提出仍剩较多人类空间。",
+      "children": [
+        {
+          "id": "math-contest",
+          "name": "数学竞赛题",
+          "remaining": 8,
+          "note": "前沿推理模型在奥林匹克级题目上已接近或超过多数人类选手。",
+          "movedBy": "o1 / GPT-5 / DeepSeek-R1"
+        },
+        {
+          "id": "math-undergrad",
+          "name": "大学数学解题与证明草稿",
+          "remaining": 18,
+          "note": "常规证明与计算几乎可外包；严谨性核验仍建议人类复核。",
+          "movedBy": "GPT-5 / Claude Opus 5"
+        },
+        {
+          "id": "formal-proof",
+          "name": "形式化证明",
+          "remaining": 52,
+          "note": "Lean/Isabelle 辅助增强，但大型库建设与定义选择仍慢且人类密集。",
+          "movedBy": "GPT-6 Astra"
+        },
+        {
+          "id": "physics-theory",
+          "name": "理论物理推演",
+          "remaining": 55,
+          "note": "符号操作与文献综述加速明显；新物理图像仍极少由模型独立提出。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "physics-exp",
+          "name": "实验物理设计",
+          "remaining": 65,
+          "note": "方案草稿与误差分析可辅助，仪器现实与经费约束仍决定一切。",
+          "movedBy": "Gemini 3"
+        },
+        {
+          "id": "chem-route",
+          "name": "化学合成路线",
+          "remaining": 35,
+          "note": "逆合成与条件建议已实用；实验室可行性与安全仍需化学家拍板。",
+          "movedBy": "GPT-5.5"
+        },
+        {
+          "id": "protein",
+          "name": "蛋白质结构预测",
+          "remaining": 12,
+          "note": "AlphaFold 系已改变结构生物学日常；动态与复合体仍有缺口。",
+          "movedBy": "AlphaFold 2/3"
+        },
+        {
+          "id": "bioinfo",
+          "name": "生物信息分析",
+          "remaining": 30,
+          "note": "流水线与差异分析脚本高度可生成；实验设计与生物学解释仍关键。",
+          "movedBy": "GPT-5 / Claude Opus 5"
+        }
+      ]
+    },
+    {
+      "id": "engineering",
+      "name": "工程设计",
+      "note": "文档化 CAD/EDA 任务加速快；签字负责、标准符合与现场经验仍重。",
+      "children": [
+        {
+          "id": "mech-part",
+          "name": "机械零件设计",
+          "remaining": 48,
+          "note": "参数化零件与公差建议可用；可制造性与供应链现实仍靠工程师。",
+          "movedBy": "GPT-6 Astra"
+        },
+        {
+          "id": "mech-system",
+          "name": "机械系统集成",
+          "remaining": 58,
+          "note": "概念方案生成变快，系统级权衡与失败模式仍人类主导。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "digital-ic",
+          "name": "数字电路设计",
+          "remaining": 50,
+          "note": "RTL 草稿与验证激励可辅助；时序收敛与流片责任仍在人。",
+          "movedBy": "GPT-5.5"
+        },
+        {
+          "id": "analog-ic",
+          "name": "模拟电路设计",
+          "remaining": 68,
+          "note": "拓扑建议有限可用，器件物理直觉与流片迭代仍高度人类。",
+          "movedBy": "Gemini 3"
+        },
+        {
+          "id": "pcb",
+          "name": "PCB 布局",
+          "remaining": 45,
+          "note": "自动布线与规则检查进步大；高速与电源完整性仍需老手。",
+          "movedBy": "Claude Sonnet 5.5"
+        },
+        {
+          "id": "cad",
+          "name": "CAD 建模",
+          "remaining": 40,
+          "note": "从草图/文本到实体模型越来越顺；装配约束与工程标注仍常返工。",
+          "movedBy": "GPT-5 / 多模态 CAD 插件"
+        },
+        {
+          "id": "structure",
+          "name": "结构分析与设计",
+          "remaining": 55,
+          "note": "有限元前处理与结果解读可加速；规范签字与现场判断不可替代。",
+          "movedBy": "GPT-6 Astra"
+        },
+        {
+          "id": "cfd",
+          "name": "热与流体仿真",
+          "remaining": 50,
+          "note": "网格与参数扫描可辅助设定；模型假设对错仍决定结论。",
+          "movedBy": "Claude Opus 5"
+        }
+      ]
+    },
+    {
+      "id": "creative",
+      "name": "创作",
+      "note": "图像与短内容已被生成模型重创；长叙事、品味与版权责任仍纠缠不清。",
+      "children": [
+        {
+          "id": "concept-art",
+          "name": "概念绘画",
+          "remaining": 14,
+          "note": "风格化概念图几乎可即时量产；艺术指导与世界观统一仍需人。",
+          "movedBy": "Midjourney / Flux / GPT 图像"
+        },
+        {
+          "id": "illustration",
+          "name": "插画与风格化",
+          "remaining": 16,
+          "note": "商业插画交付被大幅压缩；签名风格与品牌连续性仍有人类溢价。",
+          "movedBy": "Midjourney / Stable Diffusion 系"
+        },
+        {
+          "id": "music-comp",
+          "name": "作曲与编曲",
+          "remaining": 28,
+          "note": "可生成可用配乐与分轨草稿；现场感与版权清晰作品仍偏人。",
+          "movedBy": "Suno / Udio"
+        },
+        {
+          "id": "sfx",
+          "name": "音效设计",
+          "remaining": 35,
+          "note": "素材生成丰富，叙事性声景与混音审美仍常要人。",
+          "movedBy": "Suno / 音频生成模型"
+        },
+        {
+          "id": "layout",
+          "name": "平面排版",
+          "remaining": 22,
+          "note": "海报与幻灯片排版已很强；品牌系统长期一致性仍靠设计负责人。",
+          "movedBy": "Claude Sonnet 5.5 / GPT-5"
+        },
+        {
+          "id": "brand",
+          "name": "Logo 与品牌识别",
+          "remaining": 30,
+          "note": "草图爆炸式产出；战略定位与商标可用性仍是人类决策。",
+          "movedBy": "图像生成模型"
+        },
+        {
+          "id": "short-video",
+          "name": "短视频剪辑",
+          "remaining": 25,
+          "note": "自动粗剪与字幕成熟；节奏品味与平台运营仍偏人。",
+          "movedBy": "Sora 2 / 剪辑助手"
+        },
+        {
+          "id": "film-vfx",
+          "name": "影视分镜与特效",
+          "remaining": 38,
+          "note": "分镜与部分 VFX 预演可生成；拍摄现场与终审仍人类主导。",
+          "movedBy": "Sora 2"
+        },
+        {
+          "id": "copy",
+          "name": "短文与文案",
+          "remaining": 15,
+          "note": "广告与说明文几乎可无限生成；品牌声音校准仍要编辑。",
+          "movedBy": "GPT-5 / Claude"
+        },
+        {
+          "id": "longform",
+          "name": "长篇叙事",
+          "remaining": 40,
+          "note": "章节草稿快，但主题深度、结构耐心与作者声音仍难稳定。",
+          "movedBy": "GPT-6 Astra / Claude Opus 5"
+        },
+        {
+          "id": "3d-model",
+          "name": "3D 建模",
+          "remaining": 42,
+          "note": "从图像/文本到网格进步快；拓扑与生产管线规范仍常要人修。",
+          "movedBy": "多模态 3D 生成"
+        },
+        {
+          "id": "3d-look",
+          "name": "3D 材质与灯光",
+          "remaining": 36,
+          "note": "材质建议与 HDRI 布置可自动化；最终影调审美仍常见人类精修。",
+          "movedBy": "图像/3D 生成模型"
+        }
+      ]
+    },
+    {
+      "id": "professional",
+      "name": "专业工作",
+      "note": "检索与草稿层被迅速吃掉；执业责任、面对面信任与执照壁垒仍在。",
+      "children": [
+        {
+          "id": "trans-general",
+          "name": "通用翻译",
+          "remaining": 10,
+          "note": "通用语对几乎达到可用专业水准；高风险文本仍需译者签字。",
+          "movedBy": "GPT-4o / Gemini / Claude"
+        },
+        {
+          "id": "trans-lit",
+          "name": "文学与本地化",
+          "remaining": 35,
+          "note": "直译很容易，文化负载与嗓音感仍常输给优秀译者。",
+          "movedBy": "GPT-5 / Claude Opus 5"
+        },
+        {
+          "id": "legal-search",
+          "name": "法律检索与摘要",
+          "remaining": 25,
+          "note": "案例与法规检索加速巨大；管辖权与策略仍是律师的。",
+          "movedBy": "GPT-5.5 / Claude"
+        },
+        {
+          "id": "legal-draft",
+          "name": "合同草稿",
+          "remaining": 32,
+          "note": "标准条款模板化严重；谈判筹码与责任分配仍靠人。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "med-lit",
+          "name": "医学文献摘要",
+          "remaining": 22,
+          "note": "综述与指南解读已很强；临床决策责任不可转移。",
+          "movedBy": "GPT-5 / Med 专用模型"
+        },
+        {
+          "id": "med-imaging",
+          "name": "影像辅助判读",
+          "remaining": 40,
+          "note": "筛查辅助常见，最终诊断与沟通仍属执业医师。",
+          "movedBy": "专用医学视觉模型"
+        },
+        {
+          "id": "edu-tutor",
+          "name": "个性化辅导",
+          "remaining": 20,
+          "note": "一对一讲解与练习生成极强；动机管理与成长关系仍偏人。",
+          "movedBy": "GPT-5 / Claude"
+        },
+        {
+          "id": "edu-assess",
+          "name": "出题与批改",
+          "remaining": 18,
+          "note": "客观题与代码作业批改几乎可全自动；开放性评价仍需教师。",
+          "movedBy": "GPT-5 / Claude Sonnet 5.5"
+        }
+      ]
+    },
+    {
+      "id": "physical",
+      "name": "物理世界",
+      "note": "软件层智能远快于硬件部署；安全、长尾场景与监管拖慢接管速度。",
+      "children": [
+        {
+          "id": "robot-desk",
+          "name": "桌面机器人操作",
+          "remaining": 50,
+          "note": "演示很炫，泛化抓取与精细装配在开放环境仍不稳。",
+          "movedBy": "V-JEPA 2 / 具身模型"
+        },
+        {
+          "id": "robot-warehouse",
+          "name": "仓储与物流机器人",
+          "remaining": 42,
+          "note": "结构化仓内已大量部署；非标包裹与人机混场仍需督导。",
+          "movedBy": "产业机器人 + 视觉语言模型"
+        },
+        {
+          "id": "av-city",
+          "name": "城市自动驾驶",
+          "remaining": 38,
+          "note": "限定运营区 Robotaxi 扩张中；全天候全场景无人仍未完成。",
+          "movedBy": "车企 / Waymo 等量产栈"
+        },
+        {
+          "id": "av-edge",
+          "name": "复杂与边缘路况",
+          "remaining": 55,
+          "note": "施工、极端天气与社交博弈驾驶仍是长尾地狱。",
+          "movedBy": "端到端驾驶模型"
+        },
+        {
+          "id": "lab-liquid",
+          "name": "实验室液体处理",
+          "remaining": 45,
+          "note": "移液与高通量筛选自动化成熟；方案例外处理仍靠技术员。",
+          "movedBy": "实验室自动化平台"
+        },
+        {
+          "id": "lab-plan",
+          "name": "实验方案规划",
+          "remaining": 48,
+          "note": "协议草稿可生成，试剂现实、伦理与失败迭代仍人类主导。",
+          "movedBy": "Claude Opus 5 / GPT-6 Astra"
+        }
+      ]
+    },
+    {
+      "id": "business",
+      "name": "商业与运营",
+      "note": "话术与报表层失守最快；客情、定价权与组织政治仍人类密集。",
+      "children": [
+        {
+          "id": "support",
+          "name": "客户服务对话",
+          "remaining": 12,
+          "note": "一线路由与标准问题几乎可全自动；愤怒升级与赔偿决策仍要人。",
+          "movedBy": "GPT-4o / Gemini Live"
+        },
+        {
+          "id": "sales-screen",
+          "name": "销售线索初筛",
+          "remaining": 20,
+          "note": "邮件与 CRM 摘要高效；复杂 B2B 关系经营仍靠销售。",
+          "movedBy": "GPT-5 / Claude"
+        },
+        {
+          "id": "analytics",
+          "name": "数据报表分析",
+          "remaining": 18,
+          "note": "从表到洞察的叙事已很强；指标定义战争仍是组织问题。",
+          "movedBy": "GPT-5 / Gemini"
+        },
+        {
+          "id": "ads",
+          "name": "广告文案与投放文案",
+          "remaining": 14,
+          "note": "多版本文案爆炸式产出；预算与品牌风险仍要人盯。",
+          "movedBy": "GPT-5 / Claude"
+        },
+        {
+          "id": "bookkeeping",
+          "name": "记账与对账",
+          "remaining": 30,
+          "note": "规则清晰的流水处理可高度自动化；税务灰色地带仍需会计师。",
+          "movedBy": "GPT-5.5"
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "name": "安全与攻防",
+      "note": "辅助发现与报告写作变强；授权边界、攻防对抗与责任归属仍尖锐。",
+      "children": [
+        {
+          "id": "vuln-find",
+          "name": "漏洞发现",
+          "remaining": 42,
+          "note": "静态模式与模糊测试编排增强；高价值 0day 链条仍稀缺且人类密集。",
+          "movedBy": "Gemini 3.8 Flash Cyber / GPT-6 Astra"
+        },
+        {
+          "id": "sec-audit",
+          "name": "安全审计与合规",
+          "remaining": 35,
+          "note": "清单与证据整理可加速；组织风险接受度仍是管理决策。",
+          "movedBy": "Claude Opus 5"
+        },
+        {
+          "id": "pentest",
+          "name": "渗透测试",
+          "remaining": 48,
+          "note": "侦察与常见利用路径可辅助；授权范围内的创造力与报告信任仍靠人。",
+          "movedBy": "GPT-6 Astra"
+        },
+        {
+          "id": "incident",
+          "name": "应急响应",
+          "remaining": 50,
+          "note": "日志关联与剧本建议有用；指挥、沟通与法律动作仍人类主导。",
+          "movedBy": "Claude / GPT-5.5"
+        }
+      ]
+    }
+  ]
+};

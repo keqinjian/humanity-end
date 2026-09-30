@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="记录人类完蛋全过程——从计算机出现到每一个值得记下的模型，各个领域还剩多少人类的事。" />
+  <title>记录人类完蛋全过程</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Sans+SC:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#domains">跳到领域血条</a>
+
+  <div class="page">
+    <header class="mast" id="top">
+      <aside class="mast-rail" aria-label="概览">
+        <p class="mast-meta">
+          <span class="meta-label">档案更新</span>
+          <time id="updated-date" datetime="2026-09-30">—</time>
+        </p>
+        <h1 class="mast-title" id="site-title">记录人类完蛋全过程</h1>
+        <p class="mast-subtitle" id="site-subtitle"></p>
+
+        <div class="aggregate" aria-live="polite">
+          <p class="aggregate-label">人类事务 · 剩余</p>
+          <p class="aggregate-value">
+            <span id="aggregate-num">—</span><span class="aggregate-unit">%</span>
+          </p>
+          <p class="aggregate-note" id="score-disclaimer"></p>
+        </div>
+
+        <nav class="mast-nav" aria-label="页面导航">
+          <a href="#domains">领域血条</a>
+          <a href="#timeline">时间线</a>
+        </nav>
+      </aside>
+
+      <section class="mast-domains" id="domains" aria-labelledby="domains-heading">
+        <div class="domains-head">
+          <h2 id="domains-heading" class="section-title">领域 · 人类剩余血条</h2>
+          <p class="section-desc">点击展开子项。父级为叶节点算术平均（取整）。骨色为人类剩余，血色为已被 AI 占据。</p>
+        </div>
+        <div id="domain-tree" class="domain-tree" role="tree"></div>
+      </section>
+    </header>
+
+    <main>
+      <section class="timeline-section" id="timeline" aria-labelledby="timeline-heading">
+        <div class="section-head">
+          <h2 id="timeline-heading" class="section-title">时间线 · 值得记下的节点</h2>
+          <p class="section-desc">自 ENIAC 起，只收录可核验、影响显著的里程碑与模型发布。</p>
+        </div>
+        <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
+        <div id="timeline-list" class="timeline-list"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>血条是估算，不是测量。每天核对一次。</p>
+    </footer>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
