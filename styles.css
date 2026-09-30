@@ -685,18 +685,25 @@ body {
 
 .field-ghost-num {
   position: absolute;
-  right: 6%;
-  top: 12%;
+  right: 2%;
+  top: 6%;
+  left: auto;
+  bottom: auto;
   font-family: var(--serif-num);
-  font-size: clamp(5rem, 14vw, 9rem);
+  font-size: clamp(3.6rem, 8vw, 5.8rem);
   line-height: 0.85;
   letter-spacing: -0.04em;
   color: var(--steel);
-  opacity: 0.07;
+  opacity: 0.055;
   transition: opacity 0.45s var(--ease), transform 0.55s var(--ease);
-  transform: translateY(0);
+  transform: none;
   pointer-events: none;
   user-select: none;
+  z-index: 0;
+  text-align: right;
+  max-width: 28%;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .field-tag {
@@ -1006,19 +1013,7 @@ body {
 }
 
 .axis-year-ghost {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  font-family: var(--serif-num);
-  font-size: clamp(5rem, 11vw, 8.5rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--steel);
-  opacity: 0.06;
-  pointer-events: none;
-  user-select: none;
-  white-space: nowrap;
-  z-index: 0;
+  display: none;
 }
 
 .axis-era-band {
@@ -1030,6 +1025,7 @@ body {
   border-right: 1px solid rgba(29, 78, 137, 0.14);
   pointer-events: none;
   z-index: 0;
+  overflow: hidden;
   transition: background 0.35s var(--ease), border-color 0.35s var(--ease);
 }
 
@@ -1041,12 +1037,27 @@ body {
 .axis-era-band-label {
   position: absolute;
   top: 8px;
-  left: 12px;
+  left: 10px;
+  right: 10px;
   font-size: 0.62rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   color: var(--steel);
   opacity: 0.65;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.axis-era-band-mark {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border: 1px solid var(--steel);
+  transform: rotate(45deg);
+  opacity: 0.45;
 }
 
 .axis-tick {
@@ -1192,7 +1203,8 @@ body {
   left: max(24px, 4vw);
   right: max(24px, 42%);
   bottom: 14%;
-  z-index: 4;
+  z-index: 5;
+  isolation: isolate;
   pointer-events: none;
   max-width: 36rem;
   transition: opacity 0.35s var(--ease), transform 0.4s var(--ease);

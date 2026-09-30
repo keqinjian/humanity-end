@@ -471,13 +471,7 @@
 
       const yStart = Number(yearOf(events[0].date));
       const yEnd = Number(yearOf(events[events.length - 1].date));
-      for (let y = Math.ceil(yStart / 10) * 10; y <= yEnd; y += 10) {
-        const ghost = document.createElement("span");
-        ghost.className = "axis-year-ghost";
-        ghost.textContent = String(y);
-        ghost.style.left = `${xOf(dayStamp(`${y}-01-01`))}px`;
-        track.append(ghost);
-      }
+      // Decade numerals stay off the track — a single field-ghost-num owns the back plane.
 
       uniqueEras(events).forEach((era) => {
         const idxs = events
@@ -486,15 +480,28 @@
         if (!idxs.length) return;
         const x0 = xOf(stamps[idxs[0]]);
         const x1 = xOf(stamps[idxs[idxs.length - 1]]);
+        const bandW = Math.max(56, x1 - x0 + 72);
         const band = document.createElement("div");
         band.className = "axis-era-band";
         band.dataset.era = era;
         band.style.left = `${x0 - 36}px`;
-        band.style.width = `${Math.max(56, x1 - x0 + 72)}px`;
-        const lab = document.createElement("span");
-        lab.className = "axis-era-band-label";
-        lab.textContent = era;
-        band.append(lab);
+        band.style.width = `${bandW}px`;
+        // Hide in-band names when the band is too narrow to hold them without colliding.
+        // Era chips above (and the active readout) still carry the full label.
+        const minForLabel = Math.max(200, era.length * 20 + 32);
+        if (bandW >= minForLabel) {
+          const lab = document.createElement("span");
+          lab.className = "axis-era-band-label";
+          lab.textContent = era;
+          band.append(lab);
+        } else {
+          band.classList.add("is-compact");
+          const mark = document.createElement("span");
+          mark.className = "axis-era-band-mark";
+          mark.setAttribute("aria-hidden", "true");
+          mark.title = era;
+          band.append(mark);
+        }
         track.append(band);
       });
 
