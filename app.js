@@ -867,11 +867,15 @@
       GROUND_CHUNKS.forEach((spec) => {
         const node = document.getElementById(spec.id);
         if (!node) return;
-        const x0 = landmarkWorldX(spec.frac0);
-        const x1 = landmarkWorldX(spec.frac1);
-        const screen0 = x0 - sl * spec.factor;
-        /* Same factor on both ends ⇒ screen width equals world span */
-        const width = Math.max(160, x1 - x0);
+        /* Display width capped to viewport so hatch lines / slice columns stay countable */
+        const midFrac = (spec.frac0 + spec.frac1) * 0.5;
+        const midWorld = landmarkWorldX(midFrac);
+        let widthFrac = 0.62;
+        if (spec.kind === "slices") widthFrac = 0.72;
+        else if (spec.kind === "hatch") widthFrac = 0.68;
+        else if (spec.kind === "ribbons") widthFrac = 0.7;
+        const width = Math.max(280, vw * widthFrac);
+        const screen0 = midWorld - sl * spec.factor - width * 0.5;
         node.style.transform = `translate3d(${screen0.toFixed(1)}px, 0, 0)`;
         node.style.width = `${width.toFixed(1)}px`;
         const visible = screen0 + width > -40 && screen0 < vw + 40;
