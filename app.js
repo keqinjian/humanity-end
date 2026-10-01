@@ -626,21 +626,175 @@
     }
 
 
+    /**
+     * Living map: landmarks pinned in world-x (content space).
+     * screenX = worldX - scrollLeft * factor (factor < 1 = farther / slower).
+     * Soft grid alone is not enough — these are readable map debris.
+     */
+    const LANDMARKS = [
+      {
+        id: "lm-schematic",
+        frac: 0.18,
+        factor: 0.28,
+        layer: 0,
+        top: "18%",
+        kind: "schematic",
+        title: "奠基示意",
+        sub: "1956 · 达特茅斯残片",
+      },
+      {
+        id: "lm-bands",
+        frac: 0.46,
+        factor: 0.55,
+        layer: 1,
+        top: "58%",
+        kind: "bands",
+        title: "光带剖面",
+        sub: "生成爆发 · 切片",
+      },
+      {
+        id: "lm-dossier",
+        frac: 0.72,
+        factor: 0.88,
+        layer: 2,
+        top: "22%",
+        kind: "dossier",
+        title: "档案碎块",
+        sub: "领域残卷 · 09",
+      },
+      {
+        id: "lm-compass",
+        frac: 0.33,
+        factor: 0.4,
+        layer: 0,
+        top: "62%",
+        kind: "compass",
+        title: "坐标环",
+        sub: "N1 / E",
+      },
+      {
+        id: "lm-strips",
+        frac: 0.985,
+        factor: 1.0,
+        layer: 2,
+        top: "28%",
+        kind: "strips",
+        title: "终点光幕",
+        sub: "临界 · 2026",
+      },
+    ];
+
+    let landmarksMounted = false;
+
+    function landmarkWorldX(frac) {
+      return edgePad + contentSpan * frac;
+    }
+
+    function buildLandmarkEl(spec) {
+      const el = document.createElement("div");
+      el.className = `field-landmark kind-${spec.kind}`;
+      el.id = spec.id;
+      el.dataset.factor = String(spec.factor);
+      el.dataset.frac = String(spec.frac);
+      el.style.top = spec.top;
+      if (spec.kind === "schematic") {
+        el.innerHTML = `
+          <svg viewBox="0 0 160 120" class="lm-svg" aria-hidden="true">
+            <circle cx="70" cy="60" r="42" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
+            <circle cx="70" cy="60" r="26" fill="none" stroke="currentColor" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.4"/>
+            <path d="M70 18 L70 102 M28 60 L112 60" stroke="currentColor" stroke-width="0.7" opacity="0.35"/>
+            <path d="M70 60 L108 32" stroke="currentColor" stroke-width="1.4"/>
+            <text x="118" y="28" fill="currentColor" font-size="11" font-family="Instrument Serif, serif">A</text>
+            <text x="8" y="112" fill="currentColor" font-size="9" opacity="0.7" letter-spacing="0.12em">BLUEPRINT</text>
+          </svg>
+          <p class="lm-title">${spec.title}</p>
+          <p class="lm-sub">${spec.sub}</p>`;
+      } else if (spec.kind === "bands") {
+        el.innerHTML = `
+          <div class="lm-band-stack">
+            <span class="lm-band b0"></span>
+            <span class="lm-band b1"></span>
+            <span class="lm-band b2"></span>
+            <span class="lm-band b3"></span>
+          </div>
+          <p class="lm-title">${spec.title}</p>
+          <p class="lm-sub">${spec.sub}</p>`;
+      } else if (spec.kind === "dossier") {
+        el.innerHTML = `
+          <div class="lm-dossier-card">
+            <span class="lm-brack">[</span>
+            <div class="lm-dossier-body">
+              <span class="lm-key">档案</span>
+              <span class="lm-bars"><i></i><i></i><i></i></span>
+              <span class="lm-pct">36</span>
+            </div>
+            <span class="lm-brack">]</span>
+          </div>
+          <p class="lm-title">${spec.title}</p>
+          <p class="lm-sub">${spec.sub}</p>`;
+      } else if (spec.kind === "compass") {
+        el.innerHTML = `
+          <svg viewBox="0 0 100 100" class="lm-svg lm-compass" aria-hidden="true">
+            <polygon points="50,8 56,44 92,50 56,56 50,92 44,56 8,50 44,44" fill="none" stroke="currentColor" stroke-width="1"/>
+            <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.5"/>
+            <text x="50" y="18" text-anchor="middle" fill="currentColor" font-size="8">N1</text>
+            <text x="86" y="53" fill="currentColor" font-size="8">E</text>
+          </svg>
+          <p class="lm-title">${spec.title}</p>
+          <p class="lm-sub">${spec.sub}</p>`;
+      } else {
+        el.innerHTML = `
+          <div class="lm-strip-curtain">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <p class="lm-title">${spec.title}</p>
+          <p class="lm-sub">${spec.sub}</p>`;
+      }
+      return el;
+    }
+
+    function mountFieldLandmarks() {
+      const host = document.getElementById("field-landmarks-root");
+      if (!host || landmarksMounted) return;
+      host.textContent = "";
+      LANDMARKS.forEach((spec) => {
+        const el = buildLandmarkEl(spec);
+        el.dataset.layer = String(spec.layer);
+        host.appendChild(el);
+      });
+      landmarksMounted = true;
+    }
+
     function updateFieldParallax() {
       const field = document.getElementById("field-parallax");
       if (!field) return;
+      mountFieldLandmarks();
       const max = scrollMax();
       const p = max > 0 ? viewport.scrollLeft / max : 0;
+      const sl = viewport.scrollLeft;
       stage.style.setProperty("--field-p", p.toFixed(4));
+      /* Soft atmosphere still drifts; landmarks use discrete world-x below */
       const l0 = field.querySelector(".field-l0");
       const l1 = field.querySelector(".field-l1");
       const l2 = field.querySelector(".field-l2");
-      /* Parallax: far layers move slower than scroll — wide field travels with map */
-      if (l0) l0.style.transform = `translate3d(${(-viewport.scrollLeft * 0.22).toFixed(1)}px, 0, 0)`;
-      if (l1) l1.style.transform = `translate3d(${(-viewport.scrollLeft * 0.45).toFixed(1)}px, ${Math.sin(p * Math.PI) * -12}px, 0)`;
-      if (l2) l2.style.transform = `translate3d(${(-viewport.scrollLeft * 0.72).toFixed(1)}px, 0, 0)`;
+      if (l0) l0.style.transform = `translate3d(${(-sl * 0.12).toFixed(1)}px, 0, 0)`;
+      if (l1) l1.style.transform = `translate3d(${(-sl * 0.2).toFixed(1)}px, ${Math.sin(p * Math.PI) * -8}px, 0)`;
+      if (l2) l2.style.transform = `translate3d(${(-sl * 0.28).toFixed(1)}px, 0, 0)`;
       field.dataset.eraBand = String(Math.min(7, Math.floor(p * 8)));
       stage.dataset.fieldP = (p * 100).toFixed(0);
+
+      /* World-x pin in viewport space: screenX = worldX - scrollLeft * factor */
+      LANDMARKS.forEach((spec) => {
+        const node = document.getElementById(spec.id);
+        if (!node) return;
+        const worldX = landmarkWorldX(spec.frac);
+        const screenX = worldX - sl * spec.factor;
+        node.style.transform = `translate3d(${screenX.toFixed(1)}px, 0, 0)`;
+        const vw = viewport.clientWidth || 1;
+        const visible = screenX > -220 && screenX < vw + 60;
+        node.classList.toggle("is-in-view", visible);
+        node.classList.toggle("is-near", Math.abs(screenX + 100 - vw * 0.5) < vw * 0.32);
+      });
     }
 
     function focusStories() {
@@ -672,6 +826,7 @@
     }
 
     function buildTrack() {
+      landmarksMounted = false;
       track.textContent = "";
       measureEdgePad();
       track.style.width = `${edgePad + contentSpan + edgePad}px`;
