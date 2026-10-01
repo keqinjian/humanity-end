@@ -1548,53 +1548,40 @@
     }
 
     function update() {
-      const seam = document.getElementById("page-seam");
       const sh = scroller.clientHeight;
-      const origin = scroller.getBoundingClientRect().top;
-      let e = 0;
-      if (seam && sh > 0) {
-        const top = seam.getBoundingClientRect().top - origin;
-        const span = Math.max(180, sh * 0.62);
-        let t = (sh * 0.82 - top) / span;
-        t = Math.max(0, Math.min(1, t));
-        e = t * t * (3 - 2 * t);
-      }
+      const dH = dossier.offsetHeight;
+      const start = Math.max(40, dH - sh * 0.92);
+      const end = Math.max(start + 120, dH + sh * 0.08);
+      const y = scroller.scrollTop;
+      let t = (y - start) / (end - start);
+      t = Math.max(0, Math.min(1, t));
+      const e = t * t * (3 - 2 * t);
       scroller.style.setProperty("--blend", e.toFixed(4));
       let zone = "early";
-      if (e >= 0.2 && e < 0.78) zone = "mid";
-      else if (e >= 0.78) zone = "late";
+      if (e >= 0.18 && e < 0.68) zone = "mid";
+      else if (e >= 0.68) zone = "late";
       scroller.dataset.blendZone = zone;
 
       if (!reduce) updateMorph(e);
       else if (morph) morph.classList.remove("is-active");
 
-      /* Pages stay readable across the seam; morph is decorative only. */
-      dossier.style.transform = "";
-      dossier.style.opacity = "";
+      /* Fade dossier chrome without page-slide seam */
+      if (reduce) {
+        dossier.style.transform = "";
+        dossier.style.opacity = "";
+        dossier.style.filter = "";
+        return;
+      }
+      const lift = e * -28;
+      dossier.style.transform = e > 0.05 ? `translate3d(0, ${lift.toFixed(1)}px, 0)` : "";
+      dossier.style.opacity = String(Math.max(0, 1 - e * 1.35));
       dossier.style.filter = "";
-      dossier.style.pointerEvents = "";
-      timeline.style.opacity = "";
-      timeline.style.pointerEvents = "";
+      dossier.style.pointerEvents = e > 0.45 ? "none" : "";
+      timeline.style.opacity = String(Math.min(1, Math.max(0, (e - 0.55) / 0.35)));
     }
 
     scroller.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
-    /* If a gesture stops between the two pages, finish on the nearer one. */
-    scroller.addEventListener("scrollend", () => {
-      const pages = [...scroller.querySelectorAll(":scope > .chapter")];
-      if (pages.length < 2) return;
-      const y = scroller.scrollTop;
-      let target = pages[0].offsetTop;
-      let best = Infinity;
-      pages.forEach((page) => {
-        const d = Math.abs(page.offsetTop - y);
-        if (d < best) {
-          best = d;
-          target = page.offsetTop;
-        }
-      });
-      if (best > 6) scroller.scrollTo({ top: target, behavior: reduce ? "auto" : "smooth" });
-    });
     update();
     return { update };
   }
@@ -1644,10 +1631,15 @@
     if (cue) {
       cue.addEventListener("click", (ev) => {
         const target = document.querySelector(cue.getAttribute("href"));
-        if (!target) return;
+        const scroller = document.getElementById("chapter-scroller");
+        if (!target || !scroller) return;
         ev.preventDefault();
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+        /* Land on the morning section head, not past it into the sticky stage. */
+        scroller.scrollTo({
+          top: target.offsetTop,
+          behavior: reduceMotion ? "auto" : "smooth",
+        });
       });
     }
   }
