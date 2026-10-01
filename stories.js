@@ -292,40 +292,79 @@
   }
 
   function hiAlphaGo(evt) {
-    /* Larger board (~center-right 45%+); pins as旁注; year stays in type area only */
-    const boardBg = el("rect", { x: 248, y: 70, width: 340, height: 340, fill: "#1a2233", stroke: "rgba(232,238,248,0.22)", "stroke-width": 1 });
-    const lines = [];
-    for (let i = 0; i < 15; i++) {
-      lines.push(el("line", { x1: 268, y1: 90 + i * 21.5, x2: 568, y2: 90 + i * 21.5, stroke: "rgba(232,238,248,0.12)", "stroke-width": 1 }));
-      lines.push(el("line", { x1: 268 + i * 21.5, y1: 90, x2: 268 + i * 21.5, y2: 390, stroke: "rgba(232,238,248,0.12)", "stroke-width": 1 }));
+    /* Go board as scene subject — stones + heat + move pin; NOT attention/film/multimodal */
+    const g = el("g", { class: "ag-board" });
+    const bx = 160, by = 70, bs = 340, n = 13, step = bs / (n - 1);
+    g.appendChild(el("rect", {
+      x: bx - 18, y: by - 18, width: bs + 36, height: bs + 36, rx: 4,
+      fill: "#1c2436", stroke: "rgba(245,225,26,0.35)", "stroke-width": 1.5
+    }));
+    g.appendChild(el("rect", {
+      x: bx - 8, y: by - 8, width: bs + 16, height: bs + 16,
+      fill: "#2a3348"
+    }));
+    for (let i = 0; i < n; i++) {
+      const o = i * step;
+      g.appendChild(el("line", {
+        x1: bx, y1: by + o, x2: bx + bs, y2: by + o,
+        stroke: "rgba(232,238,248,0.28)", "stroke-width": 1
+      }));
+      g.appendChild(el("line", {
+        x1: bx + o, y1: by, x2: bx + o, y2: by + bs,
+        stroke: "rgba(232,238,248,0.28)", "stroke-width": 1
+      }));
     }
-    const heat = el("circle", { cx: 418, cy: 230, r: 44, fill: "rgba(245,225,26,0.16)" });
-    const black = el("circle", { cx: 418, cy: 230, r: 13, fill: "#0b0e16", stroke: "#f5e11a", "stroke-width": 1.3 });
-    const white = el("circle", { cx: 440, cy: 252, r: 12, fill: "#e8eef8", opacity: 0.92 });
-    const pin = el("line", { x1: 418, y1: 230, x2: 170, y2: 150, stroke: "rgba(245,225,26,0.45)", "stroke-width": 1 });
-    const pinLab = el("text", { x: 48, y: 145, fill: "rgba(232,238,248,0.75)", "font-size": 13,
-      "font-family": "Noto Sans SC,sans-serif" }, ["第37手 · 神之一手"]);
-    const pin2 = el("line", { x1: 440, y1: 252, x2: 170, y2: 200, stroke: "rgba(232,238,248,0.25)", "stroke-width": 1 });
-    const pinLab2 = el("text", { x: 48, y: 195, fill: "rgba(168,180,200,0.7)", "font-size": 12 }, ["李世石 · 白"]);
+    /* star points */
+    [[3,3],[3,9],[9,3],[9,9],[6,6]].forEach(([r,c]) => {
+      g.appendChild(el("circle", {
+        cx: bx + c * step, cy: by + r * step, r: 3,
+        fill: "rgba(232,238,248,0.35)"
+      }));
+    });
+    const stones = [
+      [4,4,"#0b0e16"],[5,5,"#e8eef8"],[6,4,"#0b0e16"],[7,6,"#e8eef8"],
+      [5,7,"#0b0e16"],[8,5,"#e8eef8"],[6,7,"#0b0e16"],[4,6,"#e8eef8"],
+      [7,8,"#0b0e16"],[8,8,"#e8eef8"],[5,3,"#0b0e16"],[3,5,"#e8eef8"]
+    ];
+    stones.forEach(([r,c,fill]) => {
+      g.appendChild(el("circle", {
+        cx: bx + c * step, cy: by + r * step, r: 11,
+        fill, stroke: fill === "#0b0e16" ? "#f5e11a" : "rgba(16,32,51,0.5)",
+        "stroke-width": fill === "#0b0e16" ? 1.2 : 0.8
+      }));
+    });
+    /* move 37 heat + stone */
+    const mx = bx + 7 * step, my = by + 6 * step;
+    const heat = el("circle", { cx: mx, cy: my, r: 28, fill: "rgba(245,225,26,0.22)" });
+    const key = el("circle", {
+      cx: mx, cy: my, r: 14, fill: "#0b0e16", stroke: "#f5e11a", "stroke-width": 2.2
+    });
+    const badge = el("g", {});
+    badge.appendChild(el("rect", {
+      x: mx + 22, y: my - 36, width: 72, height: 28, rx: 2,
+      fill: "#0b0e16", stroke: "#f5e11a", "stroke-width": 1.2
+    }));
+    badge.appendChild(el("text", {
+      x: mx + 58, y: my - 17, fill: "#f5e11a", "text-anchor": "middle",
+      "font-size": 13, "font-family": "IBM Plex Sans, sans-serif", "letter-spacing": "0.06em"
+    }, ["第37手"]));
+    const lab = el("text", {
+      x: 320, y: 450, fill: "rgba(168,180,200,0.7)", "text-anchor": "middle",
+      "font-size": 12, "letter-spacing": "0.16em"
+    }, ["GO BOARD · MOVE 37"]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
-      [boardBg, ...lines, heat, black, white, pin, pinLab, pin2, pinLab2]);
+      [g, heat, key, badge, lab]);
     function apply(p) {
       const e = easeOut(clamp01(p));
-      setTransform(boardBg, `translate(${(1 - e) * 36} 0) scale(${0.78 + 0.22 * e})`);
-      [...lines, heat, black, white].forEach((n, i) => {
-        /* board group motion via shared translate on boardBg only — stones follow visually via opacity */
-      });
-      setTransform(heat, `scale(${0.35 + e * 1.15})`);
-      heat.setAttribute("opacity", String(0.1 + e * 0.35));
-      setTransform(black, `translate(0 ${(1 - e) * -16})`);
-      pin.setAttribute("opacity", String(e));
-      pinLab.setAttribute("opacity", String(e));
-      pin2.setAttribute("opacity", String(clamp01((e - 0.25) / 0.5)));
-      pinLab2.setAttribute("opacity", String(clamp01((e - 0.25) / 0.5)));
+      setTransform(g, `translate(${(1 - e) * 28} 0) scale(${0.82 + 0.18 * e})`);
+      setTransform(heat, `scale(${0.4 + e * 1.1})`);
+      heat.setAttribute("opacity", String(0.15 + e * 0.55));
+      setTransform(key, `scale(${0.3 + e * 0.7})`);
+      badge.setAttribute("opacity", String(e));
+      lab.setAttribute("opacity", String(0.4 + e * 0.6));
     }
-    return { svg, apply, layout: "break" };
+    return { svg, apply, layout: "center" };
   }
-
   function hiTransformer(evt) {
     /* Token blocks + weighted attention links — NOT cinema/waveform */
     const tokens = ["The", "cat", "sat", "on", "mat", "·", "Q", "K"];
@@ -536,31 +575,73 @@
   }
 
   function hiChatGPT(evt) {
-    const voidR = el("rect", { x: 50, y: 110, width: 540, height: 260, fill: "#080c14" });
-    const slabs = [
-      { y: 140, w: 280, c: "rgba(138,164,200,0.2)" },
-      { y: 200, w: 360, c: "rgba(245,225,26,0.12)" },
-      { y: 270, w: 220, c: "rgba(138,164,200,0.18)" }
-    ].map((s, i) => el("rect", { x: 80 + i * 30, y: s.y, width: s.w, height: 36, rx: 2, fill: s.c }));
-    const noiseLine = el("path", {
-      d: "M70 250 C120 200, 180 300, 260 240 S400 180, 500 260 S580 230, 600 250",
-      fill: "none", stroke: "rgba(232,238,248,0.2)", "stroke-width": 1
+    /* Dialogue prompt/reply setting — unique chat chrome, not multimodal split / film / board */
+    const frame = el("rect", {
+      x: 90, y: 80, width: 460, height: 320, rx: 8,
+      fill: "#0e1420", stroke: "rgba(138,164,200,0.4)", "stroke-width": 1.4
     });
-    const lab = el("text", { x: 70, y: 400, fill: "rgba(232,238,248,0.4)", "font-size": 12, "letter-spacing": "0.18em" }, ["CHATGPT · DIALOGUE WASH"]);
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [voidR, ...slabs, noiseLine, lab]);
+    const head = el("rect", {
+      x: 90, y: 80, width: 460, height: 36, rx: 8,
+      fill: "#162033"
+    });
+    const headLab = el("text", {
+      x: 112, y: 104, fill: "#a8b4c8", "font-size": 12,
+      "letter-spacing": "0.14em", "font-family": "IBM Plex Sans, sans-serif"
+    }, ["ChatGPT"]);
+    /* user bubble (right) */
+    const user = el("g", {});
+    user.appendChild(el("rect", {
+      x: 280, y: 140, width: 240, height: 64, rx: 10,
+      fill: "#243352", stroke: "rgba(232,238,248,0.2)", "stroke-width": 1
+    }));
+    user.appendChild(el("text", {
+      x: 300, y: 168, fill: "#e8eef8", "font-size": 14,
+      "font-family": "Noto Sans SC, sans-serif"
+    }, ["写一首关于春天的诗"]));
+    user.appendChild(el("text", {
+      x: 300, y: 190, fill: "#8aa4c8", "font-size": 11,
+      "letter-spacing": "0.08em"
+    }, ["YOU"]));
+    /* assistant bubble (left) */
+    const bot = el("g", {});
+    bot.appendChild(el("rect", {
+      x: 120, y: 230, width: 300, height: 100, rx: 10,
+      fill: "#121826", stroke: "#f5e11a", "stroke-width": 1.4
+    }));
+    bot.appendChild(el("text", {
+      x: 140, y: 262, fill: "#e8eef8", "font-size": 14,
+      "font-family": "Noto Sans SC, sans-serif"
+    }, ["春风过巷口，柳色上窗格。"]));
+    bot.appendChild(el("text", {
+      x: 140, y: 288, fill: "#e8eef8", "font-size": 14,
+      "font-family": "Noto Sans SC, sans-serif"
+    }, ["谁把旧日历翻到新一页——"]));
+    bot.appendChild(el("text", {
+      x: 140, y: 314, fill: "#f5e11a", "font-size": 11,
+      "letter-spacing": "0.1em"
+    }, ["ASSISTANT"]));
+    /* caret / typing */
+    const caret = el("rect", {
+      x: 140, y: 340, width: 10, height: 18, fill: "#f5e11a", opacity: 0.8
+    });
+    const lab = el("text", {
+      x: 320, y: 440, fill: "rgba(168,180,200,0.7)", "text-anchor": "middle",
+      "font-size": 12, "letter-spacing": "0.16em"
+    }, ["DIALOGUE · PROMPT ↔ REPLY"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
+      [frame, head, headLab, user, bot, caret, lab]);
     function apply(p) {
       const e = easeOut(clamp01(p));
-      slabs.forEach((s, i) => {
-        const local = clamp01((e - i * 0.15) / 0.5);
-        setTransform(s, `translate(${(1 - local) * (i % 2 ? 50 : -50)} 0)`);
-        s.setAttribute("opacity", String(local));
-      });
-      noiseLine.setAttribute("stroke-dasharray", "500");
-      noiseLine.setAttribute("stroke-dashoffset", String((1 - e) * 500));
+      setTransform(user, `translate(${(1 - e) * 40} 0)`);
+      user.setAttribute("opacity", String(clamp01(e / 0.55)));
+      const be = clamp01((e - 0.25) / 0.6);
+      setTransform(bot, `translate(${(1 - be) * -36} 0)`);
+      bot.setAttribute("opacity", String(be));
+      caret.setAttribute("opacity", String(0.3 + be * 0.7));
+      setTransform(caret, `translate(${be * 8} 0)`);
     }
-    return { svg, apply, layout: "slice" };
+    return { svg, apply, layout: "center" };
   }
-
   function hiGPT4(evt) {
     /* Multimodal split: text panel LEFT + vision/exam stack RIGHT — NOT film frame */
     const left = el("g", {});
@@ -693,25 +774,71 @@
   }
 
   function hiClaude3(evt) {
-    const tiers = ["Haiku", "Sonnet", "Opus"].map((name, i) => el("g", {}, [
-      el("circle", { cx: 200 + i * 120, cy: 240, r: 40 + i * 12, fill: "none",
-        stroke: i === 2 ? C.warm : C.cyan, "stroke-width": 2 }),
-      el("text", { x: 200 + i * 120, y: 246, fill: C.ink, "text-anchor": "middle", "font-size": 13 }, [name])
-    ]));
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...tiers,
-      el("text", { x: 320, y: 380, fill: C.navy, "text-anchor": "middle", "font-size": 13,
-        "letter-spacing": "0.14em" }, ["Claude 3 · 三档家族"])]);
+    /* Claude 3 family — Opus crown + constitution ribbon; NOT board/chat/film/attention/multimodal */
+    const base = el("rect", {
+      x: 70, y: 90, width: 500, height: 300, rx: 4,
+      fill: "#12101a", stroke: "rgba(245,225,26,0.3)", "stroke-width": 1.3
+    });
+    /* three ascending pillars */
+    const pillars = [
+      { x: 110, h: 120, name: "Haiku", sub: "快", accent: "#8aa4c8" },
+      { x: 250, h: 180, name: "Sonnet", sub: "均衡", accent: "#c5d0e0" },
+      { x: 400, h: 240, name: "Opus", sub: "旗舰", accent: "#f5e11a" }
+    ];
+    const cols = pillars.map((p, i) => {
+      const g = el("g", {});
+      const y = 360 - p.h;
+      g.appendChild(el("rect", {
+        x: p.x, y, width: 110, height: p.h, rx: 3,
+        fill: i === 2 ? "rgba(245,225,26,0.12)" : "rgba(138,164,200,0.08)",
+        stroke: p.accent, "stroke-width": i === 2 ? 2.2 : 1.4
+      }));
+      g.appendChild(el("text", {
+        x: p.x + 55, y: y + 36, fill: p.accent, "text-anchor": "middle",
+        "font-size": i === 2 ? 18 : 15, "font-family": "IBM Plex Sans, sans-serif",
+        "letter-spacing": "0.06em"
+      }, [p.name]));
+      g.appendChild(el("text", {
+        x: p.x + 55, y: y + 60, fill: "rgba(232,238,248,0.55)", "text-anchor": "middle",
+        "font-size": 12, "font-family": "Noto Sans SC, sans-serif"
+      }, [p.sub]));
+      /* constitution ticks inside pillar */
+      for (let k = 0; k < 4; k++) {
+        g.appendChild(el("line", {
+          x1: p.x + 18, y1: y + 90 + k * 28, x2: p.x + 92, y2: y + 90 + k * 28,
+          stroke: p.accent, "stroke-width": 1, opacity: 0.35
+        }));
+      }
+      return g;
+    });
+    /* Opus asterisk seal */
+    const seal = el("g", {});
+    const sx = 455, sy = 150;
+    seal.appendChild(el("circle", {
+      cx: sx, cy: sy, r: 28, fill: "#0b0e16", stroke: "#f5e11a", "stroke-width": 1.8
+    }));
+    seal.appendChild(el("text", {
+      x: sx, y: sy + 8, fill: "#f5e11a", "text-anchor": "middle",
+      "font-size": 28, "font-family": "Instrument Serif, serif"
+    }, ["*"]));
+    const ribbon = el("text", {
+      x: 320, y: 430, fill: "rgba(168,180,200,0.7)", "text-anchor": "middle",
+      "font-size": 12, "letter-spacing": "0.14em"
+    }, ["CLAUDE 3 · HAIKU / SONNET / OPUS"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
+      [base, ...cols, seal, ribbon]);
     function apply(p) {
       const e = easeOutBack(clamp01(p));
-      tiers.forEach((g, i) => {
+      cols.forEach((c, i) => {
         const local = clamp01((e - i * 0.12) / 0.55);
-        setTransform(g, `translate(0 ${(1 - local) * 50}) scale(${0.5 + 0.5 * local})`);
-        g.setAttribute("opacity", String(local));
+        setTransform(c, `translate(0 ${(1 - local) * 40})`);
+        c.setAttribute("opacity", String(local));
       });
+      seal.setAttribute("opacity", String(clamp01((e - 0.35) / 0.5)));
+      setTransform(seal, `scale(${0.5 + e * 0.5})`);
     }
-    return { svg, apply };
+    return { svg, apply, layout: "center" };
   }
-
   function hiGPT4o(evt) {
     const waves = [];
     for (let i = 0; i < 5; i++) {
