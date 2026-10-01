@@ -691,8 +691,8 @@
     /* Continuous mid-band ground between landmarks (world-x pinned). */
     const GROUND_CHUNKS = [
       { id: "fg-a", frac0: 0.14, frac1: 0.30, factor: 0.42, kind: "ribbons" },
-      { id: "fg-b", frac0: 0.28, frac1: 0.48, factor: 0.58, kind: "slices" },
-      { id: "fg-c", frac0: 0.42, frac1: 0.62, factor: 0.72, kind: "hatch" },
+      { id: "fg-b", frac0: 0.26, frac1: 0.50, factor: 0.58, kind: "hatch" },
+      { id: "fg-c", frac0: 0.40, frac1: 0.64, factor: 0.72, kind: "slices" },
       { id: "fg-d", frac0: 0.58, frac1: 0.78, factor: 0.82, kind: "ribbons" },
       { id: "fg-e", frac0: 0.74, frac1: 0.96, factor: 0.92, kind: "slices" },
     ];
@@ -708,13 +708,20 @@
       if (spec.kind === "ribbons") {
         el.innerHTML = `<span class="fg-rib r0"></span><span class="fg-rib r1"></span><span class="fg-rib r2"></span><span class="fg-rib r3"></span><span class="fg-rib r4"></span>`;
       } else if (spec.kind === "slices") {
-        el.innerHTML = `<span class="fg-slice s0"></span><span class="fg-slice s1"></span><span class="fg-slice s2"></span><span class="fg-slice s3"></span><span class="fg-slice s4"></span><span class="fg-slice s5"></span>`;
+        el.innerHTML = `<span class="fg-slice s0"></span><i class="fg-gap"></i><span class="fg-slice s1"></span><i class="fg-gap"></i><span class="fg-slice s2"></span><i class="fg-gap"></i><span class="fg-slice s3"></span><i class="fg-gap"></i><span class="fg-slice s4"></span><i class="fg-gap"></i><span class="fg-slice s5"></span>`;
       } else {
         el.innerHTML = `<svg class="fg-hatch" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 60 L400 60" stroke="currentColor" stroke-width="0.6" opacity="0.35"/>
-          <path d="M20 20 L380 20 M40 100 L360 100" stroke="currentColor" stroke-width="0.5" opacity="0.25" stroke-dasharray="6 4"/>
-          <path d="M60 10 L90 110 M140 5 L170 115 M220 8 L250 112 M300 12 L330 108" stroke="currentColor" stroke-width="0.7" opacity="0.3"/>
-          <circle cx="200" cy="60" r="28" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.28"/>
+          <line x1="0" y1="18" x2="400" y2="18" stroke="currentColor" stroke-width="1.4"/>
+          <line x1="0" y1="42" x2="400" y2="42" stroke="currentColor" stroke-width="1.2"/>
+          <line x1="0" y1="60" x2="400" y2="60" stroke="currentColor" stroke-width="1.6"/>
+          <line x1="0" y1="78" x2="400" y2="78" stroke="currentColor" stroke-width="1.2"/>
+          <line x1="0" y1="102" x2="400" y2="102" stroke="currentColor" stroke-width="1.4"/>
+          <line x1="48" y1="4" x2="78" y2="116" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="120" y1="2" x2="150" y2="118" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="200" y1="0" x2="230" y2="120" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="280" y1="2" x2="310" y2="118" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="340" y1="4" x2="370" y2="116" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="1" y="1" width="398" height="118" fill="none" stroke="currentColor" stroke-width="1"/>
         </svg>`;
       }
       return el;
