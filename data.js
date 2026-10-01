@@ -1,9 +1,9 @@
 /* Synced from data.json for file:// opening. */
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-09-30",
+  "updated": "2026-10-01",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-09-30。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
   "events": [
     {
       "date": "1946-02-14",
@@ -697,6 +697,29 @@ window.__HUMANITY_DATA__ = {
         "效率"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-09-29",
+      "title": "GPT-6.1 Sol",
+      "blurb": "OpenAI DevDay 发布：接近 GPT-6 Astra 的编码、计算机使用与专业工作表现，标准 API 价约为 Astra 的五分之一。",
+      "era": "2026 临界",
+      "tags": [
+        "编码",
+        "效率"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-09-30",
+      "title": "Gemini 4 Argon",
+      "blurb": "Google DeepMind 旗舰模型，强调长程软件工程、法务金融知识工作与防御向网络安全；先向可信网络防御方有限放量。",
+      "era": "2026 临界",
+      "tags": [
+        "旗舰",
+        "编码",
+        "安全"
+      ],
+      "impact": "high"
     }
   ],
   "domains": [
@@ -708,9 +731,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "fe-ui",
           "name": "前端组件与页面",
-          "remaining": 18,
+          "remaining": 16,
           "note": "从设计稿到可用页面已高度自动化，复杂状态与无障碍细节仍需人把关。",
-          "movedBy": "GPT-6 Astra / Claude Opus 5"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "fe-ux",
@@ -722,16 +745,16 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "be-api",
           "name": "后端 API 与业务逻辑",
-          "remaining": 22,
+          "remaining": 20,
           "note": "CRUD 与常见业务规则几乎可端到端生成；跨服务一致性与合规仍脆弱。",
-          "movedBy": "GPT-5 / Claude Opus 4.5"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "be-arch",
           "name": "后端架构设计",
-          "remaining": 48,
+          "remaining": 45,
           "note": "模型能提出像样方案，但组织约束、遗留债与长期演进仍以人为主。",
-          "movedBy": "GPT-6 Astra"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "test-unit",
@@ -764,9 +787,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "code-review",
           "name": "代码审查",
-          "remaining": 20,
+          "remaining": 18,
           "note": "风格、缺陷与安全模式匹配极强；意图对齐与产品取舍仍需人。",
-          "movedBy": "Claude Opus 5"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "db-query",
@@ -1086,16 +1109,16 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "legal-search",
           "name": "法律检索与摘要",
-          "remaining": 25,
+          "remaining": 22,
           "note": "案例与法规检索加速巨大；管辖权与策略仍是律师的。",
-          "movedBy": "GPT-5.5 / Claude"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "legal-draft",
           "name": "合同草稿",
-          "remaining": 32,
+          "remaining": 28,
           "note": "标准条款模板化严重；谈判筹码与责任分配仍靠人。",
-          "movedBy": "Claude Opus 5"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "med-lit",
@@ -1226,23 +1249,23 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "vuln-find",
           "name": "漏洞发现",
-          "remaining": 42,
+          "remaining": 38,
           "note": "静态模式与模糊测试编排增强；高价值 0day 链条仍稀缺且人类密集。",
-          "movedBy": "Gemini 3.8 Flash Cyber / GPT-6 Astra"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "sec-audit",
           "name": "安全审计与合规",
-          "remaining": 35,
+          "remaining": 32,
           "note": "清单与证据整理可加速；组织风险接受度仍是管理决策。",
-          "movedBy": "Claude Opus 5"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "pentest",
           "name": "渗透测试",
-          "remaining": 48,
+          "remaining": 44,
           "note": "侦察与常见利用路径可辅助；授权范围内的创造力与报告信任仍靠人。",
-          "movedBy": "GPT-6 Astra"
+          "movedBy": "Gemini 4 Argon"
         },
         {
           "id": "incident",
