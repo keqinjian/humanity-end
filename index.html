@@ -3,161 +3,131 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="记录人类完蛋全过程——从计算机出现到每一个值得记下的模型，各个领域还剩多少人类的事。" />
+  <meta name="description" content="记录人类完蛋全过程——从 ENIAC 到今天，AI 一路吃掉了各个领域，人类还剩多少。" />
+  <meta name="theme-color" content="#0b0b0a" />
   <title>记录人类完蛋全过程</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Sans+SC:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body data-theme="dark">
-  <div class="theme-switcher" role="group" aria-label="界面主题">
-    <button type="button" class="theme-btn" data-theme="dark" aria-pressed="true" title="终末地暗色">暗</button>
-    <button type="button" class="theme-btn" data-theme="paper" aria-pressed="false" title="工业蓝白">纸</button>
-    <button type="button" class="theme-btn" data-theme="signal" aria-pressed="false" title="信号琥珀">信</button>
-  </div>
-  <a class="skip" href="#chapter-dossier">跳到领域血条</a>
+<body>
+  <a class="skip" href="#domains">跳到领域血条</a>
 
-  <main class="chapter-scroller" id="chapter-scroller">
-    <!-- Shared morph: gauge ring → middle rail; years scatter into ticks -->
-    <svg class="morph-layer" id="morph-layer" aria-hidden="true" viewBox="0 0 1440 900" preserveAspectRatio="none">
-      <path id="morph-arc" fill="none" stroke="#f5e11a" stroke-width="2.4" stroke-linecap="round"></path>
-      <line id="morph-rail" x1="120" y1="480" x2="120" y2="480" stroke="#f5e11a" stroke-width="1.6" opacity="0"></line>
-      <g id="morph-ticks"></g>
-      <text id="morph-y0" class="morph-glyph" fill="rgba(232,238,248,0.45)" font-family="Instrument Serif, serif" font-size="42" text-anchor="middle">1946</text>
-      <text id="morph-y1" class="morph-glyph" fill="rgba(245,225,26,0.4)" font-family="Instrument Serif, serif" font-size="42" text-anchor="middle">2026</text>
-      <text id="morph-pct" fill="rgba(232,238,248,0.35)" font-family="Instrument Serif, serif" font-size="28" text-anchor="middle">36%</text>
-    </svg>
-    <p class="era-now" id="era-now" aria-live="polite"></p>
-    <!-- PAGE 1: dossier / domain HP -->
-    <section class="chapter chapter-dossier" id="chapter-dossier" aria-label="领域血条">
-      <div class="dossier-inner page">
-        <div class="dossier-plate">
-          <div class="dossier-crop" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-          <div class="dossier-strip" aria-label="档案抬头">
-            <span class="dossier-bracket">[</span>
-            <span class="dossier-key">档案</span>
-            <time id="updated-date" datetime="2026-09-30">—</time>
-            <span class="dossier-bracket">]</span>
-            <span class="dossier-file">HP-INDEX / 01</span>
-            <span class="dossier-rule" aria-hidden="true"></span>
-            <span class="dossier-file dossier-file-end">人类事务剩余</span>
-          </div>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="回到顶部"><i class="brand-mark" aria-hidden="true"></i>HUMANITY<span>/</span>END</a>
+    <nav class="nav" aria-label="章节">
+      <a href="#top" data-nav="top">总览</a>
+      <a href="#domains" data-nav="domains">领域血条</a>
+      <a href="#timeline" data-nav="timeline">时间线</a>
+    </nav>
+    <p class="topbar-date">基准日 <time id="updated" datetime="">—</time> · 估算</p>
+  </header>
 
-          <header class="mast mast-hero dossier-board" id="top">
-            <aside class="mast-rail" aria-label="概览">
-              <p class="dossier-kicker"><span>卷宗</span><span>领域血条</span></p>
-              <h1 class="mast-title" id="site-title">记录人类完蛋全过程</h1>
-              <p class="mast-subtitle" id="site-subtitle"></p>
-              <div class="aggregate" aria-live="polite">
-                <div class="aggregate-frame">
-                  <svg class="aggregate-ring" viewBox="0 0 100 100" aria-hidden="true">
-                    <circle cx="50" cy="50" r="44"></circle>
-                    <circle class="ring-val" id="aggregate-ring-val" cx="50" cy="50" r="44"></circle>
-                  </svg>
-                  <p class="aggregate-value">
-                    <span id="aggregate-num">—</span><span class="aggregate-unit">%</span>
-                  </p>
-                </div>
-                <div class="aggregate-copy">
-                  <p class="aggregate-label">人类事务剩余</p>
-                  <p class="aggregate-note" id="score-disclaimer"></p>
-                </div>
-              </div>
-              <dl class="dossier-stats">
-                <div><dt>领域</dt><dd id="stat-domains">—</dd></div>
-                <div><dt>叶节点</dt><dd id="stat-leaves">—</dd></div>
-                <div><dt>临界</dt><dd id="stat-critical">—</dd></div>
-              </dl>
-              <p class="dossier-lowest"><span>最低剩余</span><strong id="stat-lowest">—</strong></p>
-              <p class="dossier-legend" aria-hidden="true"><i class="swatch swatch-human"></i>人类剩余<i class="swatch swatch-ai"></i>已让渡</p>
-              <a class="chapter-cue" href="#chapter-timeline"><span class="cue-cap">继续下探</span><span class="cue-mark" aria-hidden="true"></span></a>
-            </aside>
-
-            <section class="mast-domains" id="domains" aria-labelledby="domains-heading">
-              <div class="domains-head">
-                <h2 id="domains-heading" class="section-title">
-                  <span class="sec-mark">01</span>
-                  <span class="sec-label">领域索引</span>
-                </h2>
-                <span class="sec-hint">点击卡片展开子项 · 父级为叶节点算术平均</span>
-                <span class="domains-count" id="domains-count"></span>
-              </div>
-              <div id="domain-tree" class="domain-tree" role="tree"></div>
-            </section>
-          </header>
-          <div class="blend-veil" aria-hidden="true"></div>
+  <main>
+    <!-- 00 总览 -->
+    <section class="screen hero" id="top" aria-labelledby="site-title">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="kicker"><span class="kicker-dot"></span>档案 HP-INDEX · 持续更新</p>
+          <h1 id="site-title">记录人类完蛋全过程</h1>
+          <p class="lede" id="site-subtitle"></p>
+          <dl class="stats">
+            <div><dt>领域</dt><dd id="stat-domains">—</dd></div>
+            <div><dt>观察项</dt><dd id="stat-leaves">—</dd></div>
+            <div class="is-crit"><dt>临界 ≤25%</dt><dd id="stat-crit">—</dd></div>
+          </dl>
+          <p class="lowest">最接近出局 <strong id="stat-lowest">—</strong></p>
         </div>
+
+        <div class="hero-gauge" aria-live="polite">
+          <p class="gauge-label">人类事务剩余</p>
+          <p class="gauge-num"><span id="agg-num">0</span><sup>%</sup></p>
+          <div class="hp" id="hp" role="img" aria-label="">
+            <div class="hp-cells" id="hp-cells"></div>
+            <div class="hp-mark" id="hp-mark"><span id="hp-mark-text"></span></div>
+          </div>
+          <div class="hp-ends"><span>100% 人类</span><span>0% 完蛋</span></div>
+          <p class="disclaimer" id="disclaimer"></p>
+        </div>
+      </div>
+
+      <div class="pulse">
+        <div class="pulse-head">
+          <p class="pulse-title">每年发生的里程碑</p>
+          <p class="pulse-note" id="pulse-note"></p>
+        </div>
+        <div class="pulse-bars" id="pulse-bars" aria-hidden="true"></div>
+        <div class="pulse-axis" id="pulse-axis" aria-hidden="true"></div>
+      </div>
+
+      <a class="cue" href="#domains" aria-label="向下查看领域血条"><span>下探</span><i aria-hidden="true"></i></a>
+    </section>
+
+    <!-- 01 领域 -->
+    <section class="screen domains" id="domains" aria-labelledby="domains-title">
+      <header class="sec-head">
+        <div>
+          <p class="sec-no">01</p>
+          <h2 id="domains-title">还剩什么</h2>
+        </div>
+        <p class="sec-desc">每个领域的血条是其下细项的算术平均。点开领域看细项，每一项都标了是哪个模型推了它一把。</p>
+        <div class="seg" role="group" aria-label="视图">
+          <button type="button" class="seg-btn" data-view="domains" aria-pressed="true">按领域</button>
+          <button type="button" class="seg-btn" data-view="rank" aria-pressed="false">全部排行</button>
+        </div>
+      </header>
+
+      <div class="dom-body" id="view-domains">
+        <div class="dom-list" id="dom-list" role="list"></div>
+        <article class="dom-detail" id="dom-detail" aria-live="polite" tabindex="-1"></article>
+      </div>
+
+      <div class="rank-body" id="view-rank" hidden>
+        <div class="rank-tools">
+          <div class="seg seg-sm" role="group" aria-label="筛选">
+            <button type="button" class="seg-btn" data-rank="all" aria-pressed="true">全部</button>
+            <button type="button" class="seg-btn" data-rank="crit" aria-pressed="false">仅临界 ≤25%</button>
+          </div>
+          <label class="search"><span class="sr">搜索细项</span><input id="rank-q" type="search" placeholder="搜索细项、领域或模型" autocomplete="off" /></label>
+          <p class="rank-count" id="rank-count"></p>
+        </div>
+        <ol class="rank-list" id="rank-list"></ol>
+      </div>
+
+      <div class="legend" aria-hidden="true">
+        <span><i class="lg lg-ok"></i>&gt;50% 稳住</span>
+        <span><i class="lg lg-warn"></i>26–50% 吃紧</span>
+        <span><i class="lg lg-crit"></i>≤25% 临界</span>
+        <span><i class="lg lg-lost"></i>已让渡给 AI</span>
       </div>
     </section>
 
-    <!-- PAGE 2: timeline -->
-    <section class="chapter chapter-timeline" id="chapter-timeline" aria-label="时间线">
-      <div class="timeline-section" id="timeline" aria-labelledby="timeline-heading">
-        <div class="timeline-chrome">
-          <div class="section-head">
-            <h2 id="timeline-heading" class="section-title">
-              <span class="sec-mark">02</span>
-              <span class="sec-label">时间线</span>
-              <span class="sec-hint">自 ENIAC 起 · 点的大小与颜色表示影响力</span>
-            </h2>
+    <!-- 02 时间线 -->
+    <section class="screen timeline" id="timeline" aria-labelledby="timeline-title">
+      <div class="tl-grid">
+        <aside class="tl-side">
+          <p class="sec-no">02</p>
+          <h2 id="timeline-title">一路是怎么完蛋的</h2>
+          <p class="sec-desc">自 ENIAC（1946）至今。圆点越大，影响越大；展开事件可看它波及了哪些细项。</p>
+          <p class="tl-year" id="tl-year" aria-hidden="true">1946</p>
+          <p class="tl-era" id="tl-era" aria-hidden="true"></p>
+          <div class="tl-filter">
+            <p class="tl-filter-title">按时代</p>
+            <div class="chips" id="era-chips" role="group" aria-label="按时代筛选"></div>
+            <label class="check"><input type="checkbox" id="only-high" /><span>只看高影响</span></label>
+            <p class="tl-count" id="tl-count"></p>
           </div>
-          <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
-        </div>
+        </aside>
 
-        <div class="axis-stage" id="axis-stage" data-motif="foundation">
-          <div class="field-parallax" id="field-parallax" aria-hidden="true">
-            <div class="field-layer field-l0"></div>
-            <div class="field-layer field-l1"></div>
-            <div class="field-layer field-l2"></div>
-            <div class="field-wash" id="field-wash" aria-hidden="true"></div>
-            <div class="field-noise"></div>
-            <div class="field-ground-root" id="field-ground-root" aria-hidden="true"></div>
-            <div class="field-landmarks-root" id="field-landmarks-root"></div>
-          </div>
-          <div class="story-stage" id="story-stage" aria-hidden="true">
-            <span class="field-axis-label">三轨时间轴</span>
-          </div>
-          <ul class="track-legend" aria-hidden="true">
-            <li>语言与推理</li>
-            <li>图像与创作</li>
-            <li>棋与控制</li>
-          </ul>
-
-          <p class="playhead-year" id="playhead-year" aria-hidden="true">—</p>
-
-          <div
-            class="axis-viewport"
-            id="axis-viewport"
-            tabindex="0"
-            role="region"
-            aria-label="横向时间轴，可用方向键与滚轮浏览"
-            aria-roledescription="时间轴"
-          >
-            <div class="axis-track" id="timeline-list"></div>
-          </div>
-
-          <div class="axis-readout" id="axis-detail" aria-live="polite">
-            <p class="readout-year" id="readout-year">—</p>
-            <p class="readout-meta" id="readout-meta"></p>
-            <h3 class="readout-title" id="readout-title">选取轴上节点</h3>
-            <p class="readout-blurb" id="readout-blurb">在轴上选取一个节点，查看日期、标题与摘要。</p>
-            <div class="readout-tags" id="readout-tags"></div>
-          </div>
-
-          <p class="axis-hint" id="axis-hint">拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停</p>
+        <div class="tl-main" id="tl-main" tabindex="-1">
+          <div class="tl-list" id="tl-list"></div>
+          <footer class="end-note">
+            <p>血条是估算，不是测量。每天核对一次。</p>
+            <p class="end-meta">数据源 <code>data.json</code> · <a href="https://github.com/keqinjian/humanity-end" rel="noopener">GitHub</a></p>
+          </footer>
         </div>
       </div>
-
-      <div class="timeline-foot-space" aria-hidden="true"></div>
-      <footer class="site-footer chapter-foot">
-        <p>血条是估算，不是测量。每天核对一次。</p>
-      </footer>
     </section>
   </main>
 
-  <script src="data.js"></script>
-  <script src="stories.js" defer></script>
-  <script src="app.js" defer></script>
+  <script src="app.js"></script>
 </body>
 </html>
