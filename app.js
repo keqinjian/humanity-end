@@ -634,53 +634,55 @@
     const LANDMARKS = [
       {
         id: "lm-schematic",
-        frac: 0.18,
+        frac: 0.12,
         factor: 0.28,
         layer: 0,
-        top: "18%",
+        top: "14%",
         kind: "schematic",
         title: "奠基示意",
-        sub: "1956 · 达特茅斯残片",
-      },
-      {
-        id: "lm-bands",
-        frac: 0.46,
-        factor: 0.55,
-        layer: 1,
-        top: "58%",
-        kind: "bands",
-        title: "光带剖面",
-        sub: "生成爆发 · 切片",
-      },
-      {
-        id: "lm-dossier",
-        frac: 0.72,
-        factor: 0.88,
-        layer: 2,
-        top: "22%",
-        kind: "dossier",
-        title: "档案碎块",
-        sub: "领域残卷 · 09",
+        sub: "1956",
       },
       {
         id: "lm-compass",
-        frac: 0.33,
-        factor: 0.4,
+        frac: 0.18,
+        factor: 0.38,
         layer: 0,
-        top: "62%",
+        top: "66%",
         kind: "compass",
         title: "坐标环",
-        sub: "N1 / E",
+        sub: "N1",
+      },
+      {
+        /* Mid pair LEFT: exits while scrolling forward */
+        id: "lm-bands",
+        frac: 0.24,
+        factor: 0.50,
+        layer: 1,
+        top: "52%",
+        kind: "bands",
+        title: "光带剖面",
+        sub: "切片",
+      },
+      {
+        /* Mid pair RIGHT: enters on a nearer layer */
+        id: "lm-dossier",
+        frac: 0.46,
+        factor: 0.88,
+        layer: 2,
+        top: "16%",
+        kind: "dossier",
+        title: "档案碎块",
+        sub: "残卷",
       },
       {
         id: "lm-strips",
-        frac: 0.985,
+        frac: 1.02,
         factor: 1.0,
         layer: 2,
-        top: "28%",
+        top: "10%",
         kind: "strips",
         title: "终点光幕",
-        sub: "临界 · 2026",
+        sub: "2026",
       },
     ];
 
@@ -784,16 +786,26 @@
       stage.dataset.fieldP = (p * 100).toFixed(0);
 
       /* World-x pin in viewport space: screenX = worldX - scrollLeft * factor */
+      const vw = viewport.clientWidth || 1;
+      const atEnd = max > 0 && sl >= max - 1.5;
+      stage.classList.toggle("is-at-end", atEnd);
       LANDMARKS.forEach((spec) => {
         const node = document.getElementById(spec.id);
         if (!node) return;
-        const worldX = landmarkWorldX(spec.frac);
-        const screenX = worldX - sl * spec.factor;
+        let worldX = landmarkWorldX(spec.frac);
+        let screenX = worldX - sl * spec.factor;
+        /* Terminus: pin light curtain flush to right edge */
+        if (spec.id === "lm-strips" && atEnd) {
+          const w = node.offsetWidth || vw * 0.3;
+          screenX = vw - w - 8;
+        }
         node.style.transform = `translate3d(${screenX.toFixed(1)}px, 0, 0)`;
-        const vw = viewport.clientWidth || 1;
-        const visible = screenX > -220 && screenX < vw + 60;
+        const visible = screenX > -280 && screenX < vw + 80;
         node.classList.toggle("is-in-view", visible);
-        node.classList.toggle("is-near", Math.abs(screenX + 100 - vw * 0.5) < vw * 0.32);
+        const mid = screenX + (node.offsetWidth || 120) * 0.5;
+        node.classList.toggle("is-near", Math.abs(mid - vw * 0.5) < vw * 0.34);
+        node.classList.toggle("is-exiting-left", visible && screenX < vw * 0.18);
+        node.classList.toggle("is-entering-right", visible && screenX + (node.offsetWidth || 0) > vw * 0.78);
       });
     }
 

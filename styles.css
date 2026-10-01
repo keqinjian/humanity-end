@@ -2926,18 +2926,9 @@ body[data-theme="signal"] .axis-node.is-near-focus .axis-node-mark {
   opacity: 1;
   filter: drop-shadow(0 0 12px rgba(245, 225, 26, 0.15));
 }
-.field-landmark .lm-title {
-  margin: 6px 0 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  color: var(--ink, #e8eef8);
-  font-weight: 500;
-}
+.field-landmark .lm-title,
 .field-landmark .lm-sub {
-  margin: 2px 0 0;
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
-  color: var(--ink-mute, #6b7a90);
+  display: none !important; /* P0: shape reads without museum labels */
 }
 .lm-svg {
   width: 100%;
@@ -2950,7 +2941,7 @@ body[data-theme="signal"] .axis-node.is-near-focus .axis-node-mark {
   color: var(--steel, #7a8eaa);
 }
 .kind-bands {
-  width: min(280px, 24vw);
+  width: max(28vw, min(42vw, 480px));
 }
 .lm-band-stack {
   display: flex;
@@ -2969,7 +2960,7 @@ body[data-theme="signal"] .axis-node.is-near-focus .axis-node-mark {
 .lm-band.b3 { width: 70%; margin-left: 12%; height: 8px; background: linear-gradient(90deg, rgba(245,225,26,0.15), rgba(232,238,248,0.25), transparent); }
 
 .kind-dossier {
-  width: min(200px, 16vw);
+  width: max(28vw, min(36vw, 420px));
   color: var(--warm, #f5e11a);
 }
 .lm-dossier-card {
@@ -3022,7 +3013,7 @@ body[data-theme="signal"] .axis-node.is-near-focus .axis-node-mark {
   color: var(--cyan, #8aa4c8);
 }
 .kind-strips {
-  width: min(160px, 14vw);
+  width: max(28vw, min(34vw, 400px));
 }
 .lm-strip-curtain {
   display: flex;
@@ -3050,4 +3041,37 @@ body[data-theme="paper"] .lm-band.b1 {
 body[data-theme="signal"] .lm-dossier-card {
   background: rgba(15, 12, 10, 0.65);
   border-color: rgba(255, 184, 26, 0.4);
+}
+
+
+/* landmark debris feel — not HUD stickers */
+.field-landmark {
+  opacity: 0.55;
+  filter: none;
+}
+.field-landmark.is-in-view { opacity: 0.92; }
+.field-landmark.is-near {
+  opacity: 1;
+  filter: drop-shadow(0 12px 28px rgba(0,0,0,0.35));
+}
+.kind-schematic .lm-svg,
+.kind-compass .lm-svg {
+  opacity: 0.75;
+}
+.lm-dossier-card {
+  transform: rotate(-2.5deg);
+  box-shadow: 8px 14px 28px rgba(0,0,0,0.35);
+}
+.lm-band-stack {
+  transform: rotate(1.2deg) skewX(-2deg);
+}
+.lm-strip-curtain {
+  height: min(42vh, 280px);
+  opacity: 0.9;
+}
+.kind-schematic {
+  width: min(22vw, 280px);
+}
+.kind-compass {
+  width: min(16vw, 180px);
 }
