@@ -692,7 +692,7 @@
     const GROUND_CHUNKS = [
       { id: "fg-a", frac0: 0.14, frac1: 0.30, factor: 0.42, kind: "ribbons" },
       { id: "fg-b", frac0: 0.26, frac1: 0.50, factor: 0.58, kind: "hatch" },
-      { id: "fg-c", frac0: 0.40, frac1: 0.64, factor: 0.72, kind: "slices" },
+      { id: "fg-c", frac0: 0.38, frac1: 0.66, factor: 0.68, kind: "slices" },
       { id: "fg-d", frac0: 0.58, frac1: 0.78, factor: 0.82, kind: "ribbons" },
       { id: "fg-e", frac0: 0.74, frac1: 0.96, factor: 0.92, kind: "slices" },
     ];
@@ -711,17 +711,18 @@
         el.innerHTML = `<span class="fg-slice s0"></span><i class="fg-gap"></i><span class="fg-slice s1"></span><i class="fg-gap"></i><span class="fg-slice s2"></span><i class="fg-gap"></i><span class="fg-slice s3"></span><i class="fg-gap"></i><span class="fg-slice s4"></span><i class="fg-gap"></i><span class="fg-slice s5"></span>`;
       } else {
         el.innerHTML = `<svg class="fg-hatch" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
-          <line x1="0" y1="18" x2="400" y2="18" stroke="currentColor" stroke-width="1.4"/>
-          <line x1="0" y1="42" x2="400" y2="42" stroke="currentColor" stroke-width="1.2"/>
-          <line x1="0" y1="60" x2="400" y2="60" stroke="currentColor" stroke-width="1.6"/>
-          <line x1="0" y1="78" x2="400" y2="78" stroke="currentColor" stroke-width="1.2"/>
-          <line x1="0" y1="102" x2="400" y2="102" stroke="currentColor" stroke-width="1.4"/>
-          <line x1="48" y1="4" x2="78" y2="116" stroke="currentColor" stroke-width="1.3"/>
-          <line x1="120" y1="2" x2="150" y2="118" stroke="currentColor" stroke-width="1.3"/>
-          <line x1="200" y1="0" x2="230" y2="120" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="280" y1="2" x2="310" y2="118" stroke="currentColor" stroke-width="1.3"/>
-          <line x1="340" y1="4" x2="370" y2="116" stroke="currentColor" stroke-width="1.3"/>
-          <rect x="1" y="1" width="398" height="118" fill="none" stroke="currentColor" stroke-width="1"/>
+          <rect x="0" y="0" width="400" height="120" fill="rgba(11,14,22,0.88)"/>
+          <line x1="0" y1="14" x2="400" y2="14" stroke="#e8eef8" stroke-width="2.2"/>
+          <line x1="0" y1="36" x2="400" y2="36" stroke="#a8b4c8" stroke-width="1.8"/>
+          <line x1="0" y1="60" x2="400" y2="60" stroke="#f5e11a" stroke-width="2.4"/>
+          <line x1="0" y1="84" x2="400" y2="84" stroke="#a8b4c8" stroke-width="1.8"/>
+          <line x1="0" y1="106" x2="400" y2="106" stroke="#e8eef8" stroke-width="2.2"/>
+          <line x1="40" y1="0" x2="70" y2="120" stroke="#e8eef8" stroke-width="2"/>
+          <line x1="110" y1="0" x2="140" y2="120" stroke="#c5d0e0" stroke-width="2"/>
+          <line x1="190" y1="0" x2="220" y2="120" stroke="#f5e11a" stroke-width="2.2"/>
+          <line x1="270" y1="0" x2="300" y2="120" stroke="#c5d0e0" stroke-width="2"/>
+          <line x1="340" y1="0" x2="370" y2="120" stroke="#e8eef8" stroke-width="2"/>
+          <rect x="2" y="2" width="396" height="116" fill="none" stroke="#8aa4c8" stroke-width="1.6"/>
         </svg>`;
       }
       return el;
