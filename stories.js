@@ -402,29 +402,29 @@
   }
 
   function hiGPT3(evt) {
-    const bars = [];
-    for (let i = 0; i < 24; i++) {
-      const h = 40 + (hashStr("gpt3" + i) % 140);
-      bars.push(el("rect", { x: 80 + i * 20, y: 320 - h, width: 14, height: h,
-        fill: i % 3 === 0 ? C.warm : C.cyan, opacity: 0.35 }));
+    const field = el("rect", { x: 40, y: 100, width: 560, height: 280, fill: "#0a1018" });
+    const bands = [];
+    for (let i = 0; i < 14; i++) {
+      const h = 8 + (hashStr("g3b"+i) % 28);
+      bands.push(el("rect", {
+        x: 60 + i * 38, y: 320 - h * 4, width: 22, height: h * 4,
+        fill: i % 4 === 0 ? "rgba(245,225,26,0.35)" : "rgba(138,164,200,0.25)"
+      }));
     }
-    const api = el("text", { x: 320, y: 380, fill: C.navy, "text-anchor": "middle",
-      "font-family": "Instrument Serif,serif", "font-size": 22 }, ["API"]);
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...bars, api,
-      el("text", { x: 320, y: 420, fill: C.steel, "text-anchor": "middle", "font-size": 12,
-        "letter-spacing": "0.16em" }, ["GPT-3 · 规模涌现"])]);
+    const haze = el("ellipse", { cx: 320, cy: 220, rx: 200, ry: 60, fill: "rgba(47,111,237,0.15)" });
+    const lab = el("text", { x: 70, y: 400, fill: "rgba(232,238,248,0.4)", "font-size": 12, "letter-spacing": "0.2em" }, ["GPT-3 · SCALE FIELD"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [field, haze, ...bands, lab]);
     function apply(p) {
       const e = easeOut(clamp01(p));
-      bars.forEach((b, i) => {
-        const local = clamp01((e - i * 0.02) / 0.55);
+      haze.setAttribute("rx", String(80 + 160 * e));
+      bands.forEach((b, i) => {
+        const local = clamp01((e - i * 0.03) / 0.55);
         const h0 = Number(b.getAttribute("height"));
         b.setAttribute("height", String(h0 * local));
         b.setAttribute("y", String(320 - h0 * local));
-        b.setAttribute("opacity", String(0.2 + local * 0.7));
       });
-      setTransform(api, `scale(${0.5 + 0.5 * e})`);
     }
-    return { svg, apply };
+    return { svg, apply, layout: "slice" };
   }
 
   function hiAlphaFold(evt) {
@@ -505,25 +505,27 @@
   }
 
   function hiChatGPT(evt) {
-    const bubbles = [
-      { x: 140, y: 140, w: 260, h: 70, side: "user" },
-      { x: 240, y: 230, w: 280, h: 90, side: "bot" },
-      { x: 140, y: 340, w: 200, h: 50, side: "user" }
-    ].map((b) => el("rect", { x: b.x, y: b.y, width: b.w, height: b.h, rx: 14,
-      fill: b.side === "bot" ? "rgba(47,111,237,0.14)" : "#eef3f9",
-      stroke: b.side === "bot" ? C.cyan : C.steel, "stroke-width": 1.6 }));
-    const cursor = el("rect", { x: 260, y: 360, width: 3, height: 18, fill: C.warm });
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...bubbles, cursor,
-      el("text", { x: 320, y: 440, fill: C.navy, "text-anchor": "middle", "font-size": 13,
-        "letter-spacing": "0.14em" }, ["ChatGPT · 对话浪潮"])]);
+    const voidR = el("rect", { x: 50, y: 110, width: 540, height: 260, fill: "#080c14" });
+    const slabs = [
+      { y: 140, w: 280, c: "rgba(138,164,200,0.2)" },
+      { y: 200, w: 360, c: "rgba(245,225,26,0.12)" },
+      { y: 270, w: 220, c: "rgba(138,164,200,0.18)" }
+    ].map((s, i) => el("rect", { x: 80 + i * 30, y: s.y, width: s.w, height: 36, rx: 2, fill: s.c }));
+    const noiseLine = el("path", {
+      d: "M70 250 C120 200, 180 300, 260 240 S400 180, 500 260 S580 230, 600 250",
+      fill: "none", stroke: "rgba(232,238,248,0.2)", "stroke-width": 1
+    });
+    const lab = el("text", { x: 70, y: 400, fill: "rgba(232,238,248,0.4)", "font-size": 12, "letter-spacing": "0.18em" }, ["CHATGPT · DIALOGUE WASH"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [voidR, ...slabs, noiseLine, lab]);
     function apply(p) {
       const e = easeOut(clamp01(p));
-      bubbles.forEach((b, i) => {
-        const local = clamp01((e - i * 0.18) / 0.45);
-        setTransform(b, `translate(${(1 - local) * (i % 2 ? 40 : -40)} ${(1 - local) * 20})`);
-        b.setAttribute("opacity", String(local));
+      slabs.forEach((s, i) => {
+        const local = clamp01((e - i * 0.15) / 0.5);
+        setTransform(s, `translate(${(1 - local) * (i % 2 ? 50 : -50)} 0)`);
+        s.setAttribute("opacity", String(local));
       });
-      cursor.setAttribute("opacity", String(0.3 + Math.sin(e * Math.PI * 4) * 0.5 * e));
+      noiseLine.setAttribute("stroke-dasharray", "500");
+      noiseLine.setAttribute("stroke-dashoffset", String((1 - e) * 500));
     }
     return { svg, apply, layout: "slice" };
   }

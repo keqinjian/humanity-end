@@ -10,7 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Sans+SC:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body data-theme="dark">
+  <div class="theme-switcher" role="group" aria-label="界面主题">
+    <button type="button" class="theme-btn" data-theme="dark" aria-pressed="true" title="终末地暗色">暗</button>
+    <button type="button" class="theme-btn" data-theme="paper" aria-pressed="false" title="工业蓝白">纸</button>
+    <button type="button" class="theme-btn" data-theme="signal" aria-pressed="false" title="信号琥珀">信</button>
+  </div>
   <a class="skip" href="#chapter-dossier">跳到领域血条</a>
 
   <main class="chapter-scroller" id="chapter-scroller">
@@ -84,6 +89,12 @@
         </div>
 
         <div class="axis-stage" id="axis-stage" data-motif="foundation">
+          <div class="field-parallax" id="field-parallax" aria-hidden="true">
+            <div class="field-layer field-l0"></div>
+            <div class="field-layer field-l1"></div>
+            <div class="field-layer field-l2"></div>
+            <div class="field-noise"></div>
+          </div>
           <div class="story-stage" id="story-stage" aria-hidden="true">
             <span class="field-axis-label">三轨时间轴</span>
           </div>
@@ -118,6 +129,7 @@
         </div>
       </div>
 
+      <div class="timeline-foot-space" aria-hidden="true"></div>
       <footer class="site-footer chapter-foot">
         <p>血条是估算，不是测量。每天核对一次。</p>
       </footer>

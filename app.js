@@ -625,6 +625,24 @@
       return best;
     }
 
+
+    function updateFieldParallax() {
+      const field = document.getElementById("field-parallax");
+      if (!field) return;
+      const max = scrollMax();
+      const p = max > 0 ? viewport.scrollLeft / max : 0;
+      stage.style.setProperty("--field-p", p.toFixed(4));
+      const l0 = field.querySelector(".field-l0");
+      const l1 = field.querySelector(".field-l1");
+      const l2 = field.querySelector(".field-l2");
+      /* Parallax: far layers move slower than scroll — wide field travels with map */
+      if (l0) l0.style.transform = `translate3d(${(-viewport.scrollLeft * 0.22).toFixed(1)}px, 0, 0)`;
+      if (l1) l1.style.transform = `translate3d(${(-viewport.scrollLeft * 0.45).toFixed(1)}px, ${Math.sin(p * Math.PI) * -12}px, 0)`;
+      if (l2) l2.style.transform = `translate3d(${(-viewport.scrollLeft * 0.72).toFixed(1)}px, 0, 0)`;
+      field.dataset.eraBand = String(Math.min(7, Math.floor(p * 8)));
+      stage.dataset.fieldP = (p * 100).toFixed(0);
+    }
+
     function focusStories() {
       const centerX = viewport.scrollLeft + viewport.clientWidth * 0.5;
       const near = nearestIndexAtCenter();
@@ -642,6 +660,7 @@
 
     function syncFromScroll() {
       focusStories();
+      updateFieldParallax();
       if (syncLock || drag) return;
       const idx = nearestIndexAtCenter();
       if (idx !== selectedIndex) {
@@ -864,6 +883,7 @@
       if (!drag) return;
       viewport.scrollLeft = drag.scroll - (e.clientX - drag.x);
       focusStories();
+      updateFieldParallax();
       syncFromScroll();
     }
 
@@ -876,14 +896,25 @@
     }
 
     function onWheel(e) {
-      const dominant =
-        Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      const absX = Math.abs(e.deltaX);
+      const absY = Math.abs(e.deltaY);
+      /* Vertical intent → let chapter-scroller move (timeline page can scroll up/down). */
+      if (!e.shiftKey && absY >= absX && absY > 0.5) {
+        const sc = document.getElementById("chapter-scroller");
+        if (sc) {
+          e.preventDefault();
+          sc.scrollTop += e.deltaY;
+        }
+        return;
+      }
+      const dominant = e.shiftKey ? e.deltaY : (absX > absY ? e.deltaX : e.deltaY);
       if (Math.abs(dominant) < 0.5) return;
       e.preventDefault();
       pauseAuto(1800);
       viewport.scrollLeft = Math.max(0, Math.min(scrollMax(), viewport.scrollLeft + dominant));
       focusStories();
       syncFromScroll();
+      updateFieldParallax();
     }
 
     function onKey(e) {
@@ -925,10 +956,18 @@
       if (max <= 0) return;
       const speed = max / 220;
       let next = viewport.scrollLeft + speed * dt;
-      if (next >= max - 0.5) next = 0; /* loop: last-at-center → first-at-center */
+      if (next >= max - 0.5) {
+        viewport.scrollLeft = max;
+        autoPan = false; /* stop at right end — no hard loop jump */
+        stage.classList.add("is-at-end");
+        focusStories();
+        syncFromScroll();
+        return;
+      }
       viewport.scrollLeft = next;
       focusStories();
       syncFromScroll();
+      updateFieldParallax();
     }
 
     function bind() {
@@ -964,6 +1003,7 @@
       setSelected(idx, { scroll: true, instant: true });
     });
     setSelected(events.length - 1, { scroll: true, instant: true });
+    updateFieldParallax();
     if (!reduceMotion) {
       requestAnimationFrame(() => {
         scrollToIndex(Math.max(0, events.length - 10), false);
@@ -1184,6 +1224,26 @@
     return { update };
   }
 
+
+  function bindThemeSwitcher() {
+    const root = document.body;
+    const saved = localStorage.getItem("humanity-theme");
+    const themes = ["dark", "paper", "signal"];
+    let cur = themes.includes(saved) ? saved : "dark";
+    function apply(t) {
+      cur = t;
+      root.setAttribute("data-theme", t);
+      localStorage.setItem("humanity-theme", t);
+      document.querySelectorAll(".theme-btn").forEach((b) => {
+        b.setAttribute("aria-pressed", b.dataset.theme === t ? "true" : "false");
+      });
+    }
+    apply(cur);
+    document.querySelectorAll(".theme-btn").forEach((b) => {
+      b.addEventListener("click", () => apply(b.dataset.theme));
+    });
+  }
+
   async function main() {
     const data = await loadData();
 
@@ -1216,6 +1276,7 @@
     const axis = createAxisController(events);
     renderFilters(eras, (era) => axis.applyFilter(era));
     bindChapterBlend();
+    bindThemeSwitcher();
   }
 
   main().catch((err) => {

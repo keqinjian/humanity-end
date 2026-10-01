@@ -2677,3 +2677,219 @@ body {
 .field-axis-label { display: none !important; }
 .timeline-chrome .section-head { opacity: 0.35; }
 .timeline-chrome .sec-hint { display: none; }
+
+
+/* ========== FIELD + THEMES (众生行记 motion language) ========== */
+.theme-switcher {
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(232,238,248,0.15);
+  backdrop-filter: blur(8px);
+}
+.theme-btn {
+  border: none;
+  background: transparent;
+  color: rgba(232,238,248,0.55);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+}
+.theme-btn[aria-pressed="true"] {
+  color: #f5e11a;
+  box-shadow: inset 0 -1px 0 #f5e11a;
+}
+
+/* Continuous field behind axis — travels with scrub */
+.field-parallax {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.field-layer {
+  position: absolute;
+  top: 0;
+  left: -20%;
+  width: 220%;
+  height: 100%;
+  will-change: transform;
+}
+.field-l0 {
+  background:
+    radial-gradient(ellipse 40% 60% at 15% 40%, rgba(47,111,237,0.12), transparent 60%),
+    radial-gradient(ellipse 35% 50% at 55% 60%, rgba(245,225,26,0.06), transparent 55%),
+    radial-gradient(ellipse 40% 55% at 85% 35%, rgba(90,143,134,0.1), transparent 60%);
+  opacity: 0.9;
+}
+.field-l1 {
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 79px, rgba(232,238,248,0.04) 79px 80px),
+    repeating-linear-gradient(0deg, transparent 0 79px, rgba(232,238,248,0.03) 79px 80px);
+  opacity: 0.7;
+}
+.field-l2 {
+  background:
+    linear-gradient(105deg, transparent 20%, rgba(245,225,26,0.04) 40%, transparent 55%),
+    linear-gradient( -20deg, transparent 30%, rgba(138,164,200,0.06) 50%, transparent 70%);
+  opacity: 0.85;
+}
+.field-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+/* Field changes as you travel eras */
+.field-parallax[data-era-band="0"] .field-l0 { filter: hue-rotate(0deg); }
+.field-parallax[data-era-band="1"] .field-l0 { filter: hue-rotate(20deg); }
+.field-parallax[data-era-band="2"] .field-l0 { filter: hue-rotate(40deg); }
+.field-parallax[data-era-band="3"] .field-l0 { filter: hue-rotate(80deg) saturate(1.1); }
+.field-parallax[data-era-band="4"] .field-l0 { filter: hue-rotate(140deg); }
+.field-parallax[data-era-band="5"] .field-l0 { filter: hue-rotate(180deg) brightness(1.05); }
+.field-parallax[data-era-band="6"] .field-l0 { filter: hue-rotate(220deg); }
+.field-parallax[data-era-band="7"] .field-l0 { filter: hue-rotate(280deg) saturate(1.2); }
+
+.axis-stage > *:not(.field-parallax) { position: relative; z-index: 1; }
+.axis-stage .axis-viewport { z-index: 2; }
+.axis-stage .axis-readout { z-index: 7; }
+.axis-stage .playhead-year { z-index: 3; }
+
+/* Timeline page: taller so vertical scroll has room */
+.chapter-timeline {
+  min-height: 140vh !important;
+  padding-bottom: 12vh;
+}
+.chapter-timeline .axis-stage {
+  position: sticky;
+  top: 4vh;
+  min-height: 78vh !important;
+  height: 78vh !important;
+}
+.timeline-foot-space {
+  height: 28vh;
+}
+
+/* Theme: dark (default Endfield) — already set via :root overrides */
+body[data-theme="dark"] {
+  --paper: #121826;
+  --paper-2: #0b0e16;
+  --ink: #e8eef8;
+  --ink-dim: #a8b4c8;
+  --ink-mute: #6b7a90;
+  --warm: #f5e11a;
+  --steel: #7a8eaa;
+  --cyan: #8aa4c8;
+  --navy: #c5d0e0;
+  --alert: #d4482a;
+  background: linear-gradient(165deg, #0b0e16 0%, #1c2740 55%, #152034 100%);
+  color: var(--ink);
+}
+body[data-theme="dark"] .chapter-dossier,
+body[data-theme="dark"] .chapter-timeline {
+  background: #0b0e16 !important;
+}
+
+/* Theme: paper — industrial blue-white */
+body[data-theme="paper"] {
+  --paper: #f4f7fb;
+  --paper-2: #e8eef6;
+  --ink: #102033;
+  --ink-dim: #3a4a5c;
+  --ink-mute: #5a6b7d;
+  --warm: #c45c26;
+  --steel: #1d4e89;
+  --cyan: #2f6fed;
+  --navy: #16324f;
+  --alert: #c45c26;
+  background: linear-gradient(180deg, #e8eef6 0%, #f4f7fb 40%, #dfe7f2 100%);
+  color: var(--ink);
+}
+body[data-theme="paper"] .chapter-dossier,
+body[data-theme="paper"] .chapter-timeline,
+body[data-theme="paper"] .axis-stage {
+  background: #f4f7fb !important;
+}
+body[data-theme="paper"] .field-l0 {
+  background:
+    radial-gradient(ellipse 40% 60% at 15% 40%, rgba(47,111,237,0.14), transparent 60%),
+    radial-gradient(ellipse 35% 50% at 55% 60%, rgba(196,92,38,0.08), transparent 55%),
+    radial-gradient(ellipse 40% 55% at 85% 35%, rgba(29,78,137,0.1), transparent 60%);
+}
+body[data-theme="paper"] .field-l1 {
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 79px, rgba(16,32,51,0.06) 79px 80px),
+    repeating-linear-gradient(0deg, transparent 0 79px, rgba(16,32,51,0.04) 79px 80px);
+}
+body[data-theme="paper"] .theme-switcher {
+  background: rgba(244,247,251,0.85);
+  border-color: rgba(16,32,51,0.12);
+}
+body[data-theme="paper"] .theme-btn { color: #5a6b7d; }
+body[data-theme="paper"] .theme-btn[aria-pressed="true"] {
+  color: #1d4e89;
+  box-shadow: inset 0 -1px 0 #2f6fed;
+}
+body[data-theme="paper"] .playhead-year { color: #16324f !important; }
+body[data-theme="paper"] .readout-title { color: #102033 !important; }
+body[data-theme="paper"] .axis-node.is-selected .axis-node-mark,
+body[data-theme="paper"] .axis-node.is-near-focus .axis-node-mark {
+  border-color: #2f6fed !important;
+  background: #2f6fed !important;
+  box-shadow: 0 0 0 4px rgba(47,111,237,0.15) !important;
+}
+body[data-theme="paper"] .morph-layer path,
+body[data-theme="paper"] .morph-layer line { stroke: #2f6fed; }
+body[data-theme="paper"] .aggregate-ring .ring-val { stroke: #2f6fed; }
+body[data-theme="paper"] .chapter-cue { color: #5a6b7d !important; }
+body[data-theme="paper"] .cue-mark { background: #2f6fed; }
+body[data-theme="paper"] .cue-mark::after { border-top-color: #2f6fed; }
+body[data-theme="paper"] .era-now { color: #1d4e89; }
+
+/* Theme: signal — amber / warm industrial */
+body[data-theme="signal"] {
+  --paper: #1a1410;
+  --paper-2: #0f0c0a;
+  --ink: #f2e6d4;
+  --ink-dim: #c4b09a;
+  --ink-mute: #8a7a68;
+  --warm: #ffb81a;
+  --steel: #a67c52;
+  --cyan: #d4a574;
+  --navy: #e8d5b5;
+  --alert: #e85d3a;
+  background: linear-gradient(165deg, #0f0c0a 0%, #2a1f14 50%, #1a1410 100%);
+  color: var(--ink);
+}
+body[data-theme="signal"] .chapter-dossier,
+body[data-theme="signal"] .chapter-timeline {
+  background: #0f0c0a !important;
+}
+body[data-theme="signal"] .field-l0 {
+  background:
+    radial-gradient(ellipse 40% 60% at 20% 45%, rgba(255,184,26,0.12), transparent 60%),
+    radial-gradient(ellipse 35% 50% at 70% 55%, rgba(232,93,58,0.08), transparent 55%);
+}
+body[data-theme="signal"] .theme-btn[aria-pressed="true"] {
+  color: #ffb81a;
+  box-shadow: inset 0 -1px 0 #ffb81a;
+}
+body[data-theme="signal"] .axis-node.is-selected .axis-node-mark,
+body[data-theme="signal"] .axis-node.is-near-focus .axis-node-mark {
+  border-color: #ffb81a !important;
+  background: #ffb81a !important;
+}
+
+.is-at-end .axis-hint::after {
+  content: " · 已至终点";
+  color: var(--warm);
+}
