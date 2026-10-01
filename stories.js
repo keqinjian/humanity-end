@@ -327,32 +327,63 @@
   }
 
   function hiTransformer(evt) {
-    const heads = [];
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
-      heads.push(el("g", {}, [
-        el("line", { x1: 320, y1: 230, x2: 320 + Math.cos(a) * 100, y2: 230 + Math.sin(a) * 100,
-          stroke: C.cyan, "stroke-width": 1.4 }),
-        el("circle", { cx: 320 + Math.cos(a) * 100, cy: 230 + Math.sin(a) * 100, r: 8,
-          fill: C.paper, stroke: C.navy, "stroke-width": 1.5 })
-      ]));
-    }
-    const core = el("circle", { cx: 320, cy: 230, r: 28, fill: C.paper, stroke: C.warm, "stroke-width": 2.2 });
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...heads, core,
-      el("text", { x: 320, y: 400, fill: C.navy, "text-anchor": "middle", "font-size": 13,
-        "letter-spacing": "0.12em" }, ["Transformer · 多头注意"])]);
+    /* Token blocks + weighted attention links — NOT cinema/waveform */
+    const tokens = ["The", "cat", "sat", "on", "mat", "·", "Q", "K"];
+    const positions = tokens.map((_, i) => ({
+      x: 70 + (i % 4) * 130,
+      y: 120 + Math.floor(i / 4) * 150
+    }));
+    const blocks = tokens.map((t, i) => {
+      const g = el("g", {});
+      g.appendChild(el("rect", {
+        x: positions[i].x, y: positions[i].y, width: 100, height: 52, rx: 3,
+        fill: "#121826", stroke: i < 6 ? "#8aa4c8" : "#f5e11a", "stroke-width": i < 6 ? 1.4 : 2
+      }));
+      g.appendChild(el("text", {
+        x: positions[i].x + 50, y: positions[i].y + 32,
+        fill: "#e8eef8", "text-anchor": "middle", "font-size": 15,
+        "font-family": "IBM Plex Sans, Noto Sans SC, sans-serif", "letter-spacing": "0.04em"
+      }, [t]));
+      return g;
+    });
+    /* Attention arcs: from Q/K row up to word tokens with weight strokes */
+    const links = [];
+    const pairs = [[6,0,2.8],[6,1,1.4],[6,2,2.2],[7,1,1.6],[7,3,2.6],[7,4,2.0],[0,2,1.2],[1,2,2.4],[2,4,1.8]];
+    pairs.forEach(([a, b, w]) => {
+      const p0 = positions[a], p1 = positions[b];
+      const x1 = p0.x + 50, y1 = p0.y + (a < 6 ? 52 : 0);
+      const x2 = p1.x + 50, y2 = p1.y + (b < 6 ? 0 : 52);
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - 40;
+      links.push(el("path", {
+        d: `M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`,
+        fill: "none",
+        stroke: w > 2 ? "#f5e11a" : "#8aa4c8",
+        "stroke-width": String(w),
+        opacity: "0.75",
+        "stroke-linecap": "round"
+      }));
+    });
+    const title = el("text", {
+      x: 320, y: 440, fill: "rgba(168,180,200,0.7)", "text-anchor": "middle",
+      "font-size": 12, "letter-spacing": "0.18em"
+    }, ["ATTENTION GRAPH · TOKEN ↔ WEIGHT"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...links, ...blocks, title]);
     function apply(p) {
-      const e = easeOutBack(clamp01(p));
-      heads.forEach((g, i) => {
-        const local = clamp01((e - i * 0.05) / 0.6);
-        setTransform(g, `scale(${local})`);
+      const e = easeOut(clamp01(p));
+      links.forEach((ln, i) => {
+        const local = clamp01((e - i * 0.04) / 0.55);
+        ln.setAttribute("stroke-dasharray", "280");
+        ln.setAttribute("stroke-dashoffset", String((1 - local) * 280));
+        ln.setAttribute("opacity", String(0.2 + local * 0.65));
+      });
+      blocks.forEach((g, i) => {
+        const local = clamp01((e - i * 0.05) / 0.5);
+        setTransform(g, `translate(0 ${(1 - local) * 24})`);
         g.setAttribute("opacity", String(local));
       });
-      setTransform(core, `rotate(${e * 180} 320 230) scale(${0.5 + 0.5 * e})`);
     }
-    return { svg, apply, layout: "slice" };
+    return { svg, apply, layout: "center" };
   }
-
   function hiAlphaZero(evt) {
     const hex = el("path", {
       d: "M320 120 L420 170 L420 270 L320 320 L220 270 L220 170 Z",
@@ -531,30 +562,95 @@
   }
 
   function hiGPT4(evt) {
-    const facets = [];
-    for (let i = 0; i < 6; i++) {
-      const a0 = (i / 6) * Math.PI * 2;
-      const a1 = ((i + 1) / 6) * Math.PI * 2;
-      facets.push(el("path", {
-        d: `M320 230 L${320 + Math.cos(a0) * 120} ${230 + Math.sin(a0) * 120} L${320 + Math.cos(a1) * 120} ${230 + Math.sin(a1) * 120} Z`,
-        fill: "none", stroke: i % 2 ? C.cyan : C.navy, "stroke-width": 1.6
-      }));
+    /* Multimodal split: text panel LEFT + vision/exam stack RIGHT — NOT film frame */
+    const left = el("g", {});
+    left.appendChild(el("rect", {
+      x: 48, y: 100, width: 250, height: 280, rx: 2,
+      fill: "#0e1420", stroke: "#8aa4c8", "stroke-width": 1.5
+    }));
+    left.appendChild(el("text", {
+      x: 64, y: 128, fill: "#f5e11a", "font-size": 11, "letter-spacing": "0.2em"
+    }, ["TEXT"]));
+    const lines = [
+      "Prompt → reasoned answer",
+      "code · math · law · medicine",
+      "████████████░░ 88%",
+      "██████████░░░░ 76%",
+      "██████████████ 94%"
+    ];
+    lines.forEach((t, i) => {
+      left.appendChild(el("text", {
+        x: 64, y: 168 + i * 36, fill: i >= 2 ? "#a8b4c8" : "#e8eef8",
+        "font-size": i >= 2 ? 13 : 14,
+        "font-family": "IBM Plex Sans, monospace"
+      }, [t]));
+    });
+
+    const right = el("g", {});
+    right.appendChild(el("rect", {
+      x: 342, y: 100, width: 250, height: 280, rx: 2,
+      fill: "#121826", stroke: "#f5e11a", "stroke-width": 1.6
+    }));
+    right.appendChild(el("text", {
+      x: 358, y: 128, fill: "#f5e11a", "font-size": 11, "letter-spacing": "0.2em"
+    }, ["VISION · EXAM"]));
+    /* Image tile grid */
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        right.appendChild(el("rect", {
+          x: 362 + c * 70, y: 150 + r * 54, width: 58, height: 44, rx: 2,
+          fill: (r + c) % 2 ? "rgba(138,164,200,0.18)" : "rgba(245,225,26,0.12)",
+          stroke: "rgba(232,238,248,0.25)", "stroke-width": 1
+        }));
+      }
     }
-    const eye = el("circle", { cx: 320, cy: 230, r: 18, fill: C.warm, opacity: 0.5 });
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...facets, eye,
-      el("text", { x: 320, y: 400, fill: C.navy, "text-anchor": "middle", "font-size": 13,
-        "letter-spacing": "0.14em" }, ["GPT-4 · 多面旗舰"])]);
+    /* Score stack badges */
+    const scores = [
+      { y: 330, label: "BAR", v: "90th" },
+      { y: 355, label: "LSAT", v: "88th" },
+      { y: 380, label: "GRE", v: "99th" }
+    ];
+    /* scores sit below vision panel as stack */
+    const stack = el("g", {});
+    [
+      { y: 395, label: "BAR  90th", w: 200 },
+      { y: 418, label: "LSAT 88th", w: 176 },
+      { y: 441, label: "GRE  99th", w: 220 }
+    ].forEach((s, i) => {
+      stack.appendChild(el("rect", {
+        x: 48, y: s.y - 12, width: s.w, height: 18, rx: 1,
+        fill: i === 2 ? "rgba(245,225,26,0.28)" : "rgba(138,164,200,0.2)"
+      }));
+      stack.appendChild(el("text", {
+        x: 56, y: s.y + 2, fill: "#e8eef8", "font-size": 11,
+        "font-family": "IBM Plex Sans, monospace", "letter-spacing": "0.08em"
+      }, [s.label]));
+    });
+
+    const divider = el("line", {
+      x1: 320, y1: 110, x2: 320, y2: 370,
+      stroke: "rgba(245,225,26,0.45)", "stroke-width": 1.5, "stroke-dasharray": "4 6"
+    });
+    const lab = el("text", {
+      x: 468, y: 420, fill: "rgba(168,180,200,0.65)", "text-anchor": "middle",
+      "font-size": 11, "letter-spacing": "0.16em"
+    }, ["MULTIMODAL SPLIT"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
+      [left, right, divider, stack, lab]);
     function apply(p) {
       const e = easeInOut(clamp01(p));
-      facets.forEach((f, i) => {
-        const local = clamp01((e - i * 0.06) / 0.55);
-        setTransform(f, `scale(${local})`);
+      setTransform(left, `translate(${(1 - e) * -56} 0)`);
+      setTransform(right, `translate(${(1 - e) * 56} 0)`);
+      left.setAttribute("opacity", String(0.35 + e * 0.65));
+      right.setAttribute("opacity", String(0.35 + e * 0.65));
+      divider.setAttribute("opacity", String(e));
+      [...stack.children].forEach((n, i) => {
+        const local = clamp01((e - 0.25 - (i % 3) * 0.08) / 0.5);
+        n.setAttribute("opacity", String(local));
       });
-      setTransform(eye, `scale(${0.2 + e * 0.8})`);
     }
-    return { svg, apply };
+    return { svg, apply, layout: "break" };
   }
-
   function hiClaude1(evt) {
     const shield = el("path", {
       d: "M320 100 L460 160 L460 280 C460 340, 320 400, 320 400 C320 400, 180 340, 180 280 L180 160 Z",
@@ -733,11 +829,7 @@
         fill: i % 2 ? "rgba(245,225,26,0.08)" : "rgba(232,238,248,0.06)"
       }));
     }
-    /* Waveform overlay (secondary) */
-    const wave = el("path", {
-      d: "M80 240 C140 210, 180 270, 240 230 S340 200, 400 245 S520 220, 580 250",
-      fill: "none", stroke: "rgba(245,225,26,0.55)", "stroke-width": 1.6, opacity: 0.7
-    });
+    /* no waveform — cinema frame only, distinct from attention/multimodal */
     const sprockets = [];
     for (let i = 0; i < 10; i++) {
       sprockets.push(el("rect", { x: fx + 3, y: fy + 10 + i * 22, width: 8, height: 10, rx: 1, fill: "rgba(232,238,248,0.18)" }));
@@ -747,14 +839,11 @@
     const lab = el("text", { x: fx + fw + 22, y: fy - 32, fill: "rgba(232,238,248,0.55)", "font-size": 11,
       "font-family": "Noto Sans SC,sans-serif", "letter-spacing": "0.16em" }, ["VIDEO"]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
-      [defs, matte, frame, bandG, sweepGlow, sweepCore, slices, wave, ...sprockets, leader, lab]);
+      [defs, matte, frame, bandG, sweepGlow, sweepCore, slices, ...sprockets, leader, lab]);
     function apply(p) {
       const e = easeInOut(clamp01(p));
       sweepCore.setAttribute("width", String((fw - 16) * (0.25 + 0.75 * e)));
       sweepGlow.setAttribute("rx", String(fw * (0.15 + 0.28 * e)));
-      wave.setAttribute("stroke-dasharray", "600");
-      wave.setAttribute("stroke-dashoffset", String((1 - e) * 600));
-      wave.setAttribute("opacity", String(0.25 + e * 0.5));
       setTransform(frame, `scale(${0.92 + 0.08 * e})`);
       leader.setAttribute("opacity", String(e));
       lab.setAttribute("opacity", String(e));

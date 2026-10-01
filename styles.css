@@ -2759,10 +2759,16 @@ body {
 .field-parallax[data-era-band="6"] .field-l0 { filter: hue-rotate(220deg); }
 .field-parallax[data-era-band="7"] .field-l0 { filter: hue-rotate(280deg) saturate(1.2); }
 
-.axis-stage > *:not(.field-parallax) { position: relative; z-index: 1; }
-.axis-stage .axis-viewport { z-index: 2; }
-.axis-stage .axis-readout { z-index: 7; }
-.axis-stage .playhead-year { z-index: 3; }
+/* Do NOT force position:relative on absolute stage children — that collapses viewport height to 0 */
+.axis-stage > .field-parallax { z-index: 0; }
+.axis-stage > .axis-viewport {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.axis-stage > .axis-readout { z-index: 7; }
+.axis-stage > .playhead-year { z-index: 3; }
+.axis-stage > .theme-switcher { z-index: 20; }
 
 /* Timeline page: taller so vertical scroll has room */
 .chapter-timeline {
@@ -3258,4 +3264,35 @@ body[data-theme="signal"] .field-ground.kind-hatch {
   color: rgba(242, 230, 212, 0.8);
   background: rgba(15, 12, 10, 0.45);
   border-color: rgba(255, 184, 26, 0.35);
+}
+
+
+/* ========== P0 unique high-impact stills readable over living map ========== */
+.story-strip { z-index: 5 !important; }
+.story-panel.is-hero {
+  background: rgba(11, 14, 22, 0.72) !important;
+  border: 1px solid rgba(138, 164, 200, 0.28) !important;
+  z-index: 8 !important;
+}
+.story-panel.is-hero.layout-center {
+  width: min(64vw, 820px) !important;
+  height: min(50vh, 440px) !important;
+  top: 42% !important;
+}
+.story-panel.is-hero.layout-break {
+  top: 40% !important;
+  background: rgba(11, 14, 22, 0.78) !important;
+}
+.story-panel.is-hero.layout-film {
+  top: 44% !important;
+  background: rgba(7, 10, 16, 0.55) !important;
+  border-color: rgba(245, 225, 26, 0.25) !important;
+}
+/* Mid-band volume preserved; hero still matte reads above ground */
+.field-ground.is-in-view {
+  opacity: 0.72;
+}
+.field-ground.kind-slices.is-in-view,
+.field-ground.kind-hatch.is-in-view {
+  opacity: 0.7;
 }
