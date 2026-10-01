@@ -3,161 +3,221 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="记录人类完蛋全过程——从计算机出现到每一个值得记下的模型，各个领域还剩多少人类的事。" />
+  <meta name="description" content="记录人类完蛋全过程——从 ENIAC 到今天，AI 一路吃掉了各个领域，人类还剩多少。" />
+  <meta name="theme-color" content="#0c0d0f" />
   <title>记录人类完蛋全过程</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Sans+SC:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body data-theme="dark">
-  <div class="theme-switcher" role="group" aria-label="界面主题">
-    <button type="button" class="theme-btn" data-theme="dark" aria-pressed="true" title="终末地暗色">暗</button>
-    <button type="button" class="theme-btn" data-theme="paper" aria-pressed="false" title="工业蓝白">纸</button>
-    <button type="button" class="theme-btn" data-theme="signal" aria-pressed="false" title="信号琥珀">信</button>
-  </div>
-  <a class="skip" href="#chapter-dossier">跳到领域血条</a>
+<body>
+  <div class="viewport" id="viewport">
+    <div class="stage" id="stage">
 
-  <main class="chapter-scroller" id="chapter-scroller">
-    <!-- Shared morph: gauge ring → middle rail; years scatter into ticks -->
-    <svg class="morph-layer" id="morph-layer" aria-hidden="true" viewBox="0 0 1440 900" preserveAspectRatio="none">
-      <path id="morph-arc" fill="none" stroke="#f5e11a" stroke-width="2.4" stroke-linecap="round"></path>
-      <line id="morph-rail" x1="120" y1="480" x2="120" y2="480" stroke="#f5e11a" stroke-width="1.6" opacity="0"></line>
-      <g id="morph-ticks"></g>
-      <text id="morph-y0" class="morph-glyph" fill="rgba(232,238,248,0.45)" font-family="Instrument Serif, serif" font-size="42" text-anchor="middle">1946</text>
-      <text id="morph-y1" class="morph-glyph" fill="rgba(245,225,26,0.4)" font-family="Instrument Serif, serif" font-size="42" text-anchor="middle">2026</text>
-      <text id="morph-pct" fill="rgba(232,238,248,0.35)" font-family="Instrument Serif, serif" font-size="28" text-anchor="middle">36%</text>
-    </svg>
-    <p class="era-now" id="era-now" aria-live="polite"></p>
-    <!-- PAGE 1: dossier / domain HP -->
-    <section class="chapter chapter-dossier" id="chapter-dossier" aria-label="领域血条">
-      <div class="dossier-inner page">
-        <div class="dossier-plate">
-          <div class="dossier-crop" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-          <div class="dossier-strip" aria-label="档案抬头">
-            <span class="dossier-bracket">[</span>
-            <span class="dossier-key">档案</span>
-            <time id="updated-date" datetime="2026-09-30">—</time>
-            <span class="dossier-bracket">]</span>
-            <span class="dossier-file">HP-INDEX / 01</span>
-            <span class="dossier-rule" aria-hidden="true"></span>
-            <span class="dossier-file dossier-file-end">人类事务剩余</span>
-          </div>
+      <!-- ===== 全局 HUD ===== -->
+      <header class="hud-top">
+        <button type="button" class="brand" data-go="0" aria-label="回到总览">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+          <span class="brand-word">HUMANITY<i>/</i>END</span>
+        </button>
+        <span class="hud-code">ARCHIVE&nbsp;·&nbsp;HP-INDEX&nbsp;·&nbsp;<b id="hud-rev">REV.—</b></span>
+        <nav class="hud-nav" id="hud-nav" aria-label="章节">
+          <button type="button" data-go="0"><em>00</em><span>总览</span></button>
+          <button type="button" data-go="1"><em>01</em><span>时间轴</span></button>
+          <button type="button" data-go="2"><em>02</em><span>领域血条</span></button>
+          <button type="button" data-go="3"><em>03</em><span>出局名单</span></button>
+        </nav>
+        <span class="hud-date">基准日 <time id="hud-date">—</time><b>估算</b></span>
+      </header>
 
-          <header class="mast mast-hero dossier-board" id="top">
-            <aside class="mast-rail" aria-label="概览">
-              <p class="dossier-kicker"><span>卷宗</span><span>领域血条</span></p>
-              <h1 class="mast-title" id="site-title">记录人类完蛋全过程</h1>
-              <p class="mast-subtitle" id="site-subtitle"></p>
-              <div class="aggregate" aria-live="polite">
-                <div class="aggregate-frame">
-                  <svg class="aggregate-ring" viewBox="0 0 100 100" aria-hidden="true">
-                    <circle cx="50" cy="50" r="44"></circle>
-                    <circle class="ring-val" id="aggregate-ring-val" cx="50" cy="50" r="44"></circle>
-                  </svg>
-                  <p class="aggregate-value">
-                    <span id="aggregate-num">—</span><span class="aggregate-unit">%</span>
-                  </p>
-                </div>
-                <div class="aggregate-copy">
-                  <p class="aggregate-label">人类事务剩余</p>
-                  <p class="aggregate-note" id="score-disclaimer"></p>
-                </div>
-              </div>
-              <dl class="dossier-stats">
-                <div><dt>领域</dt><dd id="stat-domains">—</dd></div>
-                <div><dt>叶节点</dt><dd id="stat-leaves">—</dd></div>
-                <div><dt>临界</dt><dd id="stat-critical">—</dd></div>
-              </dl>
-              <p class="dossier-lowest"><span>最低剩余</span><strong id="stat-lowest">—</strong></p>
-              <p class="dossier-legend" aria-hidden="true"><i class="swatch swatch-human"></i>人类剩余<i class="swatch swatch-ai"></i>已让渡</p>
-              <a class="chapter-cue" href="#chapter-timeline"><span class="cue-cap">继续下探</span><span class="cue-mark" aria-hidden="true"></span></a>
-            </aside>
+      <aside class="hud-side" aria-hidden="true">
+        <span class="side-num" id="side-num">00</span>
+        <span class="side-track"><i id="side-fill"></i></span>
+        <span class="side-total">04</span>
+        <span class="side-label">记录人类完蛋全过程 · RECORD OF OBSOLESCENCE</span>
+      </aside>
 
-            <section class="mast-domains" id="domains" aria-labelledby="domains-heading">
-              <div class="domains-head">
-                <h2 id="domains-heading" class="section-title">
-                  <span class="sec-mark">01</span>
-                  <span class="sec-label">领域索引</span>
-                </h2>
-                <span class="sec-hint">点击卡片展开子项 · 父级为叶节点算术平均</span>
-                <span class="domains-count" id="domains-count"></span>
-              </div>
-              <div id="domain-tree" class="domain-tree" role="tree"></div>
-            </section>
-          </header>
-          <div class="blend-veil" aria-hidden="true"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE 2: timeline -->
-    <section class="chapter chapter-timeline" id="chapter-timeline" aria-label="时间线">
-      <div class="timeline-section" id="timeline" aria-labelledby="timeline-heading">
-        <div class="timeline-chrome">
-          <div class="section-head">
-            <h2 id="timeline-heading" class="section-title">
-              <span class="sec-mark">02</span>
-              <span class="sec-label">时间线</span>
-              <span class="sec-hint">自 ENIAC 起 · 点的大小与颜色表示影响力</span>
-            </h2>
-          </div>
-          <div class="era-filters" id="era-filters" role="group" aria-label="按时代筛选"></div>
-        </div>
-
-        <div class="axis-stage" id="axis-stage" data-motif="foundation">
-          <div class="field-parallax" id="field-parallax" aria-hidden="true">
-            <div class="field-layer field-l0"></div>
-            <div class="field-layer field-l1"></div>
-            <div class="field-layer field-l2"></div>
-            <div class="field-wash" id="field-wash" aria-hidden="true"></div>
-            <div class="field-noise"></div>
-            <div class="field-ground-root" id="field-ground-root" aria-hidden="true"></div>
-            <div class="field-landmarks-root" id="field-landmarks-root"></div>
-          </div>
-          <div class="story-stage" id="story-stage" aria-hidden="true">
-            <span class="field-axis-label">三轨时间轴</span>
-          </div>
-          <ul class="track-legend" aria-hidden="true">
-            <li>语言与推理</li>
-            <li>图像与创作</li>
-            <li>棋与控制</li>
-          </ul>
-
-          <p class="playhead-year" id="playhead-year" aria-hidden="true">—</p>
-
-          <div
-            class="axis-viewport"
-            id="axis-viewport"
-            tabindex="0"
-            role="region"
-            aria-label="横向时间轴，可用方向键与滚轮浏览"
-            aria-roledescription="时间轴"
-          >
-            <div class="axis-track" id="timeline-list"></div>
-          </div>
-
-          <div class="axis-readout" id="axis-detail" aria-live="polite">
-            <p class="readout-year" id="readout-year">—</p>
-            <p class="readout-meta" id="readout-meta"></p>
-            <h3 class="readout-title" id="readout-title">选取轴上节点</h3>
-            <p class="readout-blurb" id="readout-blurb">在轴上选取一个节点，查看日期、标题与摘要。</p>
-            <div class="readout-tags" id="readout-tags"></div>
-          </div>
-
-          <p class="axis-hint" id="axis-hint">拖拽轴面 · 滚轮横移 · ← → 选点 · 悬停暂停</p>
-        </div>
-      </div>
-
-      <div class="timeline-foot-space" aria-hidden="true"></div>
-      <footer class="site-footer chapter-foot">
-        <p>血条是估算，不是测量。每天核对一次。</p>
+      <footer class="hud-bottom" aria-hidden="true">
+        <span class="hb-coord">N 00°00′ · E 19°46′</span>
+        <span class="hb-rule"></span>
+        <span class="hb-hint" id="hb-hint">滚轮 / ↑ ↓ 切换章节</span>
       </footer>
-    </section>
-  </main>
 
+      <!-- ===== 00 总览 ===== -->
+      <section class="scene scene-cover" data-scene="0" id="cover" aria-label="总览">
+        <div class="cover-grid" aria-hidden="true"></div>
+        <div class="cover-slab" aria-hidden="true"></div>
+        <svg class="cover-dial" viewBox="0 0 800 800" aria-hidden="true">
+          <circle cx="400" cy="400" r="380" class="dial-thin" />
+          <circle cx="400" cy="400" r="340" class="dial-dash" />
+          <g class="dial-ticks" id="dial-ticks"></g>
+          <circle cx="400" cy="400" r="250" class="dial-thin" />
+        </svg>
+
+        <div class="cover-copy">
+          <p class="kicker rv" style="--d:.15s"><b>[ FILE 00 ]</b><span>人类事务剩余档案</span><span class="k-live"><i></i>持续更新</span></p>
+          <h1 class="cover-title" id="site-title">
+            <span class="ct-line"><span class="ct-in">记录人类</span></span>
+            <span class="ct-line"><span class="ct-in"><mark>完蛋</mark>全过程</span></span>
+          </h1>
+          <p class="cover-en rv" style="--d:.7s">A RUNNING RECORD OF HUMAN OBSOLESCENCE <b>1946 — <span id="cover-y1">2026</span></b></p>
+          <p class="cover-sub rv" style="--d:.8s" id="site-subtitle"></p>
+
+          <dl class="cover-stats rv" style="--d:.95s">
+            <div><dt>领域 DOMAINS</dt><dd id="stat-domains">—</dd></div>
+            <div><dt>观察项 ITEMS</dt><dd id="stat-leaves">—</dd></div>
+            <div><dt>里程碑 EVENTS</dt><dd id="stat-events">—</dd></div>
+            <div class="is-crit"><dt>临界 ≤25%</dt><dd id="stat-crit">—</dd></div>
+          </dl>
+
+          <button type="button" class="cta rv" style="--d:1.1s" data-go="1">
+            <span class="cta-k">START</span><span class="cta-t">从 1946 年开始回放</span><span class="cta-a" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="cover-gauge" aria-live="polite">
+          <p class="cg-label rv" style="--d:.4s"><span>HUMAN REMAINING</span><b>人类事务剩余</b></p>
+          <p class="cg-num"><span id="agg-num">100</span><sup>%</sup></p>
+          <div class="hp" id="hp" role="img" aria-label="">
+            <div class="hp-cells" id="hp-cells"></div>
+            <div class="hp-scale" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+          </div>
+          <p class="cg-lowest rv" style="--d:1.2s">最接近出局 <strong id="stat-lowest">—</strong></p>
+          <p class="cg-note rv" style="--d:1.3s" id="score-disclaimer"></p>
+        </div>
+
+        <div class="ticker rv" style="--d:1.2s" aria-label="最新里程碑">
+          <span class="ticker-k">LATEST</span>
+          <div class="ticker-win"><div class="ticker-run" id="ticker-run"></div></div>
+        </div>
+      </section>
+
+      <!-- ===== 01 时间轴：连续关卡地图 ===== -->
+      <section class="scene scene-timeline" data-scene="1" id="timeline" aria-label="时间轴">
+        <div class="map" id="map" aria-hidden="true">
+          <div class="tl-year" id="tl-year"></div>
+          <div class="ly ly-far" id="ly-far"></div>
+          <div class="ly ly-mid" id="ly-mid"></div>
+          <div class="map-band" id="map-band"></div>
+          <div class="ly ly-world" id="ly-world">
+            <svg class="paths" id="paths" xmlns="http://www.w3.org/2000/svg">
+              <defs><clipPath id="tl-clip"><rect id="tl-cliprect" x="0" y="0" width="0" height="1080" /></clipPath></defs>
+              <path class="path-base" id="path-base" />
+              <path class="path-prog" id="path-prog" clip-path="url(#tl-clip)" />
+            </svg>
+            <div id="gates"></div>
+            <div id="nodes"></div>
+          </div>
+          <div class="scanline" id="scanline"><b id="scan-y">1946</b></div>
+          <div class="reticle" id="reticle"><i></i><i></i><i></i><i></i></div>
+          <div class="ly ly-fore" id="ly-fore"></div>
+        </div>
+        <div class="map-hit" id="map-hit" aria-hidden="true"></div>
+
+        <div class="tl-head rv" style="--d:.1s">
+          <span class="sec-no">01</span>
+          <span class="sec-t">时间轴<em>TIMELINE</em></span>
+          <span class="sec-hint">拖拽地图 / 滚轮 / ← → 连续回放</span>
+        </div>
+
+        <div class="tl-ctrl rv" style="--d:.2s">
+          <button type="button" class="ac-btn" id="ac-prev" aria-label="上一个">◂</button>
+          <button type="button" class="ac-btn ac-play" id="ac-play" aria-label="暂停自动回放"><span class="i-pause"></span></button>
+          <button type="button" class="ac-btn" id="ac-next" aria-label="下一个">▸</button>
+          <span class="ac-timer"><i id="ac-timer"></i></span>
+        </div>
+
+        <div class="strip" id="strip" aria-live="polite">
+          <div class="live">
+            <p class="live-k"><i></i>PLAYBACK</p>
+            <p class="live-date" id="live-date">1946.02.14</p>
+            <p class="live-idx"><b id="live-idx">01</b><span>/ <em id="live-total">65</em></span></p>
+            <div class="live-seg"><i id="live-seg"></i></div>
+            <p class="live-phase" id="live-phase">—</p>
+          </div>
+          <div class="slots" id="slots">
+            <div class="slot is-out" id="slot-a"></div>
+            <div class="slot is-in" id="slot-b"></div>
+            <i class="slot-scan" id="slot-scan"></i>
+          </div>
+        </div>
+
+        <div class="axis" id="axis">
+          <div class="axis-phases" id="axis-phases"></div>
+          <div class="axis-body" id="axis-body" tabindex="0" role="slider" aria-label="时间轴进度" aria-valuemin="1" aria-valuenow="1">
+            <div class="axis-base" aria-hidden="true"></div>
+            <div class="axis-progress" id="axis-progress" aria-hidden="true"></div>
+            <div class="axis-ticks" id="axis-ticks"></div>
+            <div class="axis-years" id="axis-years" aria-hidden="true"></div>
+            <div class="playhead" id="playhead" aria-hidden="true"><i></i></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 02 领域血条 ===== -->
+      <section class="scene scene-domains" data-scene="2" id="domains" aria-label="领域血条">
+        <div class="dm-head rv" style="--d:.1s">
+          <span class="sec-no">02</span>
+          <span class="sec-t">领域血条<em>DOMAIN HP</em></span>
+          <span class="sec-hint">父级 = 叶节点算术平均 · 悬停或点击切换</span>
+        </div>
+
+        <ol class="dm-list" id="dm-list" role="listbox" aria-label="领域"></ol>
+
+        <div class="dm-detail" id="dm-detail" aria-live="polite">
+          <div class="dd-head">
+            <div class="dd-id">
+              <span class="dd-code" id="dd-code">DOMAIN 00</span>
+              <h2 class="dd-name" id="dd-name">—</h2>
+              <p class="dd-note" id="dd-note"></p>
+            </div>
+            <div class="dd-num"><span id="dd-num">0</span><sup>%</sup><em>人类剩余</em></div>
+          </div>
+          <div class="dd-sum" id="dd-sum"></div>
+          <ul class="dd-leaves" id="dd-leaves"></ul>
+        </div>
+      </section>
+
+      <!-- ===== 03 出局名单 ===== -->
+      <section class="scene scene-ledger" data-scene="3" id="ledger" aria-label="出局名单">
+        <div class="lg-head rv" style="--d:.1s">
+          <span class="sec-no">03</span>
+          <span class="sec-t">出局名单<em>LEDGER</em></span>
+          <span class="sec-hint" id="lg-hint">全部观察项 · 按人类剩余升序</span>
+        </div>
+
+        <div class="lg-lead rv" style="--d:.25s">
+          <p class="lg-k">FIRST OUT</p>
+          <p class="lg-name" id="lg-first">—</p>
+          <p class="lg-val"><span id="lg-first-v">—</span>%<em id="lg-first-d"></em></p>
+        </div>
+        <div class="lg-legend rv" style="--d:.35s" id="lg-legend"></div>
+
+        <div class="lg-chart" id="lg-chart">
+          <div class="lg-grid" aria-hidden="true">
+            <span style="--v:100">100</span><span style="--v:75">75</span><span style="--v:50">50</span><span style="--v:25" class="is-crit">25 临界线</span><span style="--v:0">0</span>
+          </div>
+          <div class="lg-mean" id="lg-mean" aria-hidden="true"><b>均值</b></div>
+          <div class="lg-bars" id="lg-bars"></div>
+          <div class="lg-tip" id="lg-tip" aria-hidden="true"></div>
+        </div>
+
+        <footer class="lg-colophon rv" style="--d:.5s">
+          <p><b>血条是估算，不是测量。</b>每天核对一次；时间线条目的日期与模型名均应可核验。</p>
+          <p class="lg-src"><a href="https://github.com/keqinjian/humanity-end" target="_blank" rel="noopener">github.com/keqinjian/humanity-end</a><span>数据源 data.json</span></p>
+        </footer>
+      </section>
+
+      <!-- ===== 转场 ===== -->
+      <div class="shutter" id="shutter" aria-hidden="true"><i></i><i></i><i></i></div>
+
+
+    </div>
+  </div>
+
+  <noscript><p class="noscript">此页面需要 JavaScript 才能渲染数据。</p></noscript>
   <script src="data.js"></script>
-  <script src="stories.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>
