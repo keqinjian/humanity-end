@@ -982,6 +982,58 @@
     return loadScriptData();
   }
 
+
+  /** Continuous vertical blend: dossier → timeline (no snap; mid-rest OK). */
+  function bindChapterBlend() {
+    const scroller = $("#chapter-scroller");
+    const dossier = $("#chapter-dossier");
+    const timeline = $("#chapter-timeline");
+    if (!scroller || !dossier || !timeline) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const bars = () => [...dossier.querySelectorAll(".domain-btn, .domain-row, .domain-leaf, .domain-item")];
+    /* Prefer actual domain buttons */
+    function domainEls() {
+      const a = [...dossier.querySelectorAll("#domain-tree button")];
+      return a.length ? a : [...dossier.querySelectorAll("#domain-tree > *")];
+    }
+
+    function update() {
+      const sh = scroller.clientHeight;
+      const dH = dossier.offsetHeight;
+      /* Start blend only after ~70% of first screen — keep landing clean. */
+      const start = Math.max(40, dH - sh * 0.95);
+      const end = Math.max(start + 80, dH + sh * 0.05);
+      const y = scroller.scrollTop;
+      let t = (y - start) / (end - start);
+      t = Math.max(0, Math.min(1, t));
+      const e = t * t * (3 - 2 * t);
+      const e2 = 1 - Math.pow(1 - t, 2.6);
+      scroller.style.setProperty("--blend", e.toFixed(4));
+      domainEls().forEach((el, i) => {
+        el.style.setProperty("--bar-shift", `${(i - 4) * 10}px`);
+      });
+      if (reduce) {
+        dossier.style.transform = "";
+        dossier.style.opacity = "";
+        dossier.style.filter = "";
+        return;
+      }
+      const lift = e2 * -56;
+      const scale = 1 - e * 0.045;
+      dossier.style.transform =
+        `translate3d(0, ${lift.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
+      dossier.style.opacity = String(1 - e * 0.42);
+      dossier.style.filter = e > 0.08 ? `blur(${(e * 1.6).toFixed(2)}px)` : "";
+      dossier.style.pointerEvents = e > 0.78 ? "none" : "";
+    }
+
+    scroller.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+    return { update };
+  }
+
   async function main() {
     const data = await loadData();
 
@@ -999,6 +1051,7 @@
     const eras = uniqueEras(events);
     const axis = createAxisController(events);
     renderFilters(eras, (era) => axis.applyFilter(era));
+    bindChapterBlend();
   }
 
   main().catch((err) => {

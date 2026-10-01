@@ -88,27 +88,26 @@ body {
   height: 100dvh;
   overflow-x: hidden;
   overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
+  scroll-snap-type: none;
+  scroll-behavior: auto;
   -webkit-overflow-scrolling: touch;
 }
 .chapter {
   position: relative;
-  min-height: 100vh;
-  min-height: 100dvh;
-  height: 100vh;
-  height: 100dvh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
   box-sizing: border-box;
 }
 .chapter-dossier {
   display: flex;
   flex-direction: column;
+  min-height: 118vh;
+  min-height: 118dvh;
+  z-index: 1;
   background:
     linear-gradient(180deg, rgba(232,238,246,0.55) 0%, transparent 28%),
     var(--paper);
-  border-bottom: 1px solid var(--line);
+  border-bottom: none;
+  transform-origin: 50% 18%;
+  will-change: transform, opacity, filter;
 }
 .dossier-inner {
   flex: 1;
@@ -210,7 +209,14 @@ body {
 .chapter-timeline {
   display: flex;
   flex-direction: column;
-  background: var(--paper);
+  min-height: 110vh;
+  min-height: 110dvh;
+  margin-top: -28vh;
+  padding-top: 8vh;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, rgba(244,247,251,0) 0%, rgba(244,247,251,0.82) 14%, var(--paper) 32%);
+  box-shadow: 0 -40px 80px rgba(16, 32, 51, 0.04);
 }
 .chapter-timeline .timeline-section {
   flex: 1;
@@ -1802,4 +1808,132 @@ html, body {
 }
 .axis-tick-label.is-decade {
   font-size: 1.1rem !important;
+}
+
+
+
+
+/* ——— Continuous blend overrides (R2) ——— */
+html, body { height: 100%; overflow: hidden; }
+.chapter-scroller {
+  scroll-snap-type: none !important;
+  scroll-behavior: auto;
+}
+.chapter {
+  scroll-snap-align: none !important;
+  scroll-snap-stop: normal !important;
+  height: auto !important;
+}
+.chapter-dossier {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  padding-bottom: 18vh;
+  height: auto !important;
+  z-index: 1;
+}
+.chapter-timeline {
+  min-height: 112vh !important;
+  height: auto !important;
+  /* Gentler overlap — only meets dossier during scroll, not at rest */
+  margin-top: -12vh !important;
+  padding-top: 6vh;
+  z-index: 2;
+  background:
+    linear-gradient(180deg,
+      rgba(244,247,251,0) 0%,
+      rgba(244,247,251,0.55) 8%,
+      rgba(244,247,251,0.94) 22%,
+      var(--paper) 36%);
+  transform: translate3d(0, calc((1 - var(--blend, 0)) * 48px), 0);
+  will-change: transform;
+}
+.blend-veil {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 22vh;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(180deg, transparent, rgba(244,247,251,0.4) 40%, rgba(244,247,251,0.88));
+  opacity: calc(1 - var(--blend, 0));
+}
+.chapter-cue {
+  opacity: calc(1 - var(--blend, 0) * 1.6);
+  transform: translateY(calc(var(--blend, 0) * 36px)) scale(calc(1 - var(--blend, 0) * 0.08));
+}
+.chapter-dossier .domain-btn {
+  transform: translate3d(0, calc(var(--blend, 0) * var(--bar-shift, 0px)), 0);
+  opacity: calc(1 - var(--blend, 0) * 0.35);
+}
+.chapter-dossier .aggregate-value {
+  transform: translate3d(0, calc(var(--blend, 0) * -28px), 0) scale(calc(1 - var(--blend, 0) * 0.12));
+  transform-origin: left center;
+}
+.chapter-dossier .mast-title {
+  transform: translate3d(0, calc(var(--blend, 0) * -18px), 0);
+}
+
+/* Hero story panel dominance */
+.story-panel {
+  width: min(52vw, 640px) !important;
+  height: min(42vh, 380px);
+  opacity: 0.08;
+  filter: saturate(0.7);
+  transition: none;
+  pointer-events: none;
+}
+.story-panel.is-hero {
+  opacity: 1 !important;
+  filter: none;
+  z-index: 6;
+}
+.story-panel.is-near {
+  opacity: 0.45 !important;
+  filter: saturate(0.85);
+  z-index: 4;
+}
+.story-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.axis-stage {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(47,111,237,0.06), transparent 70%),
+    radial-gradient(ellipse 40% 35% at 72% 70%, rgba(196,92,38,0.05), transparent 65%),
+    linear-gradient(180deg, rgba(232,238,246,0.35), transparent 30%),
+    var(--paper);
+}
+.axis-tick-label {
+  opacity: 0.35 !important;
+}
+.axis-tick-label.is-decade {
+  opacity: 0.75 !important;
+}
+.playhead-year {
+  letter-spacing: -0.04em;
+  background: linear-gradient(180deg, rgba(244,247,251,0.0), rgba(244,247,251,0.85) 40%, rgba(244,247,251,0.0));
+  padding: 0 0.2em;
+}
+
+/* Larger readout R2 */
+.axis-readout {
+  max-width: min(46rem, 44vw) !important;
+  bottom: 7% !important;
+}
+.readout-year {
+  font-size: clamp(2.8rem, 6vw, 4.8rem) !important;
+}
+.readout-title {
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem) !important;
+}
+.readout-blurb {
+  -webkit-line-clamp: 5 !important;
+  font-size: 0.92rem !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chapter-dossier, .chapter-timeline, .chapter-dossier .domain-btn,
+  .chapter-dossier .aggregate-value, .chapter-dossier .mast-title {
+    transform: none !important; filter: none !important;
+  }
 }
