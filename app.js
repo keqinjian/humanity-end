@@ -689,12 +689,13 @@
     let landmarksMounted = false;
 
     /* Continuous mid-band ground between landmarks (world-x pinned). */
+    /* midFrac≈0.5*factor so chunks land mid-journey with landmarks */
     const GROUND_CHUNKS = [
-      { id: "fg-a", frac0: 0.14, frac1: 0.30, factor: 0.42, kind: "ribbons" },
-      { id: "fg-b", frac0: 0.26, frac1: 0.50, factor: 0.58, kind: "hatch" },
-      { id: "fg-c", frac0: 0.38, frac1: 0.66, factor: 0.68, kind: "slices" },
-      { id: "fg-d", frac0: 0.58, frac1: 0.78, factor: 0.82, kind: "ribbons" },
-      { id: "fg-e", frac0: 0.74, frac1: 0.96, factor: 0.92, kind: "slices" },
+      { id: "fg-a", frac0: 0.30, frac1: 0.40, factor: 0.72, kind: "ribbons" },
+      { id: "fg-b", frac0: 0.36, frac1: 0.46, factor: 0.80, kind: "hatch" },
+      { id: "fg-c", frac0: 0.40, frac1: 0.52, factor: 0.85, kind: "slices" },
+      { id: "fg-d", frac0: 0.55, frac1: 0.68, factor: 0.90, kind: "ribbons" },
+      { id: "fg-e", frac0: 0.78, frac1: 0.92, factor: 0.96, kind: "slices" },
     ];
     let groundMounted = false;
 
