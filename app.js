@@ -54,6 +54,13 @@
     t.dateTime = data.updated;
     t.textContent = formatArchiveDate(data.updated);
     $("#aggregate-num").textContent = String(aggregate);
+    const ring = document.getElementById("aggregate-ring-val");
+    if (ring) {
+      const circ = 2 * Math.PI * 44;
+      const pct = Math.max(0, Math.min(100, Number(aggregate) || 0));
+      ring.style.strokeDasharray = String(circ);
+      ring.style.strokeDashoffset = String(circ * (1 - pct / 100));
+    }
     $("#score-disclaimer").textContent =
       data.scoreDisclaimer ||
       `血条为编辑估算（估算），非测量值。基准日 ${data.updated}。`;
@@ -107,6 +114,7 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "domain-btn";
+      if (Number(domain.remaining) < 25) btn.classList.add("is-critical");
       btn.setAttribute("aria-expanded", "false");
       btn.setAttribute("aria-controls", `domain-kids-${domain.id}`);
       btn.id = `domain-btn-${domain.id}`;
@@ -440,11 +448,35 @@
       stage.dataset.trackName = meta ? meta.name : "";
     }
 
+    function layoutRecipe(evt) {
+      const h = (evt.title || "").length + yearOf(evt.date).charCodeAt(0);
+      const recipes = ["layout-a", "layout-b", "layout-c"];
+      if (evt.impact === "high") {
+        if (/Sora/.test(evt.title)) return "layout-a";
+        if (/AlphaGo|深蓝|AlphaZero/.test(evt.title)) return "layout-b";
+        if (/ChatGPT|Transformer|GPT-6|Gemini 4/.test(evt.title)) return "layout-c";
+        return recipes[h % 3];
+      }
+      return "layout-b";
+    }
+
     function paintReadout(evt) {
       if (!evt) return;
       const y = yearOf(evt.date);
-      elYear.textContent = y;
-      if (elPlayheadYear) elPlayheadYear.textContent = y;
+      const recipe = layoutRecipe(evt);
+      readout.classList.remove("layout-a", "layout-b", "layout-c", "layout-type-left", "layout-card-year");
+      readout.classList.add(recipe);
+      /* Single hero year: watermark playhead for A/C; card year for B only */
+      if (recipe === "layout-b") {
+        readout.classList.add("layout-card-year");
+        stage.classList.add("has-card-year");
+        elYear.textContent = y;
+        if (elPlayheadYear) elPlayheadYear.textContent = y;
+      } else {
+        stage.classList.remove("has-card-year");
+        elYear.textContent = "";
+        if (elPlayheadYear) elPlayheadYear.textContent = y;
+      }
       const impact = evt.impact === "high" || evt.impact === "low" ? evt.impact : "mid";
       const impactLabel = { high: "高影响", mid: "中影响", low: "低影响" }[impact];
       elMeta.textContent = `${formatISO(evt.date)} · ${evt.era} · ${trackMeta(trackOf(evt)).name} · ${impactLabel}`;
@@ -456,6 +488,15 @@
         span.className = "tag";
         span.textContent = t;
         elTags.append(span);
+      });
+      /* Active track legend */
+      document.querySelectorAll(".track-legend li").forEach((li, i) => {
+        const tid = trackOf(evt);
+        const map = ["mind", "image", "control"];
+        li.classList.toggle("is-active", map[i] === tid);
+      });
+      document.querySelectorAll(".axis-rail").forEach((rail) => {
+        rail.dataset.active = rail.dataset.track === trackOf(evt) ? "true" : "false";
       });
     }
 
@@ -942,7 +983,8 @@
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "era-chip";
-      chip.textContent = era;
+      chip.textContent = era === "全部" ? "全部" : (era.length > 4 ? era.slice(0, 2) : era);
+      chip.title = era;
       chip.setAttribute("aria-pressed", era === active ? "true" : "false");
       chip.addEventListener("click", () => {
         active = era;
@@ -1010,6 +1052,10 @@
       const e = t * t * (3 - 2 * t);
       const e2 = 1 - Math.pow(1 - t, 2.6);
       scroller.style.setProperty("--blend", e.toFixed(4));
+      let zone = "early";
+      if (e >= 0.22 && e < 0.62) zone = "mid";
+      else if (e >= 0.62) zone = "late";
+      scroller.dataset.blendZone = zone;
       const tm = document.getElementById("tm-year");
       const tmb = document.getElementById("tm-year-b");
       if (tm) tm.style.transform = `translate3d(${(-40 + e * 80).toFixed(1)}px, ${(-e * 30).toFixed(1)}px, 0)`;
@@ -1051,6 +1097,20 @@
 
     renderHero(data, aggregate);
     renderDomains(data.domains || []);
+    (function bindDomainMore() {
+      const tree = document.getElementById("domain-tree");
+      const dossier = document.getElementById("chapter-dossier");
+      if (!tree || !dossier || tree.querySelector(".domain-more")) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "domain-more";
+      btn.textContent = "展开其余领域";
+      btn.addEventListener("click", () => {
+        const on = dossier.classList.toggle("is-expanded");
+        btn.textContent = on ? "收起领域" : "展开其余领域";
+      });
+      tree.append(btn);
+    })();
 
     const events = data.events || [];
     const eras = uniqueEras(events);

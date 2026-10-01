@@ -2034,3 +2034,472 @@ html, body { height: 100%; overflow: hidden; }
 .story-panel.is-hero {
   visibility: visible;
 }
+
+
+/* ========== VIDEO BOT P0/P1 — dark Endfield ground ========== */
+:root {
+  --paper: #121826;
+  --paper-2: #0b0e16;
+  --ink: #e8eef8;
+  --ink-dim: #a8b4c8;
+  --ink-mute: #6b7a90;
+  --line: rgba(232, 238, 248, 0.12);
+  --line-soft: rgba(232, 238, 248, 0.06);
+  --steel: #7a8eaa;
+  --cyan: #8aa4c8;
+  --navy: #c5d0e0;
+  --warm: #f5e11a; /* signal yellow — sparingly */
+  --alert: #d4482a; /* critical HP only */
+  --gold: #f5e11a;
+  --teal: #5a8f86;
+  --serif-num: "Instrument Serif", "Noto Serif SC", serif;
+}
+
+body {
+  background: linear-gradient(165deg, #0b0e16 0%, #1c2740 55%, #152034 100%);
+  color: var(--ink);
+}
+
+.chapter-scroller {
+  background: transparent;
+}
+
+.chapter-dossier {
+  background:
+    radial-gradient(ellipse 80% 50% at 30% 20%, rgba(245, 225, 26, 0.04), transparent 55%),
+    linear-gradient(180deg, #0b0e16 0%, #121826 40%, #1c2740 100%) !important;
+  border-bottom: none !important;
+}
+
+.chapter-timeline {
+  background:
+    linear-gradient(180deg,
+      rgba(11, 14, 22, 0) 0%,
+      rgba(11, 14, 22, 0.75) 10%,
+      #0b0e16 28%,
+      #121826 100%) !important;
+  box-shadow: none !important;
+}
+
+.dossier-strip,
+.dossier-key,
+.dossier-bracket,
+.sec-mark,
+.sec-label,
+.sec-hint,
+.mast-title,
+.mast-subtitle,
+.aggregate-label,
+.aggregate-note,
+.aggregate-value,
+.domain-name,
+.domain-idx,
+.pct,
+.readout-year,
+.readout-title,
+.readout-blurb,
+.readout-meta,
+.axis-hint,
+.field-axis-label,
+.track-legend li,
+.playhead-year {
+  color: var(--ink);
+}
+
+.aggregate-value { color: var(--ink) !important; }
+.sec-mark { color: var(--warm) !important; opacity: 0.85; }
+.sec-hint, .aggregate-note, .mast-subtitle, .axis-hint { color: var(--ink-mute) !important; }
+
+/* Grid: almost invisible */
+.axis-stage {
+  background:
+    linear-gradient(180deg, rgba(28, 39, 64, 0.4), transparent 40%),
+    #0b0e16 !important;
+}
+.axis-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image:
+    linear-gradient(rgba(232,238,248,0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,238,248,0.5) 1px, transparent 1px);
+  background-size: 80px 80px;
+  z-index: 0;
+}
+
+/* Domain HP: navy fill; alert only critical */
+.bar-fill { background: #4a5d7a !important; }
+.bar-wrap { background: rgba(232,238,248,0.08) !important; }
+.pct.is-critical, .domain-btn.is-critical .pct { color: var(--alert) !important; }
+
+.chapter-cue {
+  border-color: rgba(245, 225, 26, 0.35) !important;
+  color: var(--warm) !important;
+  background: transparent !important;
+}
+.chapter-cue:hover {
+  background: rgba(245, 225, 26, 0.12) !important;
+  color: #fff !important;
+}
+
+/* ——— Single hero year ——— */
+.playhead-year {
+  font-size: clamp(4rem, 9vw, 7rem) !important;
+  opacity: 0.07 !important;
+  color: #fff !important;
+  font-weight: 400;
+  z-index: 1;
+  pointer-events: none;
+}
+.playhead-year.is-watermark-only { display: block; }
+.axis-readout .readout-year {
+  display: none !important; /* card year killed — playhead watermark OR we flip */
+}
+.axis-readout.layout-type-left .readout-year,
+.axis-readout.layout-card-year .readout-year {
+  display: block !important;
+  font-size: clamp(2.4rem, 4.5vw, 3.6rem) !important;
+  opacity: 1 !important;
+  color: var(--ink) !important;
+}
+.axis-stage.has-card-year .playhead-year {
+  opacity: 0 !important;
+  visibility: hidden;
+}
+
+/* Readout: three layout recipes — NOT always bottom-left white card */
+.axis-readout {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border-left: none !important;
+  padding: 0 !important;
+  max-width: min(28rem, 32vw) !important;
+  box-shadow: none !important;
+}
+.axis-readout.layout-a {
+  /* still center + type right */
+  left: auto !important;
+  right: max(24px, 3vw) !important;
+  bottom: 18% !important;
+  top: auto !important;
+  text-align: left;
+}
+.axis-readout.layout-b {
+  /* type left + still breaks grid */
+  left: max(24px, 3vw) !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: 22% !important;
+  max-width: min(26rem, 30vw) !important;
+}
+.axis-readout.layout-c {
+  /* full-width time slice — no card, thin bottom strip */
+  left: 50% !important;
+  right: auto !important;
+  bottom: 6% !important;
+  top: auto !important;
+  transform: translateX(-50%);
+  max-width: min(56rem, 78vw) !important;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.axis-readout.layout-c .readout-blurb {
+  max-width: 42em;
+  text-align: center;
+}
+.readout-meta { color: var(--ink-mute) !important; letter-spacing: 0.16em; }
+.readout-title { color: #fff !important; font-weight: 500; }
+.readout-blurb { color: var(--ink-dim) !important; }
+.readout-tags .tag {
+  border-color: rgba(232,238,248,0.2);
+  color: var(--ink-mute);
+  background: transparent;
+}
+
+/* Story panels as film frames */
+.story-panel {
+  width: min(62vw, 780px) !important;
+  height: min(48vh, 420px) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.story-panel.is-hero {
+  opacity: 1 !important;
+  filter: none !important;
+}
+.story-panel.is-hero.layout-film {
+  width: min(72vw, 920px) !important;
+  height: min(40vh, 380px) !important;
+}
+.story-panel.is-hero.layout-break {
+  width: min(55vw, 700px) !important;
+  height: min(52vh, 460px) !important;
+  transform: translate(-42%, -48%) scale(1.05) !important;
+}
+.story-panel.is-hero.layout-slice {
+  width: min(88vw, 1100px) !important;
+  height: min(36vh, 320px) !important;
+  top: 48% !important;
+}
+
+/* Impact nodes: yellow for high, muted for mid/low */
+.axis-node.impact-high .axis-node-mark {
+  background: var(--warm) !important;
+  border-color: var(--warm) !important;
+  box-shadow: 0 0 0 3px rgba(245, 225, 26, 0.15) !important;
+}
+.axis-node.impact-mid .axis-node-mark {
+  border-color: var(--steel) !important;
+  background: transparent !important;
+}
+.axis-node.impact-low .axis-node-mark {
+  border-color: var(--ink-mute) !important;
+  background: transparent !important;
+}
+
+/* Axis chrome: cut noise */
+.axis-vrule { opacity: 0.12 !important; }
+.axis-era-band { opacity: 0.15 !important; }
+.axis-era-band-label { display: none !important; }
+.axis-crosshair {
+  background: rgba(245, 225, 26, 0.35) !important;
+  width: 1px !important;
+}
+.axis-progress { opacity: 0.15 !important; }
+.axis-rail { opacity: 0.15 !important; }
+.axis-rail[data-active="true"] { opacity: 0.55 !important; }
+
+.track-legend li {
+  opacity: 0.2;
+  background: transparent !important;
+  border-left-color: transparent !important;
+  color: var(--ink-mute) !important;
+}
+.track-legend li.is-active {
+  opacity: 1;
+  border-left: 2px solid var(--warm) !important;
+  color: var(--ink) !important;
+}
+
+.axis-tick-label {
+  color: var(--ink-mute) !important;
+  opacity: 0.35 !important;
+  font-size: 0.65rem !important;
+}
+.axis-tick-label.is-decade {
+  opacity: 0.55 !important;
+  font-size: 0.78rem !important;
+  color: var(--ink-dim) !important;
+}
+
+/* Era filters → thin ticks */
+.era-filters {
+  gap: 0.15rem 0.35rem !important;
+  align-items: flex-end;
+  min-height: 2.2rem;
+}
+.era-chip {
+  border: none !important;
+  border-bottom: 1px solid rgba(232,238,248,0.2) !important;
+  background: transparent !important;
+  padding: 0.15rem 0.35rem 0.35rem !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.14em !important;
+  color: var(--ink-mute) !important;
+  border-radius: 0 !important;
+}
+.era-chip[aria-pressed="true"] {
+  color: var(--warm) !important;
+  border-bottom-color: var(--warm) !important;
+  background: transparent !important;
+  font-weight: 500 !important;
+}
+.timeline-chrome .section-head {
+  opacity: calc(0.25 + var(--blend, 0) * 0.75);
+}
+
+/* Morph transition */
+.transition-motif {
+  opacity: calc(var(--blend, 0) * (1.15 - var(--blend, 0)) * 1.4) !important;
+  color: var(--ink);
+  bottom: 28vh !important;
+  mix-blend-mode: normal !important;
+}
+.tm-year { color: rgba(232,238,248,0.45) !important; }
+.tm-year-b { color: rgba(245,225,26,0.5) !important; }
+.tm-label { color: var(--ink-mute) !important; }
+.tm-rule { background: rgba(245,225,26,0.4) !important; }
+
+.chapter-cue {
+  opacity: calc(1 - var(--blend, 0) * 2.2) !important;
+  pointer-events: none;
+  visibility: visible;
+}
+.chapter-scroller[data-blend-zone="mid"] .chapter-cue,
+.chapter-scroller[data-blend-zone="late"] .chapter-cue {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.chapter-scroller[data-blend-zone="early"] .timeline-chrome,
+.chapter-scroller[data-blend-zone="early"] .track-legend,
+.chapter-scroller[data-blend-zone="early"] .axis-hint {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+.chapter-scroller[data-blend-zone="mid"] .timeline-chrome {
+  opacity: 0.35 !important;
+}
+.chapter-scroller[data-blend-zone="mid"] .section-title .sec-label,
+.chapter-scroller[data-blend-zone="mid"] .era-filters {
+  opacity: 0.2 !important;
+}
+.chapter-scroller[data-blend-zone="late"] .timeline-chrome {
+  opacity: 1;
+}
+
+/* Morph: domain bars stretch toward rails */
+.chapter-dossier .domain-btn .bar-wrap {
+  transform-origin: left center;
+  transform: scaleX(calc(1 + var(--blend, 0) * 0.35)) translateX(calc(var(--blend, 0) * 12px));
+  opacity: calc(1 - var(--blend, 0) * 0.85);
+}
+.morph-rails {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 18%;
+  height: 3px;
+  pointer-events: none;
+  z-index: 5;
+  opacity: calc(var(--blend, 0) * (1 - var(--blend, 0)) * 2.2);
+}
+.morph-rails span {
+  display: block;
+  height: 1px;
+  margin: 10px 0;
+  background: linear-gradient(90deg, transparent, rgba(245,225,26,0.45), transparent);
+  transform: scaleX(calc(0.3 + var(--blend, 0) * 0.7));
+}
+
+/* Page1 gauge ring */
+.aggregate {
+  position: relative;
+}
+.aggregate-ring {
+  position: absolute;
+  left: -18px;
+  top: -8px;
+  width: 148px;
+  height: 148px;
+  pointer-events: none;
+}
+.aggregate-ring circle {
+  fill: none;
+  stroke: rgba(232,238,248,0.12);
+  stroke-width: 2;
+}
+.aggregate-ring .ring-val {
+  stroke: var(--warm);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 276;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  animation: ring-breathe 5.5s ease-in-out infinite;
+}
+@keyframes ring-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aggregate-ring .ring-val { animation: none; }
+}
+
+.site-footer, .chapter-foot {
+  color: var(--ink-mute) !important;
+  border-color: var(--line-soft) !important;
+}
+
+.domains-head .sec-hint { display: none; }
+.chapter-dossier .domain-tree {
+  max-height: min(42vh, 380px);
+}
+.chapter-dossier .domain-row:nth-child(n+6) {
+  opacity: 0.35;
+}
+.chapter-dossier.is-expanded .domain-row:nth-child(n+6) {
+  opacity: 1;
+}
+
+
+/* ——— Round B morph / chrome gate ——— */
+.chapter-dossier {
+  background:
+    radial-gradient(ellipse 70% 45% at 28% 18%, rgba(245, 225, 26, 0.05), transparent 55%),
+    linear-gradient(180deg, #0b0e16 0%, #121826 50%, #1a2438 100%) !important;
+}
+.chapter-timeline {
+  background:
+    linear-gradient(180deg,
+      rgba(11,14,22,0) 0%,
+      rgba(11,14,22,0.92) 12%,
+      #0b0e16 30%,
+      #0e1420 100%) !important;
+}
+.blend-veil {
+  background: linear-gradient(180deg, transparent, rgba(11,14,22,0.5) 40%, rgba(11,14,22,0.95)) !important;
+}
+
+.chapter-scroller[data-blend-zone="early"] .timeline-chrome,
+.chapter-scroller[data-blend-zone="early"] .track-legend,
+.chapter-scroller[data-blend-zone="early"] .axis-hint,
+.chapter-scroller[data-blend-zone="early"] .era-filters {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.chapter-scroller[data-blend-zone="mid"] .timeline-chrome,
+.chapter-scroller[data-blend-zone="mid"] .era-filters,
+.chapter-scroller[data-blend-zone="mid"] .section-head,
+.chapter-scroller[data-blend-zone="mid"] .axis-hint {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.chapter-scroller[data-blend-zone="mid"] .track-legend {
+  opacity: 0.15 !important;
+}
+.chapter-scroller[data-blend-zone="mid"] .playhead-year {
+  opacity: 0.03 !important;
+}
+.chapter-scroller[data-blend-zone="mid"] .axis-readout {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.chapter-scroller[data-blend-zone="late"] .timeline-chrome,
+.chapter-scroller[data-blend-zone="late"] .era-filters {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.chapter-dossier .domain-row:nth-child(n+6) {
+  display: none;
+}
+.chapter-dossier.is-expanded .domain-row:nth-child(n+6) {
+  display: block;
+  opacity: 1;
+}
+.domain-more {
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  padding: 6px 0;
+}
+.domain-more:hover { color: var(--warm); }

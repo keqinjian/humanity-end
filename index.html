@@ -30,6 +30,10 @@
             <h1 class="mast-title" id="site-title">记录人类完蛋全过程</h1>
             <p class="mast-subtitle" id="site-subtitle"></p>
             <div class="aggregate" aria-live="polite">
+              <svg class="aggregate-ring" viewBox="0 0 100 100" aria-hidden="true">
+                <circle cx="50" cy="50" r="44"></circle>
+                <circle class="ring-val" id="aggregate-ring-val" cx="50" cy="50" r="44"></circle>
+              </svg>
               <p class="aggregate-value">
                 <span id="aggregate-num">—</span><span class="aggregate-unit">%</span>
               </p>
@@ -52,6 +56,7 @@
 
         <a class="chapter-cue" href="#chapter-timeline">继续下探时间线</a>
         <div class="blend-veil" aria-hidden="true"></div>
+        <div class="morph-rails" aria-hidden="true"><span></span><span></span><span></span></div>
         <div class="transition-motif" aria-hidden="true">
           <span class="tm-year" id="tm-year">1946</span>
           <span class="tm-rule"></span>

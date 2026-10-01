@@ -55,9 +55,9 @@
   }
 
   const C = {
-    paper: "#f4f7fb", ink: "#102033", steel: "#1d4e89", cyan: "#2f6fed",
-    navy: "#16324f", warm: "#c45c26", gold: "#b8892d", teal: "#1a7a6d",
-    soft: "#d5deea"
+    paper: "#121826", ink: "#e8eef8", steel: "#7a8eaa", cyan: "#8aa4c8",
+    navy: "#c5d0e0", warm: "#f5e11a", gold: "#f5e11a", teal: "#5a8f86",
+    soft: "rgba(232,238,248,0.15)"
   };
 
   /* ——— High-impact: each factory returns structurally unique SVG ——— */
@@ -292,28 +292,35 @@
   }
 
   function hiAlphaGo(evt) {
-    const stones = [];
-    for (let i = 0; i < 19; i++) {
-      stones.push(el("line", { x1: 160, y1: 100 + i * 14, x2: 160 + 18 * 14, y2: 100 + i * 14,
-        stroke: C.soft, "stroke-width": 1 }));
-      stones.push(el("line", { x1: 160 + i * 14, y1: 100, x2: 160 + i * 14, y2: 100 + 18 * 14,
-        stroke: C.soft, "stroke-width": 1 }));
+    /* Board as scene subject (~40% center-right); move pins as旁注 */
+    const boardBg = el("rect", { x: 280, y: 90, width: 280, height: 280, fill: "#1a2233", stroke: "rgba(232,238,248,0.2)", "stroke-width": 1 });
+    const lines = [];
+    for (let i = 0; i < 13; i++) {
+      lines.push(el("line", { x1: 295, y1: 105 + i * 20, x2: 545, y2: 105 + i * 20, stroke: "rgba(232,238,248,0.12)", "stroke-width": 1 }));
+      lines.push(el("line", { x1: 295 + i * 20, y1: 105, x2: 295 + i * 20, y2: 355, stroke: "rgba(232,238,248,0.12)", "stroke-width": 1 }));
     }
-    const boardBg = el("rect", { x: 158, y: 98, width: 18*14+4, height: 18*14+4, fill: "#e8eef6", stroke: C.navy, "stroke-width": 1.2 });
-    const black = el("circle", { cx: 286, cy: 226, r: 11, fill: C.ink });
-    const white = el("circle", { cx: 300, cy: 240, r: 11, fill: C.paper, stroke: C.ink, "stroke-width": 1.4 });
-    const heat = el("circle", { cx: 314, cy: 212, r: 22, fill: C.warm, opacity: 0.35 });
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [boardBg, ...stones, heat, black, white,
-      el("text", { x: 320, y: 400, fill: C.navy, "text-anchor": "middle", "font-size": 13,
-        "letter-spacing": "0.14em" }, ["AlphaGo · 棋盘热力"])]);
+    const heat = el("circle", { cx: 415, cy: 225, r: 36, fill: "rgba(245,225,26,0.18)" });
+    const black = el("circle", { cx: 415, cy: 225, r: 11, fill: "#0b0e16", stroke: "#f5e11a", "stroke-width": 1.2 });
+    const white = el("circle", { cx: 435, cy: 245, r: 10, fill: "#e8eef8", opacity: 0.9 });
+    const pin = el("line", { x1: 415, y1: 225, x2: 200, y2: 160, stroke: "rgba(245,225,26,0.45)", "stroke-width": 1 });
+    const pinLab = el("text", { x: 80, y: 155, fill: "rgba(232,238,248,0.7)", "font-size": 13,
+      "font-family": "Noto Sans SC,sans-serif" }, ["第37手 · 神之一手"]);
+    const pin2 = el("line", { x1: 435, y1: 245, x2: 200, y2: 210, stroke: "rgba(232,238,248,0.25)", "stroke-width": 1 });
+    const pinLab2 = el("text", { x: 80, y: 205, fill: "rgba(168,180,200,0.7)", "font-size": 12 }, ["李世石 · 白"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
+      [boardBg, ...lines, heat, black, white, pin, pinLab, pin2, pinLab2]);
     function apply(p) {
       const e = easeOut(clamp01(p));
-      setTransform(heat, `scale(${0.3 + e * 1.4})`);
+      setTransform(boardBg, `translate(${(1 - e) * 40} 0) scale(${0.75 + 0.25 * e})`);
+      setTransform(heat, `scale(${0.3 + e * 1.2})`);
       heat.setAttribute("opacity", String(0.1 + e * 0.35));
-      setTransform(black, `translate(0 ${(1 - e) * -30})`);
-      setTransform(white, `translate(0 ${(1 - e) * 30})`);
+      setTransform(black, `translate(0 ${(1 - e) * -20})`);
+      pin.setAttribute("opacity", String(e));
+      pinLab.setAttribute("opacity", String(e));
+      pin2.setAttribute("opacity", String(clamp01((e - 0.3) / 0.5)));
+      pinLab2.setAttribute("opacity", String(clamp01((e - 0.3) / 0.5)));
     }
-    return { svg, apply };
+    return { svg, apply, layout: "break" };
   }
 
   function hiTransformer(evt) {
@@ -340,7 +347,7 @@
       });
       setTransform(core, `rotate(${e * 180} 320 230) scale(${0.5 + 0.5 * e})`);
     }
-    return { svg, apply };
+    return { svg, apply, layout: "slice" };
   }
 
   function hiAlphaZero(evt) {
@@ -515,7 +522,7 @@
       });
       cursor.setAttribute("opacity", String(0.3 + Math.sin(e * Math.PI * 4) * 0.5 * e));
     }
-    return { svg, apply };
+    return { svg, apply, layout: "slice" };
   }
 
   function hiGPT4(evt) {
@@ -563,26 +570,25 @@
   }
 
   function hiSoraPrev(evt) {
-    const film = el("rect", { x: 140, y: 140, width: 360, height: 200, fill: "none",
-      stroke: C.navy, "stroke-width": 2 });
-    const sprockets = [];
-    for (let i = 0; i < 6; i++) {
-      sprockets.push(el("rect", { x: 150, y: 155 + i * 30, width: 16, height: 16, fill: C.soft }));
-      sprockets.push(el("rect", { x: 474, y: 155 + i * 30, width: 16, height: 16, fill: C.soft }));
+    const matte = el("rect", { x: 60, y: 150, width: 520, height: 220, fill: "#0a0d14" });
+    const grain = [];
+    for (let i = 0; i < 12; i++) {
+      grain.push(el("line", {
+        x1: 80 + i * 40, y1: 160, x2: 100 + i * 38, y2: 360,
+        stroke: "rgba(245,225,26,0.08)", "stroke-width": 1
+      }));
     }
-    const play = el("path", { d: "M290 200 L370 240 L290 280 Z", fill: C.warm, opacity: 0.7 });
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [film, ...sprockets, play,
-      el("text", { x: 320, y: 400, fill: C.steel, "text-anchor": "middle", "font-size": 13,
-        "letter-spacing": "0.14em" }, ["Sora · 技术预告"])]);
+    const beam = el("rect", { x: 60, y: 240, width: 520, height: 40, fill: "rgba(245,225,26,0.12)" });
+    const lab = el("text", { x: 80, y: 400, fill: "rgba(232,238,248,0.4)", "font-size": 12,
+      "letter-spacing": "0.22em" }, ["SORA · TECH PREVIEW"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [matte, ...grain, beam, lab]);
     function apply(p) {
       const e = easeInOut(clamp01(p));
-      setTransform(film, `rotate(${(1 - e) * -4} 320 240) scale(${0.75 + 0.25 * e})`);
-      setTransform(play, `scale(${0.3 + 0.7 * e})`);
-      sprockets.forEach((s, i) => {
-        s.setAttribute("opacity", String(clamp01((e - (i % 6) * 0.05) / 0.5)));
-      });
+      beam.setAttribute("width", String(80 + 440 * e));
+      beam.setAttribute("opacity", String(0.15 + e * 0.5));
+      setTransform(matte, `scale(${0.9 + 0.1 * e})`);
     }
-    return { svg, apply };
+    return { svg, apply, layout: "film" };
   }
 
   function hiClaude3(evt) {
@@ -678,32 +684,51 @@
   }
 
   function hiSoraPub(evt) {
-    const screens = [];
-    const fills = ["#d6e4f7", "#cfe0f5", "#e7ddd2"];
-    for (let i = 0; i < 3; i++) {
-      screens.push(el("g", {}, [
-        el("rect", { x: 100 + i * 150, y: 140, width: 130, height: 180, rx: 4,
-          fill: C.paper, stroke: C.steel, "stroke-width": 1.8 }),
-        el("rect", { x: 110 + i * 150, y: 150, width: 110, height: 120,
-          fill: fills[i], stroke: C.cyan, "stroke-width": 1.2, opacity: 0.85 }),
-        el("path", {
-          d: `M${130 + i * 150} ${250} Q${165 + i * 150} ${200}, ${200 + i * 150} ${240}`,
-          fill: "none", stroke: C.warm, "stroke-width": 1.6
-        })
-      ]));
+    /* Wide 2.39 film still — light sweep + sprocket, no Polaroid stack */
+    const frame = el("rect", { x: 40, y: 140, width: 560, height: 234, fill: "#0a0d14", stroke: "rgba(245,225,26,0.25)", "stroke-width": 1 });
+    const sweep = el("path", {
+      d: "M60 280 C180 160, 260 320, 340 200 S480 140, 580 250",
+      fill: "none", stroke: "#f5e11a", "stroke-width": 3.2, "stroke-linecap": "round", opacity: 0.85
+    });
+    const sweep2 = el("path", {
+      d: "M80 220 C200 300, 300 120, 420 260 S540 200, 590 230",
+      fill: "none", stroke: "rgba(232,238,248,0.35)", "stroke-width": 1.6
+    });
+    const strips = [];
+    for (let i = 0; i < 7; i++) {
+      strips.push(el("rect", {
+        x: 70 + i * 72, y: 155, width: 2, height: 200,
+        fill: "rgba(232,238,248,0.08)"
+      }));
     }
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...screens,
-      el("text", { x: 320, y: 400, fill: C.navy, "text-anchor": "middle", "font-size": 13,
-        "letter-spacing": "0.14em" }, ["Sora · 公开发布"])]);
+    const sprockets = [];
+    for (let i = 0; i < 9; i++) {
+      sprockets.push(el("rect", { x: 48, y: 150 + i * 24, width: 10, height: 12, rx: 1, fill: "rgba(232,238,248,0.2)" }));
+      sprockets.push(el("rect", { x: 582, y: 150 + i * 24, width: 10, height: 12, rx: 1, fill: "rgba(232,238,248,0.2)" }));
+    }
+    const leader = el("line", { x1: 520, y1: 170, x2: 600, y2: 110, stroke: "rgba(245,225,26,0.5)", "stroke-width": 1 });
+    const lab = el("text", { x: 608, y: 105, fill: "rgba(232,238,248,0.55)", "font-size": 11,
+      "font-family": "Noto Sans SC,sans-serif", "letter-spacing": "0.12em" }, ["VIDEO"]);
+    const title = el("text", { x: 70, y: 400, fill: "rgba(232,238,248,0.45)", "font-size": 12,
+      "letter-spacing": "0.2em" }, ["SORA · PUBLIC FRAME"]);
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
+      [frame, ...strips, sweep2, sweep, ...sprockets, leader, lab, title]);
     function apply(p) {
-      const e = easeOutBack(clamp01(p));
-      screens.forEach((g, i) => {
-        const local = clamp01((e - i * 0.14) / 0.55);
-        setTransform(g, `translate(0 ${(1 - local) * 40}) rotate(${(1 - local) * (i - 1) * 8})`);
-        g.setAttribute("opacity", String(local));
+      const e = easeInOut(clamp01(p));
+      sweep.setAttribute("stroke-dasharray", "900");
+      sweep.setAttribute("stroke-dashoffset", String((1 - e) * 900));
+      sweep2.setAttribute("stroke-dasharray", "700");
+      sweep2.setAttribute("stroke-dashoffset", String((1 - e) * 700));
+      setTransform(frame, `scale(${0.88 + 0.12 * e})`);
+      leader.setAttribute("opacity", String(e));
+      lab.setAttribute("opacity", String(e));
+      strips.forEach((s, i) => {
+        s.setAttribute("opacity", String(0.04 + e * (0.08 + (i % 3) * 0.03)));
+        s.setAttribute("height", String(120 + e * 80));
+        s.setAttribute("y", String(155 + (1 - e) * 40));
       });
     }
-    return { svg, apply };
+    return { svg, apply, layout: "film" };
   }
 
   function hiR1(evt) {
@@ -902,9 +927,10 @@
   }
 
   /* Mid/low: distinct families by hash — different structures, not label swaps */
-  function midFamily(evt) {
+  function midFamily(evt, index) {
     const h = hashStr(evt.title + evt.date);
-    const fam = h % 8;
+    /* Consecutive same-track nodes forced into different families */
+    const fam = (h + (index || 0) * 3) % 8;
     const accent = [C.cyan, C.warm, C.teal, C.gold, C.steel, C.navy, C.cyan, C.warm][fam];
     if (fam === 0) {
       const arcs = [40, 70, 100].map((r, i) =>
@@ -1068,25 +1094,27 @@
     return null;
   }
 
-  function matchStory(evt) {
+  function matchStory(evt, index) {
     if (evt.impact === "high") {
       const fn = matchHigh(evt);
       if (fn) return () => fn(evt);
     }
-    return () => midFamily(evt);
+    return () => midFamily(evt, index || 0);
   }
 
-  function buildStill(evt) {
+  function buildStill(evt, index) {
     const wrap = document.createElement("div");
     wrap.className = "story-panel";
     const tid = trackOf(evt);
     wrap.classList.add("track-" + tid);
     wrap.dataset.track = tid;
-    const scene = matchStory(evt)();
+    const scene = matchStory(evt, index)();
     scene.svg.setAttribute("viewBox", "20 20 600 440");
     scene.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
     wrap.appendChild(scene.svg);
     wrap.__apply = scene.apply;
+    wrap.__layout = scene.layout || null;
+    if (scene.layout) wrap.classList.add("layout-" + scene.layout);
     scene.apply(0);
     return wrap;
   }
@@ -1101,7 +1129,7 @@
   function mountStrip(strip, events, xOfIndex, trackFn) {
     strip.textContent = "";
     events.forEach((evt, i) => {
-      const panel = buildStill(evt);
+      const panel = buildStill(evt, i);
       panel.dataset.index = String(i);
       const meta = trackMeta((trackFn || trackOf)(evt));
       panel.style.left = `${xOfIndex(i)}px`;
@@ -1140,8 +1168,12 @@
     });
     scored.forEach(({ panel, i, p, signed }) => {
       if (typeof panel.__apply === "function") panel.__apply(p, signed);
-      panel.classList.toggle("is-hero", i === best && p > 0.35);
+      const isHero = i === best && p > 0.35;
+      panel.classList.toggle("is-hero", isHero);
       panel.classList.toggle("is-near", i !== best && p > 0.18);
+      if (isHero && panel.__layout) {
+        panel.classList.add("layout-" + panel.__layout);
+      }
       const sc = 0.72 + p * 0.34;
       const lift = (1 - p) * 18;
       panel.style.transform = `translate(-50%, calc(-50% + ${lift.toFixed(1)}px)) scale(${sc.toFixed(3)})`;
