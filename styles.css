@@ -1937,3 +1937,100 @@ html, body { height: 100%; overflow: hidden; }
     transform: none !important; filter: none !important;
   }
 }
+
+
+/* ——— Round 3 polish ——— */
+.transition-motif {
+  position: absolute;
+  left: 50%;
+  bottom: 10vh;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: baseline;
+  gap: 1.2rem;
+  pointer-events: none;
+  opacity: calc(var(--blend, 0) * (1.1 - var(--blend, 0)));
+  mix-blend-mode: multiply;
+}
+.tm-year {
+  font-family: var(--serif-num), Instrument Serif, serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  color: var(--navy);
+  letter-spacing: -0.04em;
+  opacity: 0.55;
+}
+.tm-year-b { color: var(--warm); opacity: 0.45; }
+.tm-rule {
+  width: 64px;
+  height: 1px;
+  background: var(--steel);
+  align-self: center;
+  opacity: 0.5;
+}
+.tm-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  color: var(--steel);
+  align-self: center;
+}
+
+.era-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+}
+.era-chip {
+  border: 1px solid transparent;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  padding: 0.35rem 0.7rem 0.45rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+  border-radius: 0;
+  position: relative;
+}
+.era-chip[aria-pressed="true"] {
+  color: var(--navy);
+  border-color: transparent;
+  border-bottom-color: var(--cyan);
+  background: linear-gradient(180deg, rgba(47,111,237,0.06), transparent);
+  font-weight: 600;
+}
+.era-chip:hover {
+  color: var(--steel);
+}
+
+.track-legend {
+  bottom: 22% !important;
+  top: auto !important;
+  height: 48%;
+}
+.track-legend li:nth-child(1) { top: 8%; }
+.track-legend li:nth-child(2) { top: 42%; }
+.track-legend li:nth-child(3) { top: 76%; }
+
+.axis-readout {
+  max-width: min(40rem, 38vw) !important;
+  backdrop-filter: blur(6px);
+  background: linear-gradient(135deg, rgba(244,247,251,0.92), rgba(244,247,251,0.72));
+  padding: 12px 16px 14px;
+  border-left: 2px solid var(--cyan);
+}
+
+/* Weight story strokes via CSS filter on hero */
+.story-panel.is-hero .story-svg {
+  filter: drop-shadow(0 8px 24px rgba(16,32,51,0.08));
+}
+.story-panel:not(.is-hero):not(.is-near) {
+  opacity: 0.04 !important;
+  visibility: hidden;
+}
+.story-panel.is-near {
+  visibility: visible;
+  opacity: 0.32 !important;
+}
+.story-panel.is-hero {
+  visibility: visible;
+}

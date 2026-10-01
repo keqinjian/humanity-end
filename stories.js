@@ -299,10 +299,11 @@
       stones.push(el("line", { x1: 160 + i * 14, y1: 100, x2: 160 + i * 14, y2: 100 + 18 * 14,
         stroke: C.soft, "stroke-width": 1 }));
     }
-    const black = el("circle", { cx: 286, cy: 226, r: 9, fill: C.ink });
-    const white = el("circle", { cx: 300, cy: 240, r: 9, fill: C.paper, stroke: C.ink, "stroke-width": 1.2 });
-    const heat = el("circle", { cx: 314, cy: 212, r: 16, fill: C.warm, opacity: 0.25 });
-    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...stones, heat, black, white,
+    const boardBg = el("rect", { x: 158, y: 98, width: 18*14+4, height: 18*14+4, fill: "#e8eef6", stroke: C.navy, "stroke-width": 1.2 });
+    const black = el("circle", { cx: 286, cy: 226, r: 11, fill: C.ink });
+    const white = el("circle", { cx: 300, cy: 240, r: 11, fill: C.paper, stroke: C.ink, "stroke-width": 1.4 });
+    const heat = el("circle", { cx: 314, cy: 212, r: 22, fill: C.warm, opacity: 0.35 });
+    const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [boardBg, ...stones, heat, black, white,
       el("text", { x: 320, y: 400, fill: C.navy, "text-anchor": "middle", "font-size": 13,
         "letter-spacing": "0.14em" }, ["AlphaGo · 棋盘热力"])]);
     function apply(p) {
@@ -499,7 +500,7 @@
       { x: 240, y: 230, w: 280, h: 90, side: "bot" },
       { x: 140, y: 340, w: 200, h: 50, side: "user" }
     ].map((b) => el("rect", { x: b.x, y: b.y, width: b.w, height: b.h, rx: 14,
-      fill: b.side === "bot" ? "rgba(47,111,237,0.08)" : C.paper,
+      fill: b.side === "bot" ? "rgba(47,111,237,0.14)" : "#eef3f9",
       stroke: b.side === "bot" ? C.cyan : C.steel, "stroke-width": 1.6 }));
     const cursor = el("rect", { x: 260, y: 360, width: 3, height: 18, fill: C.warm });
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...bubbles, cursor,
@@ -678,12 +679,17 @@
 
   function hiSoraPub(evt) {
     const screens = [];
+    const fills = ["#d6e4f7", "#cfe0f5", "#e7ddd2"];
     for (let i = 0; i < 3; i++) {
       screens.push(el("g", {}, [
         el("rect", { x: 100 + i * 150, y: 140, width: 130, height: 180, rx: 4,
-          fill: C.paper, stroke: C.steel, "stroke-width": 1.6 }),
+          fill: C.paper, stroke: C.steel, "stroke-width": 1.8 }),
         el("rect", { x: 110 + i * 150, y: 150, width: 110, height: 120,
-          fill: "none", stroke: C.cyan, "stroke-width": 1.2 })
+          fill: fills[i], stroke: C.cyan, "stroke-width": 1.2, opacity: 0.85 }),
+        el("path", {
+          d: `M${130 + i * 150} ${250} Q${165 + i * 150} ${200}, ${200 + i * 150} ${240}`,
+          fill: "none", stroke: C.warm, "stroke-width": 1.6
+        })
       ]));
     }
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [...screens,
@@ -852,7 +858,7 @@
         stroke: C.gold, "stroke-width": 1.4
       }));
     }
-    const sun = el("circle", { cx: 320, cy: 300, r: 36, fill: C.paper, stroke: C.warm, "stroke-width": 2.4 });
+    const sun = el("circle", { cx: 320, cy: 300, r: 36, fill: "#f0d5c0", stroke: C.warm, "stroke-width": 2.4 });
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" }, [horizon, ...rays, sun,
       el("text", { x: 320, y: 400, fill: C.navy, "text-anchor": "middle", "font-size": 13,
         "letter-spacing": "0.14em" }, ["GPT-6 Astra · 地平升起"])]);

@@ -875,7 +875,7 @@
       lastTs = ts;
       const max = scrollMax();
       if (max <= 0) return;
-      const speed = max / 110;
+      const speed = max / 220;
       let next = viewport.scrollLeft + speed * dt;
       if (next >= max - 0.5) next = 0; /* loop: last-at-center → first-at-center */
       viewport.scrollLeft = next;
@@ -1010,6 +1010,11 @@
       const e = t * t * (3 - 2 * t);
       const e2 = 1 - Math.pow(1 - t, 2.6);
       scroller.style.setProperty("--blend", e.toFixed(4));
+      const tm = document.getElementById("tm-year");
+      const tmb = document.getElementById("tm-year-b");
+      if (tm) tm.style.transform = `translate3d(${(-40 + e * 80).toFixed(1)}px, ${(-e * 30).toFixed(1)}px, 0)`;
+      if (tmb) tmb.style.transform = `translate3d(${(40 - e * 80).toFixed(1)}px, ${(e * 20).toFixed(1)}px, 0)`;
+      scroller.style.setProperty("--blend-glow", (e * 0.9).toFixed(3));
       domainEls().forEach((el, i) => {
         el.style.setProperty("--bar-shift", `${(i - 4) * 10}px`);
       });
