@@ -108,13 +108,14 @@
       const idx = String(i + 1).padStart(2, "0");
       const row = document.createElement("div");
       row.className = "domain-row";
+      row.dataset.idx = idx;
       row.setAttribute("role", "treeitem");
       row.setAttribute("aria-expanded", "false");
 
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "domain-btn";
-      if (Number(domain.remaining) < 25) btn.classList.add("is-critical");
+      if (remaining <= 25) btn.classList.add("is-critical");
       btn.setAttribute("aria-expanded", "false");
       btn.setAttribute("aria-controls", `domain-kids-${domain.id}`);
       btn.id = `domain-btn-${domain.id}`;
@@ -130,7 +131,31 @@
         domain.name
       )}</span>`;
 
-      btn.append(idxEl, name, makeBar(remaining), makePct(remaining));
+      const meta = document.createElement("span");
+      meta.className = "domain-meta";
+      const childCount = (domain.children || []).length;
+      meta.textContent = `${childCount} 项`;
+
+      const spark = document.createElement("span");
+      spark.className = "domain-spark";
+      spark.setAttribute("aria-hidden", "true");
+      (domain.children || []).forEach((child) => {
+        const tick = document.createElement("i");
+        const rem = Math.max(0, Math.min(100, Number(child.remaining) || 0));
+        tick.style.setProperty("--h", `${Math.max(10, rem)}%`);
+        tick.title = `${child.name} ${rem}%`;
+        if (rem <= 25) tick.classList.add("is-low");
+        spark.append(tick);
+      });
+
+      const bits = [idxEl, name, makePct(remaining), makeBar(remaining), spark, meta];
+      if (domain.note) {
+        const note = document.createElement("span");
+        note.className = "domain-card-note";
+        note.textContent = domain.note;
+        bits.push(note);
+      }
+      btn.append(...bits);
 
       const kids = document.createElement("div");
       kids.className = "domain-children";
@@ -181,11 +206,30 @@
       const toggle = () => {
         const open = btn.getAttribute("aria-expanded") === "true";
         const next = !open;
+        if (next) {
+          root.querySelectorAll(".domain-row").forEach((other) => {
+            if (other === row) return;
+            const ob = other.querySelector(".domain-btn");
+            const ok = other.querySelector(".domain-children");
+            if (!ob || !ok) return;
+            ob.setAttribute("aria-expanded", "false");
+            other.setAttribute("aria-expanded", "false");
+            ok.classList.remove("open");
+            ok.hidden = true;
+          });
+        }
         btn.setAttribute("aria-expanded", String(next));
         row.setAttribute("aria-expanded", String(next));
         if (next) {
           kids.hidden = false;
-          requestAnimationFrame(() => kids.classList.add("open"));
+          requestAnimationFrame(() => {
+            kids.classList.add("open");
+            requestAnimationFrame(() => {
+              const tree = root.getBoundingClientRect();
+              const box = row.getBoundingClientRect();
+              root.scrollTop += box.top - tree.top;
+            });
+          });
         } else {
           kids.classList.remove("open");
           const done = () => {
@@ -203,6 +247,24 @@
       row.append(btn, kids);
       root.append(row);
     });
+  }
+
+  function renderDossierStats(domains) {
+    const leaves = allLeaves(domains);
+    const critical = leaves.filter((c) => Number(c.remaining) <= 25).length;
+    let lowest = null;
+    leaves.forEach((c) => {
+      if (!lowest || Number(c.remaining) < Number(lowest.remaining)) lowest = c;
+    });
+    const set = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    set("stat-domains", String(domains.length).padStart(2, "0"));
+    set("stat-leaves", String(leaves.length).padStart(2, "0"));
+    set("stat-critical", String(critical).padStart(2, "0"));
+    set("domains-count", `${String(domains.length).padStart(2, "0")} 领域`);
+    if (lowest) set("stat-lowest", `${lowest.name}  ${lowest.remaining}%`);
   }
 
   function uniqueEras(events) {
@@ -1105,12 +1167,14 @@
     function pauseAuto(ms) {
       paused = true;
       stage.classList.add("is-paused");
+      paintPlayHint();
       if (pauseAuto._t) clearTimeout(pauseAuto._t);
       if (ms) {
         pauseAuto._t = setTimeout(() => {
           if (!drag && document.activeElement !== viewport) {
             paused = false;
             stage.classList.remove("is-paused");
+            paintPlayHint();
           }
         }, ms);
       }
@@ -1122,6 +1186,7 @@
         if (!drag) {
           paused = false;
           stage.classList.remove("is-paused");
+          paintPlayHint();
         }
       }, 1600);
     }
@@ -1207,9 +1272,34 @@
       }
     }
 
+    function timelineInView() {
+      const scroller = document.getElementById("chapter-scroller");
+      const chapter = document.getElementById("chapter-timeline");
+      if (!scroller || !chapter) return true;
+      return scroller.scrollTop >= chapter.offsetTop - 12;
+    }
+
+    function paintPlayHint() {
+      if (!hint) return;
+      if (reduceMotion) {
+        hint.textContent = "已关闭自动漫游 · 拖拽或滚轮横向浏览 · ← → 选点";
+        return;
+      }
+      if (!autoPan) {
+        hint.textContent = "拖拽/滚轮横移 · ← → 选点";
+        return;
+      }
+      if (paused) {
+        hint.textContent = "已暂停 · 移开后继续横移 · ← → 选点";
+        return;
+      }
+      hint.textContent = "自动横移播放中 · 悬停暂停 · 至右端停止";
+    }
+
     function tick(ts) {
       animFrame = requestAnimationFrame(tick);
-      if (!autoPan || paused || reduceMotion || drag) {
+      /* Stay parked on page 1 so the playhead is still at the left edge when page 2 opens. */
+      if (!autoPan || paused || reduceMotion || drag || !timelineInView()) {
         lastTs = ts;
         return;
       }
@@ -1223,6 +1313,7 @@
         viewport.scrollLeft = max;
         autoPan = false; /* stop at right end — no hard loop jump */
         stage.classList.add("is-at-end");
+        paintPlayHint();
         focusStories();
         syncFromScroll();
         return;
@@ -1251,7 +1342,7 @@
       document.addEventListener("keydown", onKey);
       if (!reduceMotion) {
         animFrame = requestAnimationFrame(tick);
-        if (hint) hint.textContent = "三轨时间轴 · 拖拽/滚轮横移 · ← → 选点 · 悬停暂停";
+        paintPlayHint();
       } else if (hint) {
         hint.textContent = "已关闭自动漫游 · 拖拽或滚轮横向浏览 · ← → 选点";
       }
@@ -1265,13 +1356,20 @@
       layoutTrack();
       setSelected(idx, { scroll: true, instant: true });
     });
-    setSelected(events.length - 1, { scroll: true, instant: true });
-    updateFieldParallax();
-    if (!reduceMotion) {
-      requestAnimationFrame(() => {
-        scrollToIndex(Math.max(0, events.length - 10), false);
-      });
+    if (reduceMotion) {
+      autoPan = false;
+      setSelected(events.length - 1, { scroll: true, instant: true });
+    } else {
+      /* Start at the left edge. Jumping to the terminus first used to trip the
+         end-stop and disable autoPan before the rewind frame could run. */
+      autoPan = true;
+      paused = false;
+      stage.classList.remove("is-paused", "is-at-end");
+      setSelected(0, { scroll: true, instant: true });
+      viewport.scrollLeft = 0;
+      paintPlayHint();
     }
+    updateFieldParallax();
 
     return {
       applyFilter,
@@ -1533,6 +1631,7 @@
 
     renderHero(data, aggregate);
     renderDomains(data.domains || []);
+    renderDossierStats(data.domains || []);
 
     const events = data.events || [];
     const eras = uniqueEras(events);
