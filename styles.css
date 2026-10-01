@@ -3075,3 +3075,116 @@ body[data-theme="signal"] .lm-dossier-card {
 .kind-compass {
   width: min(16vw, 180px);
 }
+
+
+/* ========== CONTINUOUS FIELD GROUND (mid-band fill) ========== */
+.field-ground-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.field-landmarks-root {
+  z-index: 3;
+}
+.field-ground {
+  position: absolute;
+  left: 0;
+  top: 38%;
+  height: 42%; /* mid-band ≥40% of stage band */
+  opacity: 0.2;
+  will-change: transform, width;
+  color: var(--cyan, #8aa4c8);
+}
+.field-ground.is-in-view {
+  opacity: 0.85;
+}
+.field-ground.kind-ribbons {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 0;
+}
+.fg-rib {
+  display: block;
+  height: 10%;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(138, 164, 200, 0.15) 8%,
+    rgba(245, 225, 26, 0.22) 35%,
+    rgba(138, 164, 200, 0.28) 55%,
+    rgba(245, 225, 26, 0.12) 78%,
+    transparent 100%
+  );
+  box-shadow: 0 0 18px rgba(245, 225, 26, 0.06);
+}
+.fg-rib.r1 { height: 16%; opacity: 0.9; }
+.fg-rib.r2 { height: 7%; opacity: 0.55; transform: translateX(4%); }
+.fg-rib.r3 { height: 12%; opacity: 0.75; }
+.fg-rib.r4 { height: 8%; opacity: 0.45; transform: translateX(-3%); }
+
+.field-ground.kind-slices {
+  display: flex;
+  gap: 3%;
+  align-items: stretch;
+  padding: 4% 0;
+}
+.fg-slice {
+  flex: 1;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(138, 164, 200, 0.12) 20%,
+    rgba(245, 225, 26, 0.18) 48%,
+    rgba(28, 39, 64, 0.35) 72%,
+    transparent 100%
+  );
+  opacity: 0.8;
+}
+.fg-slice.s1, .fg-slice.s4 { opacity: 1; filter: brightness(1.15); }
+.fg-slice.s2 { transform: scaleY(0.85); opacity: 0.55; }
+.fg-slice.s5 { transform: scaleY(1.1); }
+
+.field-ground.kind-hatch {
+  color: var(--steel, #7a8eaa);
+}
+.fg-hatch {
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0.7;
+}
+
+/* Soften far HUD-like debris under left readout */
+.field-landmark.is-soft {
+  opacity: 0.18 !important;
+  filter: blur(0.6px);
+}
+.field-landmark.kind-schematic.is-soft,
+.field-landmark.kind-compass.is-soft {
+  opacity: 0.12 !important;
+}
+
+body[data-theme="paper"] .fg-rib {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(47, 111, 237, 0.12) 20%,
+    rgba(29, 78, 137, 0.22) 50%,
+    rgba(47, 111, 237, 0.1) 80%,
+    transparent
+  );
+}
+body[data-theme="signal"] .fg-rib {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 184, 26, 0.12) 25%,
+    rgba(232, 93, 58, 0.18) 55%,
+    rgba(255, 184, 26, 0.1) 80%,
+    transparent
+  );
+}

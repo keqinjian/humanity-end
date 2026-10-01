@@ -688,6 +688,48 @@
 
     let landmarksMounted = false;
 
+    /* Continuous mid-band ground between landmarks (world-x pinned). */
+    const GROUND_CHUNKS = [
+      { id: "fg-a", frac0: 0.14, frac1: 0.30, factor: 0.42, kind: "ribbons" },
+      { id: "fg-b", frac0: 0.28, frac1: 0.48, factor: 0.58, kind: "slices" },
+      { id: "fg-c", frac0: 0.42, frac1: 0.62, factor: 0.72, kind: "hatch" },
+      { id: "fg-d", frac0: 0.58, frac1: 0.78, factor: 0.82, kind: "ribbons" },
+      { id: "fg-e", frac0: 0.74, frac1: 0.96, factor: 0.92, kind: "slices" },
+    ];
+    let groundMounted = false;
+
+    function buildGroundChunk(spec) {
+      const el = document.createElement("div");
+      el.className = `field-ground kind-${spec.kind}`;
+      el.id = spec.id;
+      el.dataset.factor = String(spec.factor);
+      el.dataset.frac0 = String(spec.frac0);
+      el.dataset.frac1 = String(spec.frac1);
+      if (spec.kind === "ribbons") {
+        el.innerHTML = `<span class="fg-rib r0"></span><span class="fg-rib r1"></span><span class="fg-rib r2"></span><span class="fg-rib r3"></span><span class="fg-rib r4"></span>`;
+      } else if (spec.kind === "slices") {
+        el.innerHTML = `<span class="fg-slice s0"></span><span class="fg-slice s1"></span><span class="fg-slice s2"></span><span class="fg-slice s3"></span><span class="fg-slice s4"></span><span class="fg-slice s5"></span>`;
+      } else {
+        el.innerHTML = `<svg class="fg-hatch" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 60 L400 60" stroke="currentColor" stroke-width="0.6" opacity="0.35"/>
+          <path d="M20 20 L380 20 M40 100 L360 100" stroke="currentColor" stroke-width="0.5" opacity="0.25" stroke-dasharray="6 4"/>
+          <path d="M60 10 L90 110 M140 5 L170 115 M220 8 L250 112 M300 12 L330 108" stroke="currentColor" stroke-width="0.7" opacity="0.3"/>
+          <circle cx="200" cy="60" r="28" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.28"/>
+        </svg>`;
+      }
+      return el;
+    }
+
+    function mountFieldGround() {
+      const host = document.getElementById("field-ground-root");
+      if (!host || groundMounted) return;
+      host.textContent = "";
+      GROUND_CHUNKS.forEach((spec) => host.appendChild(buildGroundChunk(spec)));
+      groundMounted = true;
+    }
+
+
+
     function landmarkWorldX(frac) {
       return edgePad + contentSpan * frac;
     }
@@ -771,6 +813,7 @@
       const field = document.getElementById("field-parallax");
       if (!field) return;
       mountFieldLandmarks();
+      mountFieldGround();
       const max = scrollMax();
       const p = max > 0 ? viewport.scrollLeft / max : 0;
       const sl = viewport.scrollLeft;
@@ -797,7 +840,7 @@
         /* Terminus: pin light curtain flush to right edge */
         if (spec.id === "lm-strips" && atEnd) {
           const w = node.offsetWidth || vw * 0.3;
-          screenX = vw - w - 8;
+          screenX = vw - w - 2;
         }
         node.style.transform = `translate3d(${screenX.toFixed(1)}px, 0, 0)`;
         const visible = screenX > -280 && screenX < vw + 80;
@@ -806,6 +849,24 @@
         node.classList.toggle("is-near", Math.abs(mid - vw * 0.5) < vw * 0.34);
         node.classList.toggle("is-exiting-left", visible && screenX < vw * 0.18);
         node.classList.toggle("is-entering-right", visible && screenX + (node.offsetWidth || 0) > vw * 0.78);
+        /* Soften schematic/compass when under left readout */
+        if (spec.id === "lm-schematic" || spec.id === "lm-compass") {
+          const underReadout = screenX < vw * 0.38;
+          node.classList.toggle("is-soft", underReadout || !visible);
+        }
+      });
+
+      GROUND_CHUNKS.forEach((spec) => {
+        const node = document.getElementById(spec.id);
+        if (!node) return;
+        const x0 = landmarkWorldX(spec.frac0);
+        const x1 = landmarkWorldX(spec.frac1);
+        const screen0 = x0 - sl * spec.factor;
+        const width = Math.max(120, (x1 - x0) * spec.factor);
+        node.style.transform = `translate3d(${screen0.toFixed(1)}px, 0, 0)`;
+        node.style.width = `${width.toFixed(1)}px`;
+        const visible = screen0 + width > -40 && screen0 < vw + 40;
+        node.classList.toggle("is-in-view", visible);
       });
     }
 
@@ -839,6 +900,7 @@
 
     function buildTrack() {
       landmarksMounted = false;
+      groundMounted = false;
       track.textContent = "";
       measureEdgePad();
       track.style.width = `${edgePad + contentSpan + edgePad}px`;
