@@ -3296,3 +3296,226 @@ body[data-theme="signal"] .field-ground.kind-hatch {
 .field-ground.kind-hatch.is-in-view {
   opacity: 0.7;
 }
+
+/* ========== Restore pages + chapter seam ========== */
+.chapter-dossier {
+  --name-col: 8.4rem;
+  /* Leave the seam inside the first viewport when the dossier is short. */
+  min-height: calc(100dvh - 128px) !important;
+  height: auto !important;
+  padding-bottom: 0 !important;
+}
+.dossier-inner {
+  justify-content: flex-start !important;
+  padding-top: 3.2rem !important;
+  padding-bottom: 1.25rem !important;
+}
+.chapter-timeline {
+  margin-top: 0 !important;
+  transform: none !important;
+  padding-top: 0.5rem !important;
+  scroll-margin-top: 3.2rem;
+}
+.chapter-cue {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+.domains-head .sec-hint {
+  display: inline !important;
+}
+.chapter-dossier .domain-row,
+.chapter-dossier .domain-row:nth-child(n),
+.chapter-dossier.is-expanded .domain-row:nth-child(n) {
+  display: block !important;
+  opacity: 1 !important;
+}
+.chapter-dossier .domain-tree {
+  max-height: none !important;
+  overflow: visible !important;
+}
+.chapter-dossier .domain-btn {
+  height: auto !important;
+  min-height: 34px !important;
+  font-size: 0.82rem !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.chapter-dossier .bar-wrap,
+.chapter-dossier .domain-btn .bar-wrap,
+.chapter-dossier .bar,
+.child-row .bar {
+  height: 7px !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+body[data-theme="dark"] {
+  --ice: #162033;
+  --track: rgba(232, 238, 248, 0.16);
+}
+body[data-theme="paper"] {
+  --ice: #e7eef8;
+  --track: #d5deea;
+}
+body[data-theme="signal"] {
+  --ice: #2a2118;
+  --track: rgba(242, 230, 212, 0.16);
+}
+.era-filters {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.45rem !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  padding-bottom: 10px !important;
+}
+.era-chip {
+  pointer-events: auto !important;
+}
+.chapter-scroller[data-blend-zone] .dossier-inner > :not(.blend-veil),
+.chapter-scroller[data-blend-zone] .mast-hero,
+.chapter-scroller[data-blend-zone] .dossier-strip,
+.chapter-scroller[data-blend-zone] .chapter-cue,
+.chapter-scroller[data-blend-zone] .timeline-chrome,
+.chapter-scroller[data-blend-zone] .era-filters,
+.chapter-scroller[data-blend-zone] .section-head,
+.chapter-scroller[data-blend-zone] .track-legend,
+.chapter-scroller[data-blend-zone] .axis-hint,
+.chapter-scroller[data-blend-zone] .axis-readout,
+.chapter-scroller[data-blend-zone] .playhead-year,
+.chapter-scroller[data-blend-zone] .field-axis-label {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.chapter-scroller[data-blend-zone] .axis-stage,
+.chapter-scroller[data-blend-zone="mid"] .axis-node {
+  opacity: 1 !important;
+}
+.chapter-scroller[data-blend-zone] .era-filters,
+.chapter-scroller[data-blend-zone] .chapter-cue,
+.chapter-scroller[data-blend-zone] .domain-btn,
+.theme-switcher,
+.theme-btn {
+  pointer-events: auto !important;
+}
+.morph-layer {
+  overflow: visible;
+  pointer-events: none !important;
+}
+.theme-switcher {
+  z-index: 40;
+}
+
+.page-divider {
+  --div-accent: #f5e11a;
+  --div-bg: #10182a;
+  position: relative;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 22px var(--pad-x) 26px;
+  pointer-events: none;
+  border-top: 1px solid color-mix(in srgb, var(--div-accent) 72%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--div-accent) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--div-accent) 16%, var(--div-bg)), var(--div-bg) 42%, color-mix(in srgb, var(--div-accent) 10%, var(--div-bg)));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--div-accent) 28%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--div-accent) 28%, transparent);
+}
+.page-divider-ornament {
+  display: flex;
+  align-items: center;
+  width: min(920px, 92%);
+  gap: 10px;
+}
+.page-divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--div-accent), transparent);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--div-accent) 38%, transparent);
+}
+.page-divider-diamond {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border: 1px solid var(--div-accent);
+  transform: rotate(45deg);
+}
+.page-divider-plaque {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.4rem 1.15rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--div-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--div-bg) 78%, black);
+  color: var(--ink);
+}
+.page-divider-mark {
+  font-family: var(--serif-num);
+  font-size: 1.2rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--div-accent);
+}
+.page-divider-name {
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+}
+.page-divider-sep {
+  width: 1px;
+  height: 0.95rem;
+  background: var(--div-accent);
+  opacity: 0.8;
+}
+.page-divider--quiet {
+  gap: 8px;
+  padding: 14px var(--pad-x) 12px;
+  background: transparent;
+  border-top: 1px solid color-mix(in srgb, var(--div-accent) 42%, transparent);
+  border-bottom: none;
+  box-shadow: none;
+}
+.page-divider--quiet .page-divider-ornament {
+  width: min(640px, 70%);
+}
+.page-divider--quiet .page-divider-line {
+  box-shadow: none;
+  opacity: 0.7;
+}
+.page-divider--quiet .page-divider-plaque {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+.page-divider--quiet .page-divider-mark {
+  font-size: 1rem;
+}
+body[data-theme="dark"] .page-divider {
+  --div-accent: #f5e11a;
+  --div-bg: #10182a;
+}
+body[data-theme="paper"] .page-divider {
+  --div-accent: #1d4e89;
+  --div-bg: #d5e2f2;
+}
+body[data-theme="paper"] .page-divider-plaque {
+  background: rgba(244, 247, 251, 0.92);
+  color: #102033;
+}
+body[data-theme="paper"] .page-divider-name {
+  color: #16324f;
+}
+body[data-theme="signal"] .page-divider {
+  --div-accent: #ffb81a;
+  --div-bg: #2a1c12;
+}
+body[data-theme="signal"] .page-divider-plaque {
+  background: rgba(15, 12, 10, 0.55);
+}

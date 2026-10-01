@@ -1273,13 +1273,14 @@
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "era-chip";
-      chip.textContent = era === "全部" ? "全部" : (era.length > 4 ? era.slice(0, 2) : era);
+      chip.textContent = era;
+      chip.dataset.era = era;
       chip.title = era;
       chip.setAttribute("aria-pressed", era === active ? "true" : "false");
       chip.addEventListener("click", () => {
         active = era;
         [...box.children].forEach((c) =>
-          c.setAttribute("aria-pressed", c.textContent === active ? "true" : "false")
+          c.setAttribute("aria-pressed", c.dataset.era === active ? "true" : "false")
         );
         onChange(active === "全部" ? null : active);
       });
@@ -1429,36 +1430,33 @@
     }
 
     function update() {
+      const seam = document.getElementById("page-seam");
       const sh = scroller.clientHeight;
-      const dH = dossier.offsetHeight;
-      const start = Math.max(40, dH - sh * 0.92);
-      const end = Math.max(start + 120, dH + sh * 0.08);
-      const y = scroller.scrollTop;
-      let t = (y - start) / (end - start);
-      t = Math.max(0, Math.min(1, t));
-      const e = t * t * (3 - 2 * t);
+      const origin = scroller.getBoundingClientRect().top;
+      let e = 0;
+      if (seam && sh > 0) {
+        const top = seam.getBoundingClientRect().top - origin;
+        const span = Math.max(180, sh * 0.62);
+        let t = (sh * 0.82 - top) / span;
+        t = Math.max(0, Math.min(1, t));
+        e = t * t * (3 - 2 * t);
+      }
       scroller.style.setProperty("--blend", e.toFixed(4));
       let zone = "early";
-      if (e >= 0.18 && e < 0.68) zone = "mid";
-      else if (e >= 0.68) zone = "late";
+      if (e >= 0.2 && e < 0.78) zone = "mid";
+      else if (e >= 0.78) zone = "late";
       scroller.dataset.blendZone = zone;
 
       if (!reduce) updateMorph(e);
       else if (morph) morph.classList.remove("is-active");
 
-      /* Fade dossier chrome without page-slide seam */
-      if (reduce) {
-        dossier.style.transform = "";
-        dossier.style.opacity = "";
-        dossier.style.filter = "";
-        return;
-      }
-      const lift = e * -28;
-      dossier.style.transform = e > 0.05 ? `translate3d(0, ${lift.toFixed(1)}px, 0)` : "";
-      dossier.style.opacity = String(Math.max(0, 1 - e * 1.35));
+      /* Pages stay readable across the seam; morph is decorative only. */
+      dossier.style.transform = "";
+      dossier.style.opacity = "";
       dossier.style.filter = "";
-      dossier.style.pointerEvents = e > 0.45 ? "none" : "";
-      timeline.style.opacity = String(Math.min(1, Math.max(0, (e - 0.55) / 0.35)));
+      dossier.style.pointerEvents = "";
+      timeline.style.opacity = "";
+      timeline.style.pointerEvents = "";
     }
 
     scroller.addEventListener("scroll", update, { passive: true });
@@ -1499,20 +1497,6 @@
 
     renderHero(data, aggregate);
     renderDomains(data.domains || []);
-    (function bindDomainMore() {
-      const tree = document.getElementById("domain-tree");
-      const dossier = document.getElementById("chapter-dossier");
-      if (!tree || !dossier || tree.querySelector(".domain-more")) return;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "domain-more";
-      btn.textContent = "展开其余领域";
-      btn.addEventListener("click", () => {
-        const on = dossier.classList.toggle("is-expanded");
-        btn.textContent = on ? "收起领域" : "展开其余领域";
-      });
-      tree.append(btn);
-    })();
 
     const events = data.events || [];
     const eras = uniqueEras(events);
@@ -1520,6 +1504,17 @@
     renderFilters(eras, (era) => axis.applyFilter(era));
     bindChapterBlend();
     bindThemeSwitcher();
+
+    const cue = document.querySelector(".chapter-cue");
+    if (cue) {
+      cue.addEventListener("click", (ev) => {
+        const target = document.querySelector(cue.getAttribute("href"));
+        if (!target) return;
+        ev.preventDefault();
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      });
+    }
   }
 
   main().catch((err) => {
