@@ -1546,10 +1546,15 @@
     if (cue) {
       cue.addEventListener("click", (ev) => {
         const target = document.querySelector(cue.getAttribute("href"));
-        if (!target) return;
+        const scroller = document.getElementById("chapter-scroller");
+        if (!target || !scroller) return;
         ev.preventDefault();
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+        /* Land on the morning section head, not past it into the sticky stage. */
+        scroller.scrollTo({
+          top: target.offsetTop,
+          behavior: reduceMotion ? "auto" : "smooth",
+        });
       });
     }
   }
