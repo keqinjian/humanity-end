@@ -2503,3 +2503,177 @@ body {
   padding: 6px 0;
 }
 .domain-more:hover { color: var(--warm); }
+
+
+/* ========== ROUND C — true ring→rail morph + chrome ========== */
+.morph-layer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+}
+.morph-layer.is-active { opacity: 1; }
+.morph-glyph { transition: none; }
+
+.era-now {
+  position: fixed;
+  top: 1.2rem;
+  right: 1.6rem;
+  z-index: 22;
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  color: rgba(245, 225, 26, 0.75);
+  pointer-events: none;
+  opacity: 0;
+}
+.chapter-scroller[data-blend-zone="late"] .era-now {
+  opacity: 0.85;
+}
+
+/* Kill gradient seam — continuous dark void during morph */
+.chapter-dossier,
+.chapter-timeline {
+  background: #0b0e16 !important;
+}
+.chapter-scroller[data-blend-zone="mid"] .chapter-dossier,
+.chapter-scroller[data-blend-zone="mid"] .chapter-timeline {
+  background: #0b0e16 !important;
+}
+.chapter-timeline {
+  margin-top: -8vh !important;
+  padding-top: 0 !important;
+  box-shadow: none !important;
+}
+.blend-veil { display: none !important; }
+.transition-motif, .morph-rails { display: none !important; }
+
+/* Mid: disassemble pages — hide identifiable chrome */
+.chapter-scroller[data-blend-zone="mid"] .dossier-inner > :not(.blend-veil),
+.chapter-scroller[data-blend-zone="mid"] .mast-hero,
+.chapter-scroller[data-blend-zone="mid"] .dossier-strip,
+.chapter-scroller[data-blend-zone="mid"] .chapter-cue {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.chapter-scroller[data-blend-zone="mid"] .timeline-chrome,
+.chapter-scroller[data-blend-zone="mid"] .era-filters,
+.chapter-scroller[data-blend-zone="mid"] .section-head,
+.chapter-scroller[data-blend-zone="mid"] .track-legend,
+.chapter-scroller[data-blend-zone="mid"] .axis-hint,
+.chapter-scroller[data-blend-zone="mid"] .axis-readout,
+.chapter-scroller[data-blend-zone="mid"] .playhead-year,
+.chapter-scroller[data-blend-zone="mid"] .field-axis-label {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.chapter-scroller[data-blend-zone="mid"] .axis-stage {
+  opacity: 0.25;
+}
+.chapter-scroller[data-blend-zone="mid"] .axis-node {
+  opacity: 0.15 !important;
+}
+
+/* Cue: caption + yellow underline, no box */
+.chapter-cue {
+  border: none !important;
+  background: transparent !important;
+  padding: 0.4rem 0 0.55rem !important;
+  color: rgba(232,238,248,0.55) !important;
+  letter-spacing: 0.28em !important;
+  font-size: 0.68rem !important;
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 0.35rem;
+}
+.chapter-cue::after { content: none !important; }
+.cue-mark {
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: #f5e11a;
+  position: relative;
+}
+.cue-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #f5e11a;
+  transform: translateX(-50%);
+}
+.chapter-cue:hover { color: #f5e11a !important; background: transparent !important; }
+
+/* Era pills hidden — era-now replaces */
+.era-filters {
+  display: none !important;
+}
+
+/* Domains: 3 visible, thinner bars */
+.chapter-dossier .domain-row:nth-child(n+4) {
+  display: none !important;
+}
+.chapter-dossier.is-expanded .domain-row:nth-child(n+4) {
+  display: block !important;
+}
+.chapter-dossier .bar-wrap { height: 3px !important; }
+.chapter-dossier .domain-btn { height: 24px !important; font-size: 0.72rem !important; }
+
+/* Diamonds: gray default; yellow only selected/near on active track */
+.axis-node .axis-node-mark {
+  border-color: rgba(168,180,200,0.35) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.axis-node.impact-high .axis-node-mark {
+  background: transparent !important;
+  border-color: rgba(168,180,200,0.45) !important;
+  box-shadow: none !important;
+}
+.axis-node.is-selected .axis-node-mark,
+.axis-node.is-near-focus .axis-node-mark {
+  border-color: #f5e11a !important;
+  background: #f5e11a !important;
+  box-shadow: 0 0 0 4px rgba(245,225,26,0.12) !important;
+}
+.axis-node.track-active-dim .axis-node-mark {
+  border-color: rgba(245,225,26,0.35) !important;
+}
+
+/* Sora big frame */
+.story-panel.is-hero.layout-film {
+  width: min(64vw, 920px) !important;
+  height: min(36vw, 420px) !important; /* ~16:9 of width */
+  max-height: 46vh !important;
+}
+.axis-readout.layout-a {
+  max-width: min(22rem, 26vw) !important;
+  bottom: 14% !important;
+  font-size: 0.92em;
+}
+.axis-readout.layout-a .readout-title {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem) !important;
+}
+.axis-readout.layout-a .readout-blurb {
+  font-size: 0.78rem !important;
+  -webkit-line-clamp: 3 !important;
+}
+
+/* AlphaGo board larger via panel */
+.story-panel.is-hero.layout-break {
+  width: min(58vw, 760px) !important;
+  height: min(55vh, 500px) !important;
+}
+
+.field-axis-label { display: none !important; }
+.timeline-chrome .section-head { opacity: 0.35; }
+.timeline-chrome .sec-hint { display: none; }

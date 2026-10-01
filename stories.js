@@ -292,33 +292,36 @@
   }
 
   function hiAlphaGo(evt) {
-    /* Board as scene subject (~40% center-right); move pins as旁注 */
-    const boardBg = el("rect", { x: 280, y: 90, width: 280, height: 280, fill: "#1a2233", stroke: "rgba(232,238,248,0.2)", "stroke-width": 1 });
+    /* Larger board (~center-right 45%+); pins as旁注; year stays in type area only */
+    const boardBg = el("rect", { x: 248, y: 70, width: 340, height: 340, fill: "#1a2233", stroke: "rgba(232,238,248,0.22)", "stroke-width": 1 });
     const lines = [];
-    for (let i = 0; i < 13; i++) {
-      lines.push(el("line", { x1: 295, y1: 105 + i * 20, x2: 545, y2: 105 + i * 20, stroke: "rgba(232,238,248,0.12)", "stroke-width": 1 }));
-      lines.push(el("line", { x1: 295 + i * 20, y1: 105, x2: 295 + i * 20, y2: 355, stroke: "rgba(232,238,248,0.12)", "stroke-width": 1 }));
+    for (let i = 0; i < 15; i++) {
+      lines.push(el("line", { x1: 268, y1: 90 + i * 21.5, x2: 568, y2: 90 + i * 21.5, stroke: "rgba(232,238,248,0.12)", "stroke-width": 1 }));
+      lines.push(el("line", { x1: 268 + i * 21.5, y1: 90, x2: 268 + i * 21.5, y2: 390, stroke: "rgba(232,238,248,0.12)", "stroke-width": 1 }));
     }
-    const heat = el("circle", { cx: 415, cy: 225, r: 36, fill: "rgba(245,225,26,0.18)" });
-    const black = el("circle", { cx: 415, cy: 225, r: 11, fill: "#0b0e16", stroke: "#f5e11a", "stroke-width": 1.2 });
-    const white = el("circle", { cx: 435, cy: 245, r: 10, fill: "#e8eef8", opacity: 0.9 });
-    const pin = el("line", { x1: 415, y1: 225, x2: 200, y2: 160, stroke: "rgba(245,225,26,0.45)", "stroke-width": 1 });
-    const pinLab = el("text", { x: 80, y: 155, fill: "rgba(232,238,248,0.7)", "font-size": 13,
+    const heat = el("circle", { cx: 418, cy: 230, r: 44, fill: "rgba(245,225,26,0.16)" });
+    const black = el("circle", { cx: 418, cy: 230, r: 13, fill: "#0b0e16", stroke: "#f5e11a", "stroke-width": 1.3 });
+    const white = el("circle", { cx: 440, cy: 252, r: 12, fill: "#e8eef8", opacity: 0.92 });
+    const pin = el("line", { x1: 418, y1: 230, x2: 170, y2: 150, stroke: "rgba(245,225,26,0.45)", "stroke-width": 1 });
+    const pinLab = el("text", { x: 48, y: 145, fill: "rgba(232,238,248,0.75)", "font-size": 13,
       "font-family": "Noto Sans SC,sans-serif" }, ["第37手 · 神之一手"]);
-    const pin2 = el("line", { x1: 435, y1: 245, x2: 200, y2: 210, stroke: "rgba(232,238,248,0.25)", "stroke-width": 1 });
-    const pinLab2 = el("text", { x: 80, y: 205, fill: "rgba(168,180,200,0.7)", "font-size": 12 }, ["李世石 · 白"]);
+    const pin2 = el("line", { x1: 440, y1: 252, x2: 170, y2: 200, stroke: "rgba(232,238,248,0.25)", "stroke-width": 1 });
+    const pinLab2 = el("text", { x: 48, y: 195, fill: "rgba(168,180,200,0.7)", "font-size": 12 }, ["李世石 · 白"]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
       [boardBg, ...lines, heat, black, white, pin, pinLab, pin2, pinLab2]);
     function apply(p) {
       const e = easeOut(clamp01(p));
-      setTransform(boardBg, `translate(${(1 - e) * 40} 0) scale(${0.75 + 0.25 * e})`);
-      setTransform(heat, `scale(${0.3 + e * 1.2})`);
+      setTransform(boardBg, `translate(${(1 - e) * 36} 0) scale(${0.78 + 0.22 * e})`);
+      [...lines, heat, black, white].forEach((n, i) => {
+        /* board group motion via shared translate on boardBg only — stones follow visually via opacity */
+      });
+      setTransform(heat, `scale(${0.35 + e * 1.15})`);
       heat.setAttribute("opacity", String(0.1 + e * 0.35));
-      setTransform(black, `translate(0 ${(1 - e) * -20})`);
+      setTransform(black, `translate(0 ${(1 - e) * -16})`);
       pin.setAttribute("opacity", String(e));
       pinLab.setAttribute("opacity", String(e));
-      pin2.setAttribute("opacity", String(clamp01((e - 0.3) / 0.5)));
-      pinLab2.setAttribute("opacity", String(clamp01((e - 0.3) / 0.5)));
+      pin2.setAttribute("opacity", String(clamp01((e - 0.25) / 0.5)));
+      pinLab2.setAttribute("opacity", String(clamp01((e - 0.25) / 0.5)));
     }
     return { svg, apply, layout: "break" };
   }
@@ -684,48 +687,78 @@
   }
 
   function hiSoraPub(evt) {
-    /* Wide 2.39 film still — light sweep + sprocket, no Polaroid stack */
-    const frame = el("rect", { x: 40, y: 140, width: 560, height: 234, fill: "#0a0d14", stroke: "rgba(245,225,26,0.25)", "stroke-width": 1 });
-    const sweep = el("path", {
-      d: "M60 280 C180 160, 260 320, 340 200 S480 140, 580 250",
-      fill: "none", stroke: "#f5e11a", "stroke-width": 3.2, "stroke-linecap": "round", opacity: 0.85
+    /* Wide 2.39 cinema frame — picture content dominates; waveform overlay only */
+    const W = 640, H = 480;
+    const fx = 28, fy = 108, fw = 584, fh = 246; /* ~2.37 aspect inside viewBox */
+    const matte = el("rect", { x: 0, y: 0, width: W, height: H, fill: "transparent" });
+    const frame = el("rect", { x: fx, y: fy, width: fw, height: fh, fill: "#070a10", stroke: "rgba(245,225,26,0.28)", "stroke-width": 1.2 });
+    /* Soft depth bands (actual picture) */
+    const bandG = el("g", {});
+    const bands = [
+      { y: 0.08, h: 0.22, c: "#1a2840" },
+      { y: 0.28, h: 0.18, c: "#243554" },
+      { y: 0.42, h: 0.2, c: "#152238" },
+      { y: 0.55, h: 0.28, c: "#0e1828" },
+      { y: 0.72, h: 0.2, c: "#1e2f4a" }
+    ];
+    bands.forEach((b) => {
+      bandG.appendChild(el("rect", {
+        x: fx + 4, y: fy + fh * b.y, width: fw - 8, height: fh * b.h,
+        fill: b.c, opacity: 0.95
+      }));
     });
-    const sweep2 = el("path", {
-      d: "M80 220 C200 300, 300 120, 420 260 S540 200, 590 230",
-      fill: "none", stroke: "rgba(232,238,248,0.35)", "stroke-width": 1.6
+    /* Horizontal light sweep — soft luminous slab */
+    const sweepGlow = el("ellipse", {
+      cx: fx + fw * 0.45, cy: fy + fh * 0.42, rx: fw * 0.38, ry: fh * 0.18,
+      fill: "rgba(245,225,26,0.14)"
     });
-    const strips = [];
-    for (let i = 0; i < 7; i++) {
-      strips.push(el("rect", {
-        x: 70 + i * 72, y: 155, width: 2, height: 200,
-        fill: "rgba(232,238,248,0.08)"
+    const sweepCore = el("rect", {
+      x: fx + 8, y: fy + fh * 0.38, width: fw - 16, height: fh * 0.12,
+      fill: "url(#soraGrad)", opacity: 0.85
+    });
+    const defs = el("defs", {}, [
+      el("linearGradient", { id: "soraGrad", x1: "0", y1: "0", x2: "1", y2: "0" }, [
+        el("stop", { offset: "0%", "stop-color": "#1c2740", "stop-opacity": "0.2" }),
+        el("stop", { offset: "45%", "stop-color": "#f5e11a", "stop-opacity": "0.55" }),
+        el("stop", { offset: "100%", "stop-color": "#8aa4c8", "stop-opacity": "0.15" })
+      ])
+    ]);
+    /* Sliced color strips */
+    const slices = el("g", {});
+    for (let i = 0; i < 5; i++) {
+      slices.appendChild(el("rect", {
+        x: fx + fw * (0.12 + i * 0.15), y: fy + 6, width: fw * 0.02, height: fh - 12,
+        fill: i % 2 ? "rgba(245,225,26,0.08)" : "rgba(232,238,248,0.06)"
       }));
     }
+    /* Waveform overlay (secondary) */
+    const wave = el("path", {
+      d: "M80 240 C140 210, 180 270, 240 230 S340 200, 400 245 S520 220, 580 250",
+      fill: "none", stroke: "rgba(245,225,26,0.55)", "stroke-width": 1.6, opacity: 0.7
+    });
     const sprockets = [];
-    for (let i = 0; i < 9; i++) {
-      sprockets.push(el("rect", { x: 48, y: 150 + i * 24, width: 10, height: 12, rx: 1, fill: "rgba(232,238,248,0.2)" }));
-      sprockets.push(el("rect", { x: 582, y: 150 + i * 24, width: 10, height: 12, rx: 1, fill: "rgba(232,238,248,0.2)" }));
+    for (let i = 0; i < 10; i++) {
+      sprockets.push(el("rect", { x: fx + 3, y: fy + 10 + i * 22, width: 8, height: 10, rx: 1, fill: "rgba(232,238,248,0.18)" }));
+      sprockets.push(el("rect", { x: fx + fw - 11, y: fy + 10 + i * 22, width: 8, height: 10, rx: 1, fill: "rgba(232,238,248,0.18)" }));
     }
-    const leader = el("line", { x1: 520, y1: 170, x2: 600, y2: 110, stroke: "rgba(245,225,26,0.5)", "stroke-width": 1 });
-    const lab = el("text", { x: 608, y: 105, fill: "rgba(232,238,248,0.55)", "font-size": 11,
-      "font-family": "Noto Sans SC,sans-serif", "letter-spacing": "0.12em" }, ["VIDEO"]);
-    const title = el("text", { x: 70, y: 400, fill: "rgba(232,238,248,0.45)", "font-size": 12,
-      "letter-spacing": "0.2em" }, ["SORA · PUBLIC FRAME"]);
+    const leader = el("line", { x1: fx + fw - 36, y1: fy + 22, x2: fx + fw + 18, y2: fy - 28, stroke: "rgba(245,225,26,0.55)", "stroke-width": 1 });
+    const lab = el("text", { x: fx + fw + 22, y: fy - 32, fill: "rgba(232,238,248,0.55)", "font-size": 11,
+      "font-family": "Noto Sans SC,sans-serif", "letter-spacing": "0.16em" }, ["VIDEO"]);
     const svg = el("svg", { viewBox: "0 0 640 480", class: "story-svg" },
-      [frame, ...strips, sweep2, sweep, ...sprockets, leader, lab, title]);
+      [defs, matte, frame, bandG, sweepGlow, sweepCore, slices, wave, ...sprockets, leader, lab]);
     function apply(p) {
       const e = easeInOut(clamp01(p));
-      sweep.setAttribute("stroke-dasharray", "900");
-      sweep.setAttribute("stroke-dashoffset", String((1 - e) * 900));
-      sweep2.setAttribute("stroke-dasharray", "700");
-      sweep2.setAttribute("stroke-dashoffset", String((1 - e) * 700));
-      setTransform(frame, `scale(${0.88 + 0.12 * e})`);
+      sweepCore.setAttribute("width", String((fw - 16) * (0.25 + 0.75 * e)));
+      sweepGlow.setAttribute("rx", String(fw * (0.15 + 0.28 * e)));
+      wave.setAttribute("stroke-dasharray", "600");
+      wave.setAttribute("stroke-dashoffset", String((1 - e) * 600));
+      wave.setAttribute("opacity", String(0.25 + e * 0.5));
+      setTransform(frame, `scale(${0.92 + 0.08 * e})`);
       leader.setAttribute("opacity", String(e));
       lab.setAttribute("opacity", String(e));
-      strips.forEach((s, i) => {
-        s.setAttribute("opacity", String(0.04 + e * (0.08 + (i % 3) * 0.03)));
-        s.setAttribute("height", String(120 + e * 80));
-        s.setAttribute("y", String(155 + (1 - e) * 40));
+      [...bandG.children].forEach((b, i) => {
+        b.setAttribute("opacity", String(0.4 + e * 0.55));
+        setTransform(b, `translate(${(1 - e) * (i - 2) * 6} 0)`);
       });
     }
     return { svg, apply, layout: "film" };

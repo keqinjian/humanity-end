@@ -14,6 +14,16 @@
   <a class="skip" href="#chapter-dossier">跳到领域血条</a>
 
   <main class="chapter-scroller" id="chapter-scroller">
+    <!-- Shared morph: gauge ring → middle rail; years scatter into ticks -->
+    <svg class="morph-layer" id="morph-layer" aria-hidden="true" viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <path id="morph-arc" fill="none" stroke="#f5e11a" stroke-width="2.4" stroke-linecap="round"></path>
+      <line id="morph-rail" x1="120" y1="480" x2="120" y2="480" stroke="#f5e11a" stroke-width="1.6" opacity="0"></line>
+      <g id="morph-ticks"></g>
+      <text id="morph-y0" class="morph-glyph" fill="rgba(232,238,248,0.45)" font-family="Instrument Serif, serif" font-size="42" text-anchor="middle">1946</text>
+      <text id="morph-y1" class="morph-glyph" fill="rgba(245,225,26,0.4)" font-family="Instrument Serif, serif" font-size="42" text-anchor="middle">2026</text>
+      <text id="morph-pct" fill="rgba(232,238,248,0.35)" font-family="Instrument Serif, serif" font-size="28" text-anchor="middle">36%</text>
+    </svg>
+    <p class="era-now" id="era-now" aria-live="polite"></p>
     <!-- PAGE 1: dossier / domain HP -->
     <section class="chapter chapter-dossier" id="chapter-dossier" aria-label="领域血条">
       <div class="dossier-inner page">
@@ -54,15 +64,8 @@
           </section>
         </header>
 
-        <a class="chapter-cue" href="#chapter-timeline">继续下探时间线</a>
+        <a class="chapter-cue" href="#chapter-timeline"><span class="cue-cap">继续下探</span><span class="cue-mark" aria-hidden="true"></span></a>
         <div class="blend-veil" aria-hidden="true"></div>
-        <div class="morph-rails" aria-hidden="true"><span></span><span></span><span></span></div>
-        <div class="transition-motif" aria-hidden="true">
-          <span class="tm-year" id="tm-year">1946</span>
-          <span class="tm-rule"></span>
-          <span class="tm-label">档案 → 编年</span>
-          <span class="tm-year tm-year-b" id="tm-year-b">2026</span>
-        </div>
       </div>
     </section>
 

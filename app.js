@@ -480,6 +480,8 @@
       const impact = evt.impact === "high" || evt.impact === "low" ? evt.impact : "mid";
       const impactLabel = { high: "高影响", mid: "中影响", low: "低影响" }[impact];
       elMeta.textContent = `${formatISO(evt.date)} · ${evt.era} · ${trackMeta(trackOf(evt)).name} · ${impactLabel}`;
+      const eraNowEl = document.getElementById("era-now");
+      if (eraNowEl) eraNowEl.textContent = evt.era || "";
       elTitle.textContent = evt.title;
       elBlurb.textContent = evt.blurb || "";
       elTags.textContent = "";
@@ -528,12 +530,17 @@
         return;
       }
       selectedIndex = index;
+      const selTrack = trackOf(events[selectedIndex]);
       nodes.forEach((btn, i) => {
         const on = i === selectedIndex;
         btn.classList.toggle("is-selected", on);
         btn.setAttribute("aria-current", on ? "true" : "false");
         const dim = filterEra && events[i].era !== filterEra;
         btn.classList.toggle("is-dim", !!dim);
+        const same = trackOf(events[i]) === selTrack;
+        const near = Math.abs(i - selectedIndex) <= 2 && same;
+        btn.classList.toggle("is-near-focus", near && !on);
+        btn.classList.toggle("track-active-dim", same && !on && !near);
       });
       if (fromSync) {
         applyMotif(events[selectedIndex]);
@@ -1025,58 +1032,150 @@
   }
 
 
-  /** Continuous vertical blend: dossier → timeline (no snap; mid-rest OK). */
+  /** Continuous vertical blend + true ring→rail morph. */
   function bindChapterBlend() {
     const scroller = $("#chapter-scroller");
     const dossier = $("#chapter-dossier");
     const timeline = $("#chapter-timeline");
+    const morph = document.getElementById("morph-layer");
+    const arc = document.getElementById("morph-arc");
+    const rail = document.getElementById("morph-rail");
+    const ticks = document.getElementById("morph-ticks");
+    const gy0 = document.getElementById("morph-y0");
+    const gy1 = document.getElementById("morph-y1");
+    const gpct = document.getElementById("morph-pct");
+    const eraNow = document.getElementById("era-now");
     if (!scroller || !dossier || !timeline) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const bars = () => [...dossier.querySelectorAll(".domain-btn, .domain-row, .domain-leaf, .domain-item")];
-    /* Prefer actual domain buttons */
-    function domainEls() {
-      const a = [...dossier.querySelectorAll("#domain-tree button")];
-      return a.length ? a : [...dossier.querySelectorAll("#domain-tree > *")];
+    function polar(cx, cy, r, deg) {
+      const a = ((deg - 90) * Math.PI) / 180;
+      return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    }
+
+    /** Arc path from startDeg to endDeg (CSS-like, 0=top). */
+    function arcPath(cx, cy, r, a0, a1) {
+      const large = Math.abs(a1 - a0) > 180 ? 1 : 0;
+      const [x0, y0] = polar(cx, cy, r, a0);
+      const [x1, y1] = polar(cx, cy, r, a1);
+      const sweep = a1 >= a0 ? 1 : 0;
+      return `M ${x0} ${y0} A ${r} ${r} 0 ${large} ${sweep} ${x1} ${y1}`;
+    }
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    function updateMorph(e) {
+      if (!morph || !arc || !rail) return;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      morph.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      morph.classList.toggle("is-active", e > 0.04 && e < 0.92);
+
+      /* Source: gauge ring area (left-ish on page1). Target: middle rail across stage. */
+      const sx = w * 0.18;
+      const sy = h * 0.58;
+      const sr = Math.min(72, w * 0.055);
+      const tx0 = w * 0.08;
+      const tx1 = w * 0.92;
+      const ty = h * 0.52;
+
+      /* e: 0 ring intact → 0.5 half-open + rail stub → 1 full rail, ring gone */
+      const open = Math.min(1, e / 0.55);
+      const flatten = Math.max(0, (e - 0.25) / 0.55);
+      const railT = Math.max(0, (e - 0.2) / 0.65);
+
+      /* Incomplete arc: start at -90+gap, sweep shrinks then endpoints drift to horizontal */
+      const gap = lerp(20, 140, open); /* missing segment grows */
+      const a0 = -180 + gap * 0.5;
+      const a1 = 180 - gap * 0.5;
+      const cx = lerp(sx, (tx0 + tx1) / 2, flatten * 0.35);
+      const cy = lerp(sy, ty, flatten);
+      const rr = lerp(sr, lerp(sr, 8, flatten), open);
+      /* When flattening hard, morph arc into nearly-horizontal curve then hand off to rail */
+      if (flatten < 0.85) {
+        arc.setAttribute("d", arcPath(cx, cy, Math.max(8, rr), a0, a1));
+        arc.setAttribute("opacity", String(1 - flatten * 0.85));
+        arc.setAttribute("stroke-width", String(lerp(2.6, 1.4, flatten)));
+      } else {
+        arc.setAttribute("d", `M ${lerp(cx - rr, tx0, (flatten - 0.85) / 0.15)} ${ty} L ${lerp(cx + rr, tx1 * 0.4, (flatten - 0.85) / 0.15)} ${ty}`);
+        arc.setAttribute("opacity", String(Math.max(0, 1 - (flatten - 0.85) / 0.15)));
+      }
+
+      const railLen = (tx1 - tx0) * railT;
+      rail.setAttribute("x1", String(tx0));
+      rail.setAttribute("y1", String(ty));
+      rail.setAttribute("x2", String(tx0 + railLen));
+      rail.setAttribute("y2", String(ty));
+      rail.setAttribute("opacity", String(Math.min(1, railT * 1.2) * (e < 0.9 ? 1 : 1 - (e - 0.9) / 0.1)));
+
+      /* Year glyphs scatter → tick positions */
+      if (gy0 && gy1) {
+        const scatter = Math.max(0, (e - 0.15) / 0.5);
+        gy0.setAttribute("x", String(lerp(sx - 90, tx0 + 40, scatter)));
+        gy0.setAttribute("y", String(lerp(sy - 10, ty - 18, scatter)));
+        gy0.setAttribute("opacity", String(Math.max(0, 0.55 - scatter * 0.35) * (e < 0.75 ? 1 : Math.max(0, 1 - (e - 0.75) / 0.2))));
+        gy0.setAttribute("font-size", String(lerp(42, 14, scatter)));
+        gy1.setAttribute("x", String(lerp(sx + 110, tx1 - 40, scatter)));
+        gy1.setAttribute("y", String(lerp(sy - 10, ty - 18, scatter)));
+        gy1.setAttribute("opacity", String(Math.max(0, 0.5 - scatter * 0.3) * (e < 0.75 ? 1 : Math.max(0, 1 - (e - 0.75) / 0.2))));
+        gy1.setAttribute("font-size", String(lerp(42, 14, scatter)));
+      }
+      if (gpct) {
+        gpct.setAttribute("x", String(cx));
+        gpct.setAttribute("y", String(cy + 8));
+        gpct.setAttribute("opacity", String(Math.max(0, 0.4 * (1 - open * 1.2))));
+      }
+
+      if (ticks) {
+        ticks.textContent = "";
+        const nTicks = Math.floor(lerp(0, 9, Math.max(0, (e - 0.35) / 0.45)));
+        for (let i = 0; i < nTicks; i++) {
+          const u = (i + 1) / (nTicks + 1);
+          const x = tx0 + (tx0 + railLen - tx0) * u;
+          if (x > tx0 + railLen) break;
+          const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          ln.setAttribute("x1", String(x));
+          ln.setAttribute("x2", String(x));
+          ln.setAttribute("y1", String(ty - 7));
+          ln.setAttribute("y2", String(ty + 7));
+          ln.setAttribute("stroke", "rgba(245,225,26,0.55)");
+          ln.setAttribute("stroke-width", "1.2");
+          ticks.appendChild(ln);
+        }
+      }
     }
 
     function update() {
       const sh = scroller.clientHeight;
       const dH = dossier.offsetHeight;
-      /* Start blend only after ~70% of first screen — keep landing clean. */
-      const start = Math.max(40, dH - sh * 0.95);
-      const end = Math.max(start + 80, dH + sh * 0.05);
+      const start = Math.max(40, dH - sh * 0.92);
+      const end = Math.max(start + 120, dH + sh * 0.08);
       const y = scroller.scrollTop;
       let t = (y - start) / (end - start);
       t = Math.max(0, Math.min(1, t));
       const e = t * t * (3 - 2 * t);
-      const e2 = 1 - Math.pow(1 - t, 2.6);
       scroller.style.setProperty("--blend", e.toFixed(4));
       let zone = "early";
-      if (e >= 0.22 && e < 0.62) zone = "mid";
-      else if (e >= 0.62) zone = "late";
+      if (e >= 0.18 && e < 0.68) zone = "mid";
+      else if (e >= 0.68) zone = "late";
       scroller.dataset.blendZone = zone;
-      const tm = document.getElementById("tm-year");
-      const tmb = document.getElementById("tm-year-b");
-      if (tm) tm.style.transform = `translate3d(${(-40 + e * 80).toFixed(1)}px, ${(-e * 30).toFixed(1)}px, 0)`;
-      if (tmb) tmb.style.transform = `translate3d(${(40 - e * 80).toFixed(1)}px, ${(e * 20).toFixed(1)}px, 0)`;
-      scroller.style.setProperty("--blend-glow", (e * 0.9).toFixed(3));
-      domainEls().forEach((el, i) => {
-        el.style.setProperty("--bar-shift", `${(i - 4) * 10}px`);
-      });
+
+      if (!reduce) updateMorph(e);
+      else if (morph) morph.classList.remove("is-active");
+
+      /* Fade dossier chrome without page-slide seam */
       if (reduce) {
         dossier.style.transform = "";
         dossier.style.opacity = "";
         dossier.style.filter = "";
         return;
       }
-      const lift = e2 * -56;
-      const scale = 1 - e * 0.045;
-      dossier.style.transform =
-        `translate3d(0, ${lift.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
-      dossier.style.opacity = String(1 - e * 0.42);
-      dossier.style.filter = e > 0.08 ? `blur(${(e * 1.6).toFixed(2)}px)` : "";
-      dossier.style.pointerEvents = e > 0.78 ? "none" : "";
+      const lift = e * -28;
+      dossier.style.transform = e > 0.05 ? `translate3d(0, ${lift.toFixed(1)}px, 0)` : "";
+      dossier.style.opacity = String(Math.max(0, 1 - e * 1.35));
+      dossier.style.filter = "";
+      dossier.style.pointerEvents = e > 0.45 ? "none" : "";
+      timeline.style.opacity = String(Math.min(1, Math.max(0, (e - 0.55) / 0.35)));
     }
 
     scroller.addEventListener("scroll", update, { passive: true });
