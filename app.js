@@ -869,7 +869,8 @@
         const x0 = landmarkWorldX(spec.frac0);
         const x1 = landmarkWorldX(spec.frac1);
         const screen0 = x0 - sl * spec.factor;
-        const width = Math.max(120, (x1 - x0) * spec.factor);
+        /* Same factor on both ends ⇒ screen width equals world span */
+        const width = Math.max(160, x1 - x0);
         node.style.transform = `translate3d(${screen0.toFixed(1)}px, 0, 0)`;
         node.style.width = `${width.toFixed(1)}px`;
         const visible = screen0 + width > -40 && screen0 < vw + 40;
