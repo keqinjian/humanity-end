@@ -1412,21 +1412,21 @@
       const dist = centerX - x;
       const signed = Math.max(-1, Math.min(1, dist / half));
       let p = reduceMotion ? (Math.abs(signed) < 0.45 ? 1 : 0) : clamp01(1 - Math.abs(signed));
-      /* Nonlinear focus: sharpen peak so one hero dominates. */
-      p = p * p * (3 - 2 * p);
+      /* Wide falloff: nearby stills stay in the field together. */
+      p = Math.pow(clamp01(p), 0.62);
       if (p > bestP) { bestP = p; best = i; }
       return { panel, i, p, signed, half };
     });
     scored.forEach(({ panel, i, p, signed }) => {
       if (typeof panel.__apply === "function") panel.__apply(p, signed);
-      const isHero = i === best && p > 0.35;
+      const isHero = i === best && p > 0.58;
       panel.classList.toggle("is-hero", isHero);
-      panel.classList.toggle("is-near", i !== best && p > 0.18);
+      panel.classList.toggle("is-near", !isHero && p > 0.32);
       if (isHero && panel.__layout) {
         panel.classList.add("layout-" + panel.__layout);
       }
-      const sc = 0.72 + p * 0.34;
-      const lift = (1 - p) * 18;
+      const sc = 0.92 + p * 0.08;
+      const lift = (1 - p) * 10;
       panel.style.transform = `translate(-50%, calc(-50% + ${lift.toFixed(1)}px)) scale(${sc.toFixed(3)})`;
       panel.style.opacity = ""; /* CSS classes drive opacity */
       panel.style.zIndex = String(i === best ? 8 : Math.round(p * 5));

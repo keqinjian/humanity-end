@@ -588,6 +588,7 @@
           settleAnim = null;
           syncLock = false;
           focusStories();
+          syncFromScroll();
         }
       };
       settleAnim = requestAnimationFrame(step);
@@ -712,18 +713,16 @@
         el.innerHTML = `<span class="fg-slice s0"></span><i class="fg-gap"></i><span class="fg-slice s1"></span><i class="fg-gap"></i><span class="fg-slice s2"></span><i class="fg-gap"></i><span class="fg-slice s3"></span><i class="fg-gap"></i><span class="fg-slice s4"></span><i class="fg-gap"></i><span class="fg-slice s5"></span>`;
       } else {
         el.innerHTML = `<svg class="fg-hatch" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
-          <rect x="0" y="0" width="400" height="120" fill="rgba(11,14,22,0.88)"/>
-          <line x1="0" y1="14" x2="400" y2="14" stroke="#e8eef8" stroke-width="2.2"/>
-          <line x1="0" y1="36" x2="400" y2="36" stroke="#a8b4c8" stroke-width="1.8"/>
-          <line x1="0" y1="60" x2="400" y2="60" stroke="#f5e11a" stroke-width="2.4"/>
-          <line x1="0" y1="84" x2="400" y2="84" stroke="#a8b4c8" stroke-width="1.8"/>
-          <line x1="0" y1="106" x2="400" y2="106" stroke="#e8eef8" stroke-width="2.2"/>
-          <line x1="40" y1="0" x2="70" y2="120" stroke="#e8eef8" stroke-width="2"/>
-          <line x1="110" y1="0" x2="140" y2="120" stroke="#c5d0e0" stroke-width="2"/>
-          <line x1="190" y1="0" x2="220" y2="120" stroke="#f5e11a" stroke-width="2.2"/>
-          <line x1="270" y1="0" x2="300" y2="120" stroke="#c5d0e0" stroke-width="2"/>
-          <line x1="340" y1="0" x2="370" y2="120" stroke="#e8eef8" stroke-width="2"/>
-          <rect x="2" y="2" width="396" height="116" fill="none" stroke="#8aa4c8" stroke-width="1.6"/>
+          <line x1="0" y1="14" x2="400" y2="14" stroke="currentColor" stroke-width="1.3" opacity="0.55"/>
+          <line x1="0" y1="36" x2="400" y2="36" stroke="currentColor" stroke-width="1.1" opacity="0.4"/>
+          <line x1="0" y1="60" x2="400" y2="60" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+          <line x1="0" y1="84" x2="400" y2="84" stroke="currentColor" stroke-width="1.1" opacity="0.4"/>
+          <line x1="0" y1="106" x2="400" y2="106" stroke="currentColor" stroke-width="1.3" opacity="0.55"/>
+          <line x1="40" y1="0" x2="70" y2="120" stroke="currentColor" stroke-width="1.1" opacity="0.45"/>
+          <line x1="110" y1="0" x2="140" y2="120" stroke="currentColor" stroke-width="1.1" opacity="0.35"/>
+          <line x1="190" y1="0" x2="220" y2="120" stroke="currentColor" stroke-width="1.3" opacity="0.6"/>
+          <line x1="270" y1="0" x2="300" y2="120" stroke="currentColor" stroke-width="1.1" opacity="0.35"/>
+          <line x1="340" y1="0" x2="370" y2="120" stroke="currentColor" stroke-width="1.1" opacity="0.45"/>
         </svg>`;
       }
       return el;
@@ -827,15 +826,34 @@
       const p = max > 0 ? viewport.scrollLeft / max : 0;
       const sl = viewport.scrollLeft;
       stage.style.setProperty("--field-p", p.toFixed(4));
+      /* Whole-field wash follows the playhead era, not a single node's plate. */
+      const ERA_HUE = {
+        "奠基": 208,
+        "专用智能": 164,
+        "深度学习": 262,
+        "Transformer": 196,
+        "生成爆发": 28,
+        "推理与代理": 46,
+        "2025 浪潮": 14,
+        "2026 临界": 348,
+      };
+      const nearEvt = events[nearestIndexAtCenter()] || null;
+      const hue = ERA_HUE[nearEvt && nearEvt.era] ?? 210;
+      stage.style.setProperty("--era-hue", String(hue));
+      field.dataset.era = nearEvt && nearEvt.era ? nearEvt.era : "";
+      field.dataset.eraBand = String(Math.min(7, Math.floor(p * 8)));
+      stage.dataset.fieldP = (p * 100).toFixed(0);
       /* Soft atmosphere still drifts; landmarks use discrete world-x below */
       const l0 = field.querySelector(".field-l0");
       const l1 = field.querySelector(".field-l1");
       const l2 = field.querySelector(".field-l2");
-      if (l0) l0.style.transform = `translate3d(${(-sl * 0.12).toFixed(1)}px, 0, 0)`;
-      if (l1) l1.style.transform = `translate3d(${(-sl * 0.2).toFixed(1)}px, ${Math.sin(p * Math.PI) * -8}px, 0)`;
-      if (l2) l2.style.transform = `translate3d(${(-sl * 0.28).toFixed(1)}px, 0, 0)`;
-      field.dataset.eraBand = String(Math.min(7, Math.floor(p * 8)));
-      stage.dataset.fieldP = (p * 100).toFixed(0);
+      const driftY = Math.sin(p * Math.PI * 2) * 14;
+      if (l0) {
+        l0.style.transform = `translate3d(${(-sl * 0.08).toFixed(1)}px, ${driftY.toFixed(1)}px, 0)`;
+        l0.style.filter = `hue-rotate(${(hue - 210).toFixed(0)}deg) saturate(${(1.05 + p * 0.55).toFixed(2)})`;
+      }
+      if (l1) l1.style.transform = `translate3d(${(-sl * 0.16).toFixed(1)}px, ${(driftY * -0.6).toFixed(1)}px, 0)`;
+      if (l2) l2.style.transform = `translate3d(${(-sl * 0.24 + p * 80).toFixed(1)}px, 0, 0) scale(${(1.02 + p * 0.06).toFixed(3)})`;
 
       /* World-x pin in viewport space: screenX = worldX - scrollLeft * factor */
       const vw = viewport.clientWidth || 1;
@@ -890,13 +908,15 @@
       if (elPlayheadYear && events[near]) {
         elPlayheadYear.textContent = yearOf(events[near].date);
       }
-      if (!window.__HUMANITY_STORY__ || !storyStrip.el) return;
-      window.__HUMANITY_STORY__.focusStrip(
-        storyStrip.el,
-        (i) => xAt(i),
-        centerX,
-        reduceMotion
-      );
+      if (window.__HUMANITY_STORY__ && storyStrip.el) {
+        window.__HUMANITY_STORY__.focusStrip(
+          storyStrip.el,
+          (i) => xAt(i),
+          centerX,
+          reduceMotion
+        );
+      }
+      updateFieldParallax();
     }
 
     function syncFromScroll() {
@@ -1461,6 +1481,22 @@
 
     scroller.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
+    /* If a gesture stops between the two pages, finish on the nearer one. */
+    scroller.addEventListener("scrollend", () => {
+      const pages = [...scroller.querySelectorAll(":scope > .chapter")];
+      if (pages.length < 2) return;
+      const y = scroller.scrollTop;
+      let target = pages[0].offsetTop;
+      let best = Infinity;
+      pages.forEach((page) => {
+        const d = Math.abs(page.offsetTop - y);
+        if (d < best) {
+          best = d;
+          target = page.offsetTop;
+        }
+      });
+      if (best > 6) scroller.scrollTo({ top: target, behavior: reduce ? "auto" : "smooth" });
+    });
     update();
     return { update };
   }
