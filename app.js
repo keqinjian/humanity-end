@@ -7,7 +7,7 @@
   const SCENES = ["cover", "timeline", "domains", "ledger"];
   const HINTS = [
     "滚轮 / ↑ ↓ 切换章节",
-    "拖拽地图 / 滚轮 连续推进 · ← → 逐个节点 · 空格 暂停 · 滚到两端继续滚动切换章节",
+    "左右拖动 / 滚轮 连续推进 · ← → 逐个事件 · 空格 暂停 · 滚到两端继续滚动切换章节",
     "悬停或点击左侧领域 · 滚轮 / ↑ ↓ 切换章节",
     "悬停柱体查看详情 · 悬停图例按领域筛选",
   ];
@@ -201,7 +201,6 @@
     });
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
-    TL.recolor();
   }
 
   function setTheme(t) {
@@ -378,41 +377,32 @@
   })();
 
   /* ==========================================================
-     01 时间轴
-     唯一状态是浮点位置 pos（单位：事件序号）。标尺、时代图形、
-     「人」字侵蚀、旁白、里程表、信息条全部是 pos 的函数。
+     01 时间轴：拖动驱动的图形叙事
+     唯一状态是浮点位置 pos（单位：事件序号）。时间轨平移、推演曲线、
+     机器领地、每个事件的图形分镜（展开 / 漂移 / 收起）、文字擦除、
+     年份里程表全部是 pos 的函数——拖到哪里，画面就停在哪一帧。
      ========================================================== */
 
-  const STORY = {
-    奠基: ["PUNCH CARD", "机器学会了计算。那时，思考仍是人类独有的事。"],
-    专用智能: ["DEEP BLUE", "它先赢下了一盘棋。人们说：那只是搜索。"],
-    深度学习: ["NEURAL NET", "它开始看见、开始听见，然后在棋盘上下出了直觉。"],
-    Transformer: ["ATTENTION", "注意力就是一切。它读完了人类写下的几乎所有文字。"],
-    生成爆发: ["GENERATION", "它开始回答。接着开始画、开始写、开始编程。"],
-    推理与代理: ["CHAIN OF THOUGHT", "它学会了先想一想，再动手。"],
-    "2025 浪潮": ["RELEASE WAVE", "每个月都有一个新名字，每个名字都拿走一点什么。"],
-    "2026 临界": ["CRITICAL", "人类事务剩余 {agg}%。这份记录仍在继续。"],
-  };
-
   const TL = (() => {
-    const CX = 960;
-    const S = 270;
-    const G = 150;
+    const S = 210;
+    const G = 260;
+    const HEAD_X = 960;
+    const ART_X = 740;
+    const ART_Y = 150;
     const DWELL = 3600;
-    const SLOTS_W = 1680;
     const AXIS_W = 1680;
-    const YEAR = 365.2425 * 864e5;
-    const MR = { x: 120, y: 108, w: 780, h: 390 };
-    const GR = { x: 1050, y: 66, s: 540, cs: 18 };
+    const COL_W = 600;
+    const WORDS = ["FOUNDATION", "NARROW AI", "DEEP LEARNING", "TRANSFORMER", "GENERATIVE", "REASONING", "AGENTS", "THRESHOLD"];
 
     let n = 0;
-    const X = [];
-    const W = [];
+    const RX = [];
     let xs = [];
-    let cells = [];
-    let C = null;
+    let xMin = 0;
+    let xMax = 0;
+    let items = [];
+    let leafCurve = [];
 
-    let pos = 0;
+    let pos = -0.9;
     let vel = 0;
     let target = 0;
     let lastDir = 0;
@@ -423,57 +413,47 @@
     let edgeAt = 0;
     let raf = 0;
     let lastT = 0;
-    let lastP = -1;
-    let dirty = true;
-    let slotK = -1;
+    let slotK = -2;
     let nearK = -1;
     let rowsA = [];
     let rowsB = [];
     let evEls = [];
-    let rateS = 0;
-    let storyKey = "";
+    let clipW = -1;
     const cache = new Map();
 
     const el = {
-      art: $("#art"),
-      grid: $("#tl-grid"),
-      hit: $("#tl-hit"),
-      track: $("#ruler-track"),
+      bg: $(".tl-bg"),
       year: $("#tl-year"),
-      rate: $("#rate"),
-      humanBox: $("#human"),
-      humanV: $("#human-v"),
-      humanD: $("#human-d"),
-      storyPh: $("#story-ph"),
-      storyFig: $("#story-fig"),
-      storyT: $("#story-t"),
+      zone: $("#zone"),
+      zoneH: $("#zone-h"),
+      zoneM: $("#zone-m"),
+      art: $("#art"),
+      hit: $("#tl-hit"),
       slotA: $("#slot-a"),
       slotB: $("#slot-b"),
       scan: $("#slot-scan"),
-      overview: $("#overview"),
+      world: $("#rail-world"),
+      ero: $("#erosion"),
+      years: $("#rail-years"),
+      railPh: $("#rail-phases"),
+      events: $("#rail-events"),
+      rhVal: $("#rh-val"),
+      rhH: $("#rh-h"),
+      rhDate: $("#rh-date"),
       phases: $("#axis-phases"),
-      ovHead: $("#ov-head"),
+      body: $("#axis-body"),
+      ticks: $("#axis-ticks"),
+      axYears: $("#axis-years"),
+      progress: $("#axis-progress"),
+      head: $("#playhead"),
       play: $("#ac-play"),
       timer: $("#ac-timer"),
     };
-    const ctx = el.art.getContext("2d");
 
     const smooth = (x) => {
       const v = clamp(x, 0, 1);
       return v * v * (3 - 2 * v);
     };
-    const lerp = (a, b, t) => a + (b - a) * t;
-
-    function rng(seed) {
-      let s = seed >>> 0;
-      return () => {
-        s = (s + 0x6d2b79f5) >>> 0;
-        let t = s;
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
-    }
 
     function set(elm, prop, val) {
       let c = cache.get(elm);
@@ -484,787 +464,585 @@
       else elm.style[prop] = val;
     }
 
-    /* ---------- 颜色（画布读取主题变量） ---------- */
+    const railX = (p) => {
+      if (p <= 0) return RX[0] + p * S;
+      if (p >= n - 1) return RX[n - 1] + (p - n + 1) * S;
+      const k = Math.floor(p);
+      return RX[k] + (RX[k + 1] - RX[k]) * (p - k);
+    };
 
-    function hexRGB(hex) {
-      const h = hex.replace("#", "").trim();
-      const v = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-      return [parseInt(v.slice(0, 2), 16), parseInt(v.slice(2, 4), 16), parseInt(v.slice(4, 6), 16)];
+    /* ---------- 人类剩余推演（示意） ---------- */
+
+    function human(p) {
+      if (!leafCurve.length) return 100;
+      let s = 0;
+      for (const c of leafCurve) {
+        if (c.j >= 0) s += c.rem + (100 - c.rem) * (1 - smooth((p - (c.j - 0.6)) / 0.6));
+        else s += 100 - (100 - c.rem) * clamp((p - c.a) / (c.b - c.a), 0, 1);
+      }
+      return s / leafCurve.length;
     }
 
-    function recolor() {
-      const cs = getComputedStyle(document.documentElement);
-      const get = (k) => hexRGB(cs.getPropertyValue(k) || "#000");
-      const ink = get("--pink");
-      const mk = (rgb) => (a = 1) => `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
-      C = { ink: mk(ink), acc: mk(get("--y")), red: mk(get("--red")), paper: mk(get("--paper")), card: mk(get("--card")) };
-      dirty = true;
+    const curveY = (h) => 10 + ((100 - h) * 90) / 70;
+
+    /* ---------- 图形分镜 ---------- */
+
+    const R = (x, y, cls, html, o) => ({ x, y, cls, html: html ?? "", ...o });
+
+    function scenes() {
+      const v = [];
+      const add = (at, list, until) => v.push({ at, until, items: list });
+
+      const tubes = [];
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 8; c++) {
+          const k = r * 8 + c;
+          tubes.push(R(900 + c * 64, 290 + r * 56, `v-dot${(k * 7) % 5 === 0 ? " is-lit" : ""}`, "", { w: 30, h: 30, style: `--k:${k}`, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.006, od: c * 0.012, dr: 40 }));
+        }
+      add("ENIAC 公开亮相", [
+        ...tubes,
+        R(900, 486, "v-cap", "ENIAC<em>ELECTRONIC NUMERICAL INTEGRATOR AND COMPUTER</em>", { c: "l", tc: "l", d: 0.1 }),
+        R(900, 528, "v-mono", "<b>17,468</b> VACUUM TUBES · <b>5,000</b> ADD / SEC", { c: "l", tc: "l", d: 0.16 }),
+        R(1460, 290, "v-hatch", "", { w: 300, h: 168, c: "b", tc: "t", d: 0.05, dr: 90 }),
+        R(1460, 470, "v-disp", "30 TONS", { style: "font-size:64px", f: { y: 30, o: 0 }, d: 0.12, dr: 90 }),
+      ]);
+
+      add("图灵《计算机器与智能》", [
+        R(880, 230, "v-glyph", "“", { style: "font-size:260px", f: { y: -60, o: 0 }, t: { y: 40, o: 0 }, dr: 30 }),
+        R(1640, 270, "v-vert v-cn", "机器能思考吗？", { style: "font-size:64px", c: "t", tc: "b", d: 0.08, dr: 120 }),
+        R(900, 420, "v-out", "CAN MACHINES<br />THINK?", { style: "font-size:84px", c: "l", tc: "l", d: 0.04, dr: 70 }),
+        R(904, 600, "v-mono", "A. M. TURING · <b>MIND</b> VOL. LIX · THE IMITATION GAME", { c: "l", tc: "l", d: 0.14 }),
+      ]);
+
+      const ten = Array.from({ length: 10 }, (_, k) =>
+        R(1290 + (k % 5) * 56, 300 + Math.floor(k / 5) * 56, `v-sq${k === 4 ? " is-acc" : ""}`, "", { w: 40, h: 40, f: { y: -80, r: 90, o: 0 }, t: { y: 60, o: 0 }, d: k * 0.015, od: k * 0.01, dr: 60 })
+      );
+      add("达特茅斯人工智能夏季研讨班", [
+        R(880, 236, "v-out", "AI", { style: "font-size:330px", f: { s: 1.5, o: 0 }, t: { s: 0.8, o: 0 }, dr: 50 }),
+        ...ten,
+        R(1290, 430, "v-cap", "1956 · 夏<em>THE TERM IS COINED</em>", { c: "l", tc: "l", d: 0.12 }),
+        R(1290, 470, "v-mono", "<b>10</b> 位学者 · <b>2</b> 个月 · 让机器使用语言", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("感知机 Perceptron", [
+        R(900, 280, "", `<svg viewBox="0 0 560 250"><path class="ln" pathLength="1" d="M0 20 L320 125 M0 90 L320 125 M0 160 L320 125 M0 230 L320 125"/><circle class="ln thick" pathLength="1" cx="360" cy="125" r="40"/><path class="ln acc" pathLength="1" d="M400 125 L560 125"/></svg>`, { w: 560, h: 250, draw: true, c: "l", tc: "r", dr: 50 }),
+        ...[20, 90, 160, 230].map((y, k) => R(890, 270 + y, "v-dot is-ink", "", { w: 20, h: 20, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.03, dr: 50 })),
+        R(1500, 370, "v-disp", "Σ w·x &gt; 0", { style: "font-size:64px", f: { x: 60, o: 0 }, d: 0.14, dr: 110 }),
+        R(904, 570, "v-mono", "MARK I · <b>400</b> PHOTOCELLS · 「一台会学习的机器」", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      add("ELIZA", [
+        R(900, 280, "v-term", "", { w: 780, h: 240, c: "l", tc: "l", dr: 40 }),
+        R(932, 330, "v-tline is-me", "&gt; 我最近总是很难过。", { c: "l", tc: "l", d: 0.1, dr: 40 }),
+        R(932, 384, "v-tline", "ELIZA: 你为什么觉得自己很难过？", { c: "l", tc: "l", d: 0.17, dr: 40 }),
+        R(932, 438, "v-tline is-me", "&gt; ……也许是因为机器。", { c: "l", tc: "l", d: 0.24, dr: 40 }),
+        R(904, 548, "v-mono", "DOCTOR SCRIPT · 人第一次向机器倾诉", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("反向传播登上 Nature", [
+        ...[0, 1, 2, 3, 4].map((k) => R(1560 - k * 150, 260, "v-disp", "←", { style: "font-size:120px", f: { x: 90, o: 0 }, t: { x: -90, o: 0 }, d: k * 0.04, od: k * 0.02, dr: 60 + k * 14 })),
+        R(900, 410, "v-out", "∂L / ∂w", { style: "font-size:132px", c: "r", tc: "l", d: 0.1, dr: 50 }),
+        R(904, 580, "v-mono", "RUMELHART · HINTON · WILLIAMS · <b>NATURE 323</b>", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("LeCun 卷积网络识别邮编", [
+        ..."07733".split("").map((d, k) => R(900 + k * 118, 290, "v-digit", d, { w: 100, h: 124, f: { y: -50, r: -10, o: 0 }, t: { y: 50, r: 8, o: 0 }, d: k * 0.04, od: k * 0.02, dr: 50 + k * 8 })),
+        R(900, 448, "v-cap", "LeNet<em>BELL LABS · ZIP CODE READER</em>", { c: "l", tc: "l", d: 0.12 }),
+        R(904, 492, "v-mono", "信封上的手写数字，第一次交给了卷积", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const board = [];
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+          board.push(R(900 + c * 36, 262 + r * 36, (r + c) % 2 ? "v-tile-d" : "v-tile-l", "", { w: 36, h: 36, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: (r + c) * 0.012, od: (14 - r - c) * 0.008, dr: 40 }));
+      add("深蓝击败卡斯帕罗夫", [
+        ...board,
+        R(1250, 236, "v-glyph", "♚\uFE0E", { style: "transform-origin:30% 90%", f: { y: -80, o: 0 }, t: { o: 0 }, mid: { p: [0.02, 0.36], r: -84, y: 40 }, d: 0.1, od: 0.22, dr: 30 }),
+        R(1500, 300, "v-disp", "3½", { style: "font-size:150px", f: { x: 80, o: 0 }, d: 0.12, dr: 80 }),
+        R(1500, 440, "v-disp v-dim", "2½", { style: "font-size:96px", f: { x: 80, o: 0 }, d: 0.16, dr: 80 }),
+        R(904, 580, "v-mono", "DEEP BLUE <b>3½</b> / KASPAROV <b>2½</b> · 机器第一次在人类的棋盘上胜出", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("LSTM 长短期记忆", [
+        R(880, 300, "", `<svg viewBox="0 0 900 140"><path class="ln thick" pathLength="1" d="M0 40 L900 40"/><path class="ln" pathLength="1" d="M0 110 L180 110 L220 40 M300 110 L420 110 L460 40 M540 110 L660 110 L700 40"/><circle class="ln red" pathLength="1" cx="220" cy="40" r="22"/><circle class="ln red" pathLength="1" cx="460" cy="40" r="22"/><circle class="ln red" pathLength="1" cx="700" cy="40" r="22"/></svg>`, { w: 900, h: 140, draw: true, c: "l", tc: "r", dr: 70 }),
+        ...["FORGET", "INPUT", "OUTPUT"].map((g, k) => R(1074 + k * 240, 264, "v-mono", `<b>${g}</b> GATE`, { f: { y: -20, o: 0 }, d: 0.1 + k * 0.04, dr: 70 })),
+        R(880, 470, "v-out", "MEMORY", { style: "font-size:120px", c: "l", tc: "l", d: 0.08, dr: 40 }),
+      ]);
+
+      const net = [];
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 14; c++) {
+          const k = r * 14 + c;
+          const h = ((k * 37) % 11) / 11;
+          net.push(R(900 + c * 48, 286 + r * 48, h > 0.62 ? "v-tile-d" : h > 0.3 ? "v-gen" : "v-tile-l", "", { w: 42, h: 42, style: `--gx1:${20 + h * 60}%;--ga:${h * 180}deg`, f: { s: 0.2, o: 0 }, t: { s: 0.2, o: 0 }, d: h * 0.2, od: (c / 14) * 0.16, dr: 50 }));
+        }
+      add("ImageNet 数据集发布", [
+        ...net,
+        R(900, 492, "v-disp", "14,197,122", { style: "font-size:84px", c: "l", tc: "l", d: 0.12 }),
+        R(1340, 520, "v-mono", "LABELED IMAGES · <b>21,841</b> 类", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const wave = (x, y, cnt, pitch, w, amp, seed) =>
+        Array.from({ length: cnt }, (_, k) => {
+          const h = Math.max(6, Math.round(amp * Math.abs(Math.sin(k * 0.55 + seed) * Math.sin(k * 0.13 + seed * 2))));
+          return R(x + k * pitch, y - h / 2, "v-wave", "", { w, h, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: (k / cnt) * 0.2, od: (k / cnt) * 0.1, dr: 50 });
+        });
+      add("Siri 随 iPhone 4S 上线", [
+        R(900, 276, "v-bubble", "嘿 Siri，明天会下雨吗？", { c: "l", tc: "l", dr: 40 }),
+        ...wave(900, 430, 40, 22, 10, 120, 1.3),
+        R(904, 540, "v-mono", "2011.10.04 · iPhone 4S · 语音助手进入口袋", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      add("AlexNet 横扫 ImageNet", [
+        ...[220, 184, 150, 118, 88, 60].map((s, k) =>
+          R(920 + k * 108, 300 + (220 - s) / 2, "", `<i class="v-plane${k === 5 ? " is-acc" : ""}" style="display:block;width:100%;height:100%;transform:skewY(-16deg)"></i>`, { w: s * 0.62, h: s, f: { x: -k * 108, o: 0 }, t: { x: k * 60, o: 0 }, d: 0.02, od: k * 0.02, dr: 30 + k * 16 })
+        ),
+        R(1480, 290, "v-disp", "15.3%", { style: "font-size:120px", f: { y: 40, o: 0 }, d: 0.14, dr: 90 }),
+        R(1484, 410, "v-mono", "TOP-5 ERROR · 第二名 <b>26.2%</b>", { c: "l", tc: "l", d: 0.2, dr: 90 }),
+        R(924, 580, "v-mono", "<b>2 ×</b> GTX 580 · 深度学习从这里开始", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("Word2Vec 词向量", [
+        R(880, 296, "v-disp", "KING − MAN + WOMAN ≈ <span style='color:var(--red)'>QUEEN</span>", { style: "font-size:66px", c: "l", tc: "l", dr: 50 }),
+        R(900, 392, "", `<svg viewBox="0 0 640 190"><path class="ln" pathLength="1" d="M20 170 L260 30"/><path class="ln" pathLength="1" d="M360 170 L600 30"/><path class="ln red" pathLength="1" d="M20 170 L360 170 M260 30 L600 30"/></svg>`, { w: 640, h: 190, draw: true, d: 0.08, dr: 70 }),
+        ...[["MAN", 900, 572], ["KING", 1150, 386], ["WOMAN", 1240, 572], ["QUEEN", 1490, 386]].map(([w, x, y], k) => R(x, y, "v-mono", `<b>${w}</b>`, { f: { y: 10, o: 0 }, d: 0.12 + k * 0.02, dr: 70 })),
+      ]);
+
+      add("生成对抗网络 GAN", [
+        R(920, 300, "v-ink v-disp", "G", { w: 150, h: 150, style: "display:grid;place-items:center;font-size:110px", f: { x: -120, o: 0 }, t: { x: -120, o: 0 }, dr: 40 }),
+        R(1430, 300, "v-accbox v-disp", "D", { w: 150, h: 150, style: "display:grid;place-items:center;font-size:110px", f: { x: 120, o: 0 }, t: { x: 120, o: 0 }, dr: 40 }),
+        R(1090, 290, "", `<svg viewBox="0 0 320 170"><path class="ln thick" pathLength="1" d="M0 60 C 100 0, 220 0, 320 60"/><path class="ln red" pathLength="1" d="M320 110 C 220 170, 100 170, 0 110"/></svg>`, { w: 320, h: 170, draw: true, d: 0.1, dr: 40 }),
+        R(924, 476, "v-cap", "生成器<em>FORGER</em>", { c: "l", tc: "l", d: 0.14, dr: 40 }),
+        R(1434, 476, "v-cap", "判别器<em>DETECTIVE</em>", { c: "l", tc: "l", d: 0.16, dr: 40 }),
+        R(924, 560, "v-mono", "两个网络互相欺骗，直到真假难辨", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("ResNet 残差网络", [
+        R(900, 260, "v-disp", "x + F(x)", { style: "font-size:140px", c: "l", tc: "l", dr: 60 }),
+        R(900, 420, "", `<svg viewBox="0 0 860 120"><path class="ln" pathLength="1" d="M0 100 L860 100"/><path class="ln red" pathLength="1" d="M40 100 C 40 10, 240 10, 240 100 M240 100 C 240 10, 440 10, 440 100 M440 100 C 440 10, 640 10, 640 100 M640 100 C 640 10, 840 10, 840 100"/></svg>`, { w: 860, h: 120, draw: true, d: 0.06, dr: 80 }),
+        ...[0, 1, 2, 3, 4].map((k) => R(924 + k * 200, 506, "v-sq", "", { w: 32, h: 28, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: 0.08 + k * 0.03, dr: 80 })),
+        R(904, 580, "v-mono", "<b>152</b> LAYERS · TOP-5 <b>3.57%</b> · 低于人类基准 5.1%", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const go = [];
+      const STONES = [[2, 2, 0], [6, 2, 1], [2, 6, 1], [6, 6, 0], [4, 4, 0], [3, 5, 1], [5, 3, 1], [4, 2, 0], [2, 4, 1], [5, 6, 0], [6, 4, 1], [3, 3, 0]];
+      STONES.forEach(([c, r, w], k) => go.push(R(900 + c * 36 - 15, 270 + r * 36 - 15, `v-stone${w ? " is-w" : ""}`, "", { w: 30, h: 30, f: { s: 2, o: 0 }, t: { s: 0, o: 0 }, d: 0.06 + k * 0.012, od: k * 0.01, dr: 40 })));
+      go.push(R(900 + 7 * 36 - 15, 270 + 1 * 36 - 15, "v-stone is-37", "", { w: 30, h: 30, f: { s: 3, o: 0 }, t: { s: 0, o: 0 }, d: 0.24, dr: 40 }));
+      add("AlphaGo 击败李世石", [
+        R(900, 270, "", `<svg viewBox="0 0 288 288"><path class="ln" pathLength="1" d="${Array.from({ length: 9 }, (_, i) => `M0 ${i * 36} L288 ${i * 36} M${i * 36} 0 L${i * 36} 288`).join(" ")}"/></svg>`, { w: 288, h: 288, draw: true, dr: 40 }),
+        ...go,
+        R(1290, 296, "v-disp", "MOVE 37", { style: "font-size:110px", c: "l", tc: "l", d: 0.12, dr: 80 }),
+        R(1290, 400, "v-disp", "4 : 1", { style: "font-size:160px", f: { y: 40, o: 0 }, d: 0.16, dr: 80 }),
+        R(904, 590, "v-mono", "AlphaGo vs 李世石 · 首尔 · 「那一手不是人类会下的棋」", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("WaveNet 生成语音", [
+        R(890, 250, "v-out", "SPEECH", { style: "font-size:150px", c: "l", tc: "l", dr: 40 }),
+        ...wave(900, 480, 72, 12, 6, 110, 2.1),
+        R(904, 570, "v-mono", "<b>16,000</b> SAMPLES / SEC · 逐点生成的人声", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      const toks = ["Attention", "is", "all", "you", "need"];
+      const tx = [880, 1094, 1170, 1270, 1388];
+      add("Transformer", [
+        R(870, 236, "v-out", "ATTENTION", { style: "font-size:170px", f: { s: 1.2, o: 0 }, t: { x: -200, o: 0 }, dr: 60 }),
+        R(900, 400, "", `<svg viewBox="0 0 600 80"><path class="ln red" pathLength="1" d="M90 80 C 120 0, 230 0, 250 80 M90 80 C 140 -30, 330 -30, 350 80 M90 80 C 150 -60, 450 -60, 470 80 M290 80 C 330 20, 540 20, 580 80"/></svg>`, { w: 600, h: 80, draw: true, d: 0.1, dr: 50 }),
+        ...toks.map((w, k) => R(tx[k], 484, "v-token", w, { f: { y: 30, o: 0 }, t: { y: -30, o: 0 }, d: 0.06 + k * 0.03, od: k * 0.02, dr: 50 })),
+        R(884, 580, "v-mono", "VASWANI ET AL. · 2017 · <b>8 × P100</b> · 3.5 天", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      const P = [["GPT-1", 117e6, "117M"], ["GPT-2", 1.5e9, "1.5B"], ["GPT-3 / OpenAI API", 175e9, "175B"]];
+      add(
+        "GPT-1",
+        [
+          R(880, 286, "v-cap", "参数量<em>PARAMETERS · LINEAR SCALE</em>", { c: "l", tc: "l" }),
+          ...P.flatMap(([at, v, lab], k) => [
+            R(880, 320 + k * 64, "v-mono", `<b>${at.split(" ")[0]}</b>`, { at, c: "l", tc: "l", d: 0.05 }),
+            R(990, 318 + k * 64, `v-bar${k === 2 ? " is-acc" : ""}`, "", { at, w: Math.max(3, (v / 175e9) * 800), h: 24, c: "l", tc: "l", d: 0.1 }),
+            R(1000 + Math.max(3, (v / 175e9) * 800) + 10, 318 + k * 64, "v-mono", lab, { at, f: { x: -20, o: 0 }, d: 0.16, style: k === 2 ? "display:none" : "" }),
+            R(1280, 500, "v-disp", lab, { at, u: at, style: "font-size:120px", f: { y: 50, o: 0 }, t: { y: -50, o: 0 }, d: 0.12, od: -0.05, dr: 60 }),
+          ]),
+        ],
+        "GPT-3 / OpenAI API"
+      );
+
+      add("GitHub Copilot 技术预览", [
+        R(900, 290, "v-code", "def is_human(task):", { c: "l", tc: "l", dr: 40 }),
+        R(900, 330, "v-code", "    <i># TODO: 交给机器来写</i>", { c: "l", tc: "l", d: 0.08, dr: 40 }),
+        R(900, 370, "v-code", "    return <b>False</b>", { c: "l", tc: "l", d: 0.16, dr: 40 }),
+        R(900, 440, "v-accbox v-mono", "<b>TAB ↹</b> 接受建议", { style: "padding:8px 14px", f: { y: 20, o: 0 }, d: 0.2, dr: 40 }),
+        R(904, 560, "v-mono", "由 Codex 驱动 · 代码开始自动补全自己", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      const helix = (ph) => {
+        let d = "";
+        for (let i = 0; i <= 60; i++) d += `${i ? "L" : "M"}${(i * 14).toFixed(0)} ${(90 + 70 * Math.sin(i * 0.32 + ph)).toFixed(1)} `;
+        return d;
+      };
+      const rungs = Array.from({ length: 20 }, (_, i) => {
+        const x = i * 42;
+        const a = 90 + 70 * Math.sin((x / 14) * 0.32);
+        const b = 90 + 70 * Math.sin((x / 14) * 0.32 + Math.PI);
+        return `M${x} ${a.toFixed(1)} L${x} ${b.toFixed(1)}`;
+      }).join(" ");
+      add("AlphaFold 2 论文发表", [
+        R(900, 270, "", `<svg viewBox="0 0 840 180"><path class="ln" pathLength="1" d="${rungs}"/><path class="ln thick" pathLength="1" d="${helix(0)}"/><path class="ln red" pathLength="1" d="${helix(Math.PI)}"/></svg>`, { w: 840, h: 180, draw: true, c: "l", tc: "r", dr: 60 }),
+        R(900, 476, "v-disp", "GDT 92.4", { style: "font-size:96px", c: "l", tc: "l", d: 0.12 }),
+        R(1300, 500, "v-mono", "CASP14 · 蛋白质结构 · <b>50 年</b>难题", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("Midjourney 开放测试", [
+        R(900, 262, "v-mono", "/imagine <b>a city after the last human job</b> --v 3", { c: "l", tc: "l" }),
+        ...Array.from({ length: 10 }, (_, k) => {
+          const c = k % 5;
+          const r = Math.floor(k / 5);
+          const h = ((k * 53) % 17) / 17;
+          return R(900 + c * 150, 304 + r * 146, "v-gen", "", { w: 136, h: 136, style: `--gx1:${20 + h * 60}%;--gy1:${70 - h * 40}%;--gx2:${80 - h * 50}%;--ga:${h * 180}deg`, f: { s: 0, r: -30 + h * 60, o: 0 }, t: { s: 0.6, o: 0 }, d: 0.04 + h * 0.16, od: c * 0.02, dr: 40 + r * 30 });
+        }),
+      ]);
+
+      add("ChatGPT", [
+        R(1250, 276, "v-bubble", "帮我写一封辞职信。", { f: { x: 60, o: 0 }, t: { y: -40, o: 0 }, dr: 50 }),
+        R(900, 340, "v-bubble is-ai", "当然。以下是一封得体的辞职信……", { f: { x: -60, o: 0 }, t: { y: -40, o: 0 }, d: 0.08, dr: 50 }),
+        R(1190, 404, "v-bubble", "……顺便帮我找份新工作。", { f: { x: 60, o: 0 }, t: { y: -40, o: 0 }, d: 0.16, dr: 50 }),
+        R(900, 468, "v-disp", "100M", { style: "font-size:120px", c: "l", tc: "l", d: 0.14, dr: 80 }),
+        R(1180, 520, "v-mono", "USERS IN <b>2</b> MONTHS · 史上增长最快的应用", { c: "l", tc: "l", d: 0.2, dr: 80 }),
+      ]);
+
+      const EX = [["律师资格考试", 90], ["SAT 数学", 89], ["GRE 语文", 99], ["生物奥赛", 99]];
+      add("GPT-4", [
+        R(900, 292, "v-cap", "考试成绩 · 人类考生百分位<em>PERCENTILE</em>", { c: "l", tc: "l" }),
+        ...EX.flatMap(([lab, v], k) => [
+          R(900, 350 + k * 62, "v-mono", `<b>${lab}</b>`, { c: "l", tc: "l", d: 0.04 + k * 0.03 }),
+          R(1080, 348 + k * 62, "v-hatch", "", { w: 600, h: 26, c: "l", tc: "l", d: 0.04 + k * 0.03 }),
+          R(1080, 348 + k * 62, "v-bar is-acc", "", { w: v * 6, h: 26, c: "l", tc: "l", d: 0.1 + k * 0.03 }),
+          R(1700, 342 + k * 62, "v-disp", String(v), { style: "font-size:40px", f: { x: 30, o: 0 }, d: 0.16 + k * 0.02 }),
+        ]),
+      ]);
+
+      add("Sora 技术预告", [
+        R(760, 300, "v-film", `<div style="display:flex;gap:14px;padding:30px 14px">${Array.from({ length: 9 }, (_, k) => `<i class="v-frame" style="display:block;flex:none;width:186px;height:136px;filter:hue-rotate(${k * 12}deg)"></i>`).join("")}</div>`, { w: 1800, h: 196, c: "l", tc: "l", dr: 420 }),
+        R(900, 530, "v-cap", "一行文字 → 60 秒视频<em>TEXT TO VIDEO</em>", { c: "l", tc: "l", d: 0.14 }),
+      ]);
+
+      add("o1-preview", [
+        R(900, 250, "v-cn", "先想，再答。", { style: "font-size:84px", c: "l", tc: "l", dr: 40 }),
+        R(910, 410, "", `<svg viewBox="0 0 780 20"><path class="ln" pathLength="1" d="M0 10 L780 10"/></svg>`, { w: 780, h: 20, draw: true, d: 0.04, dr: 60 }),
+        ...Array.from({ length: 12 }, (_, k) => R(900 + k * 70, 410, `v-dot${k === 11 ? " is-lit" : ""}`, "", { w: 20, h: 20, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.016, od: k * 0.01, dr: 60 })),
+        R(904, 460, "v-mono", "THINKING… <b>37s</b> · 推理链长度成为新的算力", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("DeepSeek-R1", [
+        R(880, 270, "v-out", "OPEN<br />WEIGHTS", { style: "font-size:150px", c: "l", tc: "l", dr: 60 }),
+        R(1500, 296, "v-ink v-disp", "MIT", { style: "padding:10px 22px;font-size:60px", f: { r: -30, s: 2, o: 0 }, mid: { p: [0, 0.01], r: -8 }, d: 0.2, dr: 90 }),
+        R(904, 560, "v-mono", "推理模型权重公开 · 训练成本据称 <b>$5.6M</b>", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const agents = [];
+      for (let r = 0; r < 5; r++)
+        for (let c = 0; c < 7; c++) {
+          const k = r * 7 + c;
+          agents.push(R(900 + c * 44, 290 + r * 44, "v-sq is-off", "", { w: 34, h: 34, f: { o: 0 }, t: { o: 0 }, dr: 40 }));
+          agents.push(R(900 + c * 44, 290 + r * 44, `v-sq${k % 9 === 4 ? " is-acc" : ""}`, "", { w: 34, h: 34, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: 0.05 + (k / 35) * 0.2, od: (k / 35) * 0.1, dr: 40 }));
+        }
+      add("Claude Opus 4 / Sonnet 4", [
+        ...agents,
+        R(1260, 260, "v-disp", "7h", { style: "font-size:200px", f: { y: 40, o: 0 }, d: 0.12, dr: 80 }),
+        R(1264, 470, "v-cap", "连续自主工作<em>AGENTIC CODING</em>", { c: "l", tc: "l", d: 0.18, dr: 80 }),
+      ]);
+
+      add("GPT-6 Astra", [
+        R(870, 230, "v-out", "AGI?", { style: "font-size:340px", f: { s: 1.6, o: 0 }, t: { s: 0.9, o: 0 }, dr: 50 }),
+        R(904, 580, "v-mono", "门槛被再次移动 · 没有人能说清它跨过了没有", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("Gemini 4 Argon", [
+        R(900, 292, "v-cn", "人类事务剩余", { style: "font-size:52px", c: "l", d: 0.02 }),
+        R(890, 356, "v-disp v-acc", `${M.agg}%`, { style: "font-size:240px", f: { y: 60, o: 0 }, d: 0.1, dr: 30 }),
+        R(1380, 420, "v-mono", "截至 <b>2026.09.30</b> · 每天核对一次", { c: "l", d: 0.2 }),
+        R(1380, 456, "v-mono", "计数还在继续。", { c: "l", d: 0.26 }),
+      ]);
+
+      return v;
     }
 
-    function resize() {
-      const s = Number(stage.style.getPropertyValue("--s")) || 1;
-      const q = clamp(s * (window.devicePixelRatio || 1), 1, 2);
-      el.art.width = Math.round(1920 * q);
-      el.art.height = Math.round(624 * q);
-      ctx.setTransform(q, 0, 0, q, 0, 0);
-      dirty = true;
+    function headWord(title) {
+      const m = title.match(/^[A-Za-z0-9][A-Za-z0-9 .·\-\/]*[A-Za-z0-9.]/);
+      return m ? m[0].trim() : "";
+    }
+
+    function build() {
+      const ev = M.events;
+      const find = (t) => ev.findIndex((e) => e.title === t);
+      const out = [];
+      const covered = new Set();
+      const push = (it, ai, ui) => {
+        const iai = it.at !== undefined ? (typeof it.at === "number" ? it.at : find(it.at)) : ai;
+        const iui = it.u !== undefined ? find(it.u) : ui;
+        const clip = it.c || it.tc;
+        out.push({
+          ...it,
+          f: it.f || (it.c ? {} : { x: 60, o: 0 }),
+          t: it.t || (it.tc ? {} : { x: -60, o: 0 }),
+          clip,
+          anchor: it.anchor ?? iai,
+          inA: it.inA ?? iai - 0.75 + (it.d || 0),
+          inW: it.inW ?? 0.55,
+          outA: it.outA ?? iui + 0.15 + (it.od || 0),
+          outW: it.outW ?? 0.4,
+          dr: it.dr ?? 50,
+        });
+      };
+
+      scenes().forEach((sc) => {
+        const ai = find(sc.at);
+        if (ai < 0) return;
+        const ui = sc.until ? find(sc.until) : ai;
+        for (let i = ai; i <= ui; i++) covered.add(i);
+        sc.items.forEach((it) => push(it, ai, ui));
+      });
+
+      ev.forEach((e, i) => {
+        if (!covered.has(i)) {
+          const w = headWord(e.title);
+          const cjk = !w;
+          const label = cjk ? e.title : w;
+          const fs = cjk ? Math.min(84, 860 / label.length) : Math.min(170, 900 / (label.length * 0.47));
+          push(R(904, 290, "v-mono", `No.<b>${pad(i + 1, 3)}</b> · ${fmtDate(e.date)} · ${esc(e.era)} · IMPACT <b>${(e.impact || "mid").toUpperCase()}</b>`, { c: "l", tc: "l", dr: 30 }), i, i);
+          push(R(896, 320, cjk ? "v-cn" : "v-out", esc(label), { style: `font-size:${fs.toFixed(0)}px`, c: "l", tc: "l", d: 0.04, dr: 90 }), i, i);
+          push(R(904, 336 + fs * (cjk ? 1.1 : 0.88), "v-rule", "", { w: 420, h: 6, c: "l", tc: "l", d: 0.12, dr: 60 }), i, i);
+        }
+        if (e.leaves.length) {
+          const chips = e.leaves
+            .slice(0, 4)
+            .map((l) => `<span><b>${esc(l.name)}</b><em>${l.remaining}%</em></span>`)
+            .join("");
+          const more = e.leaves.length > 4 ? `<span class="is-more">+${e.leaves.length - 4}</span>` : "";
+          push(R(800, 608, "v-chips", `<i>让渡 →</i>${chips}${more}`, { f: { x: -180, o: 0 }, t: { x: 280, o: 0 }, d: 0.2, od: -0.1, dr: 20 }), i, i);
+        }
+      });
+
+      M.phases.forEach((p, k) => {
+        const win = { inA: p.start - 0.9, inW: 0.6, outA: p.end + 0.2, outW: 0.6, anchor: (p.start + p.end) / 2 };
+        push(R(792, 190, "v-plate", `<b>${pad(p.no)}</b><span>${esc(p.name)}</span><em>${p.y0} — ${p.y1}</em>`, { ...win, c: "l", tc: "l", dr: 0 }), p.start, p.end);
+        push(R(1190, 186, "v-word", WORDS[k] || "", { ...win, f: { x: 160, o: 0 }, t: { x: -160, o: 0 }, dr: 36 }), p.start, p.end);
+      });
+
+      el.art.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      out.forEach((it) => {
+        const d = document.createElement("div");
+        d.className = `v ${it.cls || ""}`.trim();
+        d.style.cssText = `left:${it.x - ART_X}px;top:${it.y - ART_Y}px;${it.w ? `width:${it.w}px;` : ""}${it.h ? `height:${it.h}px;` : ""}${it.style || ""}`;
+        d.innerHTML = it.html;
+        it.el = d;
+        frag.appendChild(d);
+      });
+      el.art.appendChild(frag);
+      items = out;
+    }
+
+    function renderArt(p) {
+      for (const it of items) {
+        const e = it.el;
+        if (p <= it.inA || p >= it.outA + it.outW) {
+          set(e, "visibility", "hidden");
+          continue;
+        }
+        const ein = smooth((p - it.inA) / it.inW);
+        const eout = smooth((p - it.outA) / it.outW);
+        const qi = 1 - ein;
+        const f = it.f;
+        const t = it.t;
+        const m = it.mid;
+        const em = m ? smooth((p - it.anchor - m.p[0]) / (m.p[1] - m.p[0])) : 0;
+        const x = (f.x || 0) * qi + (t.x || 0) * eout - (p - it.anchor) * it.dr + (m ? (m.x || 0) * em : 0);
+        const y = (f.y || 0) * qi + (t.y || 0) * eout + (m ? (m.y || 0) * em : 0);
+        const r = (f.r || 0) * qi + (t.r || 0) * eout + (m ? (m.r || 0) * em : 0);
+        const s = 1 + ((f.s ?? 1) - 1) * qi + ((t.s ?? 1) - 1) * eout + (m ? ((m.s ?? 1) - 1) * em : 0);
+        let o = 1;
+        if (f.o !== undefined) o *= f.o + (1 - f.o) * ein;
+        if (t.o !== undefined) o *= 1 + (t.o - 1) * eout;
+        set(e, "visibility", o > 0.004 ? "visible" : "hidden");
+        set(e, "opacity", o.toFixed(3));
+        set(e, "transform", `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${Math.max(0, s).toFixed(3)})`);
+        if (it.clip) {
+          const q = [0, 0, 0, 0];
+          const side = { t: 0, r: 1, b: 2, l: 3 };
+          if (it.c) q[(side[it.c] + 2) % 4] = qi;
+          if (it.tc) q[side[it.tc]] = Math.max(q[side[it.tc]], eout);
+          set(e, "clipPath", `inset(${q.map((v) => `calc(${v.toFixed(3)} * (100% + 8px) - 4px)`).join(" ")})`);
+        }
+        if (it.draw) set(e, "--dr", (ein * (1 - eout)).toFixed(3));
+      }
     }
 
     /* ---------- 布局 ---------- */
 
-    function xAtTime(t) {
-      const ev = M.events;
-      if (t <= ev[0].t) {
-        const r = (X[1] - X[0]) / Math.max(1, ev[1].t - ev[0].t);
-        return X[0] - (ev[0].t - t) * r;
-      }
-      if (t >= ev[n - 1].t) {
-        const r = (X[n - 1] - X[n - 2]) / Math.max(864e5 * 20, ev[n - 1].t - ev[n - 2].t);
-        return X[n - 1] + (t - ev[n - 1].t) * r;
-      }
-      let k = 0;
-      while (k < n - 2 && ev[k + 1].t <= t) k++;
-      const a = ev[k].t;
-      const b = ev[k + 1].t;
-      return lerp(X[k], X[k + 1], b > a ? (t - a) / (b - a) : 0);
-    }
-
     function layout() {
       const ev = M.events;
       n = ev.length;
-      const WT = { high: 3, mid: 2, low: 1 };
-      ev.forEach((e, i) => {
-        X[i] = i * S + e.phase * G;
-        W[i] = i === 0 ? 0 : W[i - 1] + (WT[e.impact] || 2);
-      });
 
-      let html = "";
-      const y0 = Number(ev[0].date.slice(0, 4));
-      const y1 = Number(ev[n - 1].date.slice(0, 4));
-      let lastLab = -Infinity;
-      let lastM = -Infinity;
-      for (let y = y0; y <= y1; y++) {
-        const x = xAtTime(Date.UTC(y, 0, 1));
-        const dec = y % 10 === 0;
-        const lab = dec || x - lastLab > 56;
-        if (lab) lastLab = x;
-        html += `<span class="yt${dec ? " is-dec" : ""}" style="left:${x.toFixed(1)}px">${lab ? `<b>${y}</b>` : ""}</span>`;
-        for (let m = 1; m < 12; m++) {
-          const xm = xAtTime(Date.UTC(y, m, 1));
-          if (xm - Math.max(lastM, x) > 14 && xm - x > 14) {
-            const ml = xm - Math.max(lastM, x) > 64 && xm - lastLab > 64;
-            html += `<span class="yt is-m" style="left:${xm.toFixed(1)}px">${ml ? `<b>${pad(m + 1)}</b>` : ""}</span>`;
-            lastM = xm;
-          }
+      let x = 0;
+      ev.forEach((e, i) => {
+        if (i > 0) {
+          x += S;
+          if (e.phase !== ev[i - 1].phase) x += G;
         }
+        RX[i] = x;
+      });
+      xMin = RX[0] - 1400;
+      xMax = RX[n - 1] + 1400;
+
+      const cg = Math.max(0, ev.findIndex((e) => e.title === "ChatGPT"));
+      leafCurve = M.leaves.map((l) => ({
+        rem: l.remaining,
+        j: l.hits.length ? Math.min(...l.hits.map((h) => ev.indexOf(h))) : -1,
+        a: cg,
+        b: n - 1,
+      }));
+
+      const xAtTime = (t) => {
+        if (t <= ev[0].t) return RX[0] - ((ev[0].t - t) / (365.25 * 864e5)) * 40;
+        if (t >= ev[n - 1].t) return RX[n - 1] + ((t - ev[n - 1].t) / (365.25 * 864e5)) * 400;
+        let k = 0;
+        while (k < n - 2 && ev[k + 1].t <= t) k++;
+        const a = ev[k].t;
+        const b = ev[k + 1].t;
+        return RX[k] + (RX[k + 1] - RX[k]) * (b > a ? (t - a) / (b - a) : 0);
+      };
+
+      const y0 = Number(ev[0].date.slice(0, 4));
+      const y1 = Number(ev[n - 1].date.slice(0, 4)) + 1;
+      let yh = "";
+      let lastLab = -Infinity;
+      for (let y = y0 - 4; y <= y1; y++) {
+        const yx = xAtTime(Date.UTC(y, 0, 1));
+        const dec = y % 10 === 0;
+        const lab = yx - lastLab >= 46 && (dec || yx - lastLab >= 90 || y >= 2010);
+        if (lab) lastLab = yx;
+        yh += `<span class="${dec ? "is-dec" : ""}" style="left:${yx.toFixed(1)}px">${lab ? `<b>${y}</b>` : ""}</span>`;
       }
-      const H = { high: 30, mid: 20, low: 12 };
-      html += ev
-        .map(
-          (e, i) => `<div class="ev" data-impact="${e.impact || "mid"}" style="left:${X[i]}px;--h:${H[e.impact] || 20}px">
-            <div class="ev-l"><time>${fmtDate(e.date)}</time><strong>${esc(e.title)}</strong></div>
-          </div>`
-        )
-        .join("");
-      html += M.phases
-        .filter((p) => p.start > 0)
-        .map((p) => {
-          const x = (X[p.start - 1] + X[p.start]) / 2 + 30;
-          return `<div class="pf" style="left:${x}px"><span><em>${pad(p.no)}</em>${esc(p.name)}</span></div>`;
+      el.years.innerHTML = yh;
+
+      el.railPh.innerHTML = M.phases
+        .map((p, k) => {
+          const a = k === 0 ? xMin : (RX[p.start - 1] + RX[p.start]) / 2 + 40;
+          const b = k + 1 < M.phases.length ? (RX[p.end] + RX[p.end + 1]) / 2 + 40 : xMax;
+          return `<span style="left:${a.toFixed(0)}px;width:${(b - a).toFixed(0)}px"><em>PHASE ${pad(p.no)}</em>${esc(p.name)}</span>`;
         })
         .join("");
-      el.track.innerHTML = html;
-      evEls = [...el.track.querySelectorAll(".ev")];
 
+      el.events.innerHTML = ev
+        .map(
+          (e, i) =>
+            `<div class="rv-ev" data-i="${i}" data-impact="${e.impact || "mid"}" style="left:${RX[i]}px;--stem:${i % 2 ? 46 : 18}px"><span><time>${fmtDate(e.date)}</time><strong>${esc(e.title)}</strong></span></div>`
+        )
+        .join("");
+      evEls = [...el.events.querySelectorAll(".rv-ev")];
+
+      let line = "";
+      let area = `M${xMin} 0`;
+      for (let p = -1 - 1400 / S; p <= n - 1 + 1400 / S; p += 0.05) {
+        const px = railX(p);
+        const py = curveY(human(clamp(p, -1, n - 1)));
+        line += `${line ? "L" : "M"}${px.toFixed(1)} ${py.toFixed(2)} `;
+        area += ` L${px.toFixed(1)} ${py.toFixed(2)}`;
+      }
+      area += ` L${xMax} 0 Z`;
+      el.ero.setAttribute("width", String(xMax - xMin));
+      el.ero.setAttribute("height", "100");
+      el.ero.setAttribute("viewBox", `${xMin} 0 ${xMax - xMin} 100`);
+      el.ero.style.left = `${xMin}px`;
+      el.ero.innerHTML = `<defs>
+          <pattern id="ero-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="8" class="ero-hatch-line" /></pattern>
+          <clipPath id="ero-clip"><rect id="ero-rect" x="${xMin}" y="-10" width="0" height="120" /></clipPath>
+        </defs>
+        <path class="ero-line is-future" d="${line}" />
+        <g clip-path="url(#ero-clip)"><path class="ero-area" d="${area}" /><path class="ero-line" d="${line}" /></g>`;
+      el.eroRect = el.ero.querySelector("#ero-rect");
+
+      build();
+      layoutAxis();
+
+      let html = "";
+      for (let k = 0; k < 4; k++) {
+        let col = "";
+        for (let v = 0; v <= 10; v++) col += `<span>${v % 10}</span>`;
+        html += `<span class="dg"><span class="dg-col">${col}</span></span>`;
+      }
+      el.year.innerHTML = html;
+    }
+
+    function layoutAxis() {
+      const ev = M.events;
       const t0 = ev[0].t;
       const t1 = ev[n - 1].t;
-      xs = ev.map((e, i) => 0.16 * ((e.t - t0) / (t1 - t0 || 1)) + 0.84 * (i / (n - 1 || 1)));
+      const tf = (t) => (t1 > t0 ? (t - t0) / (t1 - t0) : 0);
+      const blend = (t, idx) => 0.16 * tf(t) + 0.84 * (n > 1 ? idx / (n - 1) : 0);
+      xs = ev.map((e, i) => blend(e.t, i));
+
+      const xAt = (t) => {
+        if (t <= t0) return 0;
+        if (t >= t1) return 1;
+        let k = 0;
+        while (k < n - 2 && ev[k + 1].t <= t) k++;
+        const a = ev[k].t;
+        const b = ev[k + 1].t;
+        return blend(t, k + (b > a ? (t - a) / (b - a) : 0));
+      };
+      const y0 = Number(ev[0].date.slice(0, 4));
+      const y1 = Number(ev[n - 1].date.slice(0, 4));
+      const want = [];
+      for (let y = Math.ceil(y0 / 10) * 10; y <= y1; y += 10) want.push(y);
+      for (let y = 2015; y <= y1; y++) want.push(y);
+      let lastX = -1;
+      el.axYears.innerHTML = [...new Set(want)]
+        .sort((a, b) => a - b)
+        .map((y) => {
+          const x = xAt(Date.UTC(y, 0, 1));
+          if (lastX >= 0 && (x - lastX) * AXIS_W < 44) return "";
+          lastX = x;
+          return `<span style="left:${(x * 100).toFixed(3)}%">${y}</span>`;
+        })
+        .join("");
+
+      const Hh = { high: 18, mid: 12, low: 7 };
+      el.ticks.innerHTML = ev
+        .map((e, i) => `<span class="tk" style="left:${(xs[i] * 100).toFixed(3)}%;--h:${Hh[e.impact] || 12}px"></span>`)
+        .join("");
+
       el.phases.innerHTML = M.phases
         .map((p, k) => {
           const a = k === 0 ? 0 : (xs[p.start - 1] + xs[p.start]) / 2;
           const b = k + 1 < M.phases.length ? (xs[p.end] + xs[p.end + 1]) / 2 : 1;
-          const wide = (b - a) * AXIS_W > 90;
-          return `<span class="ph" data-k="${k}" style="left:${(a * 100).toFixed(3)}%;width:${((b - a) * 100).toFixed(3)}%" title="${esc(p.name)} ${p.y0}—${p.y1}"><em>${pad(p.no)}</em>${wide ? esc(p.name) : ""}</span>`;
+          const wide = (b - a) * AXIS_W > 96;
+          return `<button type="button" class="ph" data-k="${k}" style="left:${(a * 100).toFixed(3)}%;width:${((b - a) * 100).toFixed(3)}%" title="${esc(p.name)} ${p.y0}—${p.y1}"><em>${pad(p.no)}</em>${wide ? esc(p.name) : ""}</button>`;
         })
         .join("");
-
-      let odo = "";
-      for (let k = 0; k < 4; k++) {
-        let col = "";
-        for (let v = 0; v <= 10; v++) col += `<span>${v % 10}</span>`;
-        odo += `<span class="dg"><span class="dg-col">${col}</span></span>`;
-      }
-      el.year.innerHTML = odo;
-
-      recolor();
-      resize();
-      buildGlyph();
-      if (document.fonts && document.fonts.load) {
-        document.fonts.load('900 600px "Noto Sans SC"', "人").then(() => {
-          buildGlyph();
-          dirty = true;
-        });
-      }
+      el.body.setAttribute("aria-valuemax", String(n));
     }
 
-    /* ---------- 「人」字像素 ---------- */
-
-    function buildGlyph() {
-      const { s, cs } = GR;
-      const off = document.createElement("canvas");
-      off.width = s;
-      off.height = s;
-      const o = off.getContext("2d");
-      o.fillStyle = "#000";
-      o.textAlign = "center";
-      o.textBaseline = "middle";
-      o.font = `900 ${s * 0.98}px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif`;
-      o.fillText("人", s / 2, s * 0.53);
-      const data = o.getImageData(0, 0, s, s).data;
-      const N = s / cs;
-      const r = rng(7);
-      const list = [];
-      for (let gy = 0; gy < N; gy++) {
-        for (let gx = 0; gx < N; gx++) {
-          let a = 0;
-          for (let sy = 0; sy < 3; sy++) {
-            for (let sx = 0; sx < 3; sx++) {
-              const px = Math.floor(gx * cs + ((sx + 0.5) * cs) / 3);
-              const py = Math.floor(gy * cs + ((sy + 0.5) * cs) / 3);
-              a += data[(py * s + px) * 4 + 3];
-            }
-          }
-          if (a / 9 / 255 < 0.42) continue;
-          const dx = gx / N - 1;
-          const dy = gy / N - 1;
-          const d = Math.sqrt(dx * dx + dy * dy) / Math.SQRT2;
-          list.push({ gx, gy, score: 0.62 * d + 0.38 * r() });
-        }
-      }
-      list.sort((a, b) => a.score - b.score);
-      list.forEach((c, i) => (c.th = i / list.length));
-      cells = list;
+    function invXs(f) {
+      if (f <= xs[0]) return 0;
+      if (f >= xs[n - 1]) return n - 1;
+      let k = 0;
+      while (k < n - 2 && xs[k + 1] < f) k++;
+      return k + (f - xs[k]) / (xs[k + 1] - xs[k] || 1);
     }
 
-    function humanAt(p) {
-      const k = clamp(Math.floor(p), 0, n - 2);
-      const t = clamp(p - k, 0, 1);
-      const cum = lerp(W[k], W[k + 1], t);
-      const f = W[n - 1] ? cum / W[n - 1] : 0;
-      return 100 - (100 - M.agg) * Math.pow(f, 1.25);
-    }
-
-    function drawGlyph(p, Hm) {
-      const { x, y, s, cs } = GR;
-      const E = (100 - Hm) / 100;
-      const drift = -(p - n / 2) * 1.6;
-      ctx.save();
-      ctx.translate(x + drift, y);
-
-      ctx.strokeStyle = C.ink(0.35);
-      ctx.lineWidth = 2;
-      const b = 18;
-      [
-        [0, 0, 1, 1],
-        [s, 0, -1, 1],
-        [0, s, 1, -1],
-        [s, s, -1, -1],
-      ].forEach(([bx, by, sx, sy]) => {
-        ctx.beginPath();
-        ctx.moveTo(bx, by + sy * b);
-        ctx.lineTo(bx, by);
-        ctx.lineTo(bx + sx * b, by);
-        ctx.stroke();
-      });
-
-      let eaten = 0;
-      cells.forEach((c) => {
-        const lp = clamp((E - c.th) / 0.035, 0, 1);
-        const cx = c.gx * cs + cs / 2;
-        const cy = c.gy * cs + cs / 2;
-        if (lp < 1) {
-          const z = (cs - 4) * (1 - lp);
-          ctx.fillStyle = C.ink(1);
-          ctx.fillRect(cx - z / 2, cy - z / 2, z, z);
-        }
-        if (lp > 0) {
-          if (lp < 1) {
-            const z = (cs - 4) * lp;
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate((1 - lp) * Math.PI * 0.25);
-            ctx.fillStyle = C.red(1);
-            ctx.fillRect(-z / 2, -z / 2, z, z);
-            ctx.restore();
-          } else {
-            eaten++;
-            const z = cs - 5;
-            ctx.fillStyle = C.acc(1);
-            ctx.fillRect(cx - z / 2, cy - z / 2, z, z);
-            ctx.fillStyle = C.ink(0.85);
-            ctx.fillRect(cx - 2, cy - 2, 4, 4);
-          }
-        }
-      });
-
-      ctx.fillStyle = C.ink(0.55);
-      ctx.font = '500 12px "JetBrains Mono", monospace';
-      ctx.textAlign = "left";
-      ctx.fillText(`FIG.H — 人 · PX ${pad(cells.length, 3)} · EATEN ${pad(eaten, 3)}`, 26, 4);
-      ctx.restore();
-    }
-
-    /* ---------- 时代图形 ---------- */
-
-    function label(t, x, y, size = 12, a = 0.6, weight = 500, font = "JetBrains Mono") {
-      ctx.font = `${weight} ${size}px "${font}", "Noto Sans SC", monospace`;
-      ctx.fillStyle = C.ink(a);
-      ctx.fillText(t, x, y);
-    }
-
-    const MOTIF = [
-      // 01 穿孔卡
-      (lp, u) => {
-        const r = rng(1946);
-        const cw = 740;
-        const ch = 300;
-        const y0 = 56;
-        ctx.fillStyle = C.card(1);
-        ctx.strokeStyle = C.ink(1);
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(30, y0);
-        ctx.lineTo(cw, y0);
-        ctx.lineTo(cw, y0 + ch);
-        ctx.lineTo(0, y0 + ch);
-        ctx.lineTo(0, y0 + 30);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        const cols = 45;
-        const rows = 12;
-        const gx = (cw - 60) / cols;
-        const gy = (ch - 64) / rows;
-        const head = lp * 52;
-        for (let c = 0; c < cols; c++) {
-          const holes = [Math.floor(r() * rows), Math.floor(r() * rows), r() > 0.5 ? Math.floor(r() * rows) : -1];
-          const pc = clamp(head - c, 0, 1);
-          for (let rr = 0; rr < rows; rr++) {
-            const hx = 34 + c * gx;
-            const hy = y0 + 26 + rr * gy;
-            if (holes.includes(rr) && pc > 0) {
-              ctx.fillStyle = C.ink(1);
-              ctx.fillRect(hx, hy, 7, 14 * pc);
-            } else {
-              ctx.fillStyle = C.ink(0.22 * u);
-              ctx.fillRect(hx + 2, hy + 6, 2, 2);
-            }
-          }
-          if (c % 5 === 0) label(String(c + 1), 34 + c * gx, y0 + ch - 12, 9, 0.4);
-        }
-        const txt = "PRINT 'CAN MACHINES THINK?'";
-        const nch = clamp(Math.floor((head / cols) * txt.length), 0, txt.length);
-        label(txt.slice(0, nch) + (nch < txt.length ? "▌" : ""), 0, 44, 20, 0.9, 700);
-        label("80-COLUMN CARD · 1946—1989", cw - 220, y0 + ch + 22, 11, 0.5);
-      },
-      // 02 棋盘
-      (lp, u) => {
-        const bx = 10;
-        const by = 50;
-        const sz = 300;
-        const q = sz / 8;
-        for (let rr = 0; rr < 8; rr++) {
-          for (let c = 0; c < 8; c++) {
-            const k = smooth(u * 2.2 - ((rr + c) / 14) * 1.2);
-            if (k <= 0) continue;
-            const z = q * k;
-            const x = bx + c * q + (q - z) / 2;
-            const y = by + rr * q + (q - z) / 2;
-            ctx.fillStyle = (rr + c) % 2 ? C.ink(1) : C.card(1);
-            ctx.fillRect(x, y, z, z);
-          }
-        }
-        ctx.strokeStyle = C.ink(1);
-        ctx.lineWidth = 2;
-        ctx.strokeRect(bx, by, sz, sz);
-        const fall = smooth((lp - 0.25) / 0.45);
-        const kx = bx + 4.5 * q;
-        const ky = by + 3.5 * q + 70;
-        ctx.save();
-        ctx.translate(kx - 6, ky);
-        ctx.rotate(-fall * Math.PI * 0.47);
-        ctx.translate(6, 0);
-        ctx.fillStyle = C.acc(1);
-        ctx.strokeStyle = C.ink(1);
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(-6, 0);
-        ctx.lineTo(50, 0);
-        ctx.lineTo(40, -16);
-        ctx.lineTo(34, -96);
-        ctx.lineTo(10, -96);
-        ctx.lineTo(4, -16);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(22, -108, 14, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = C.ink(1);
-        ctx.fillRect(19, -146, 6, 26);
-        ctx.fillRect(11, -137, 22, 6);
-        ctx.restore();
-
-        ctx.textAlign = "left";
-        label("DEEP BLUE", 360, 110, 68, 1, 800, "Barlow Condensed");
-        label("vs. GARRY KASPAROV · 1997.05.11", 362, 140, 14, 0.6);
-        const sc = smooth((lp - 0.2) / 0.5);
-        label(sc > 0.98 ? "3½ — 2½" : `${(sc * 3.5).toFixed(1)} — ${(sc * 2.5).toFixed(1)}`, 360, 250, 96, 1, 800, "Barlow Condensed");
-        const nps = Math.round(2e8 * smooth(lp * 1.4));
-        label(`${nps.toLocaleString("en-US")} POSITIONS / SEC`, 362, 290, 14, 0.75, 700);
-        label("1997.11 · LSTM：网络开始记住更长的序列", 362, 340, 14, 0.5, 500, "Noto Sans SC");
-      },
-      // 03 神经网络 + 围棋
-      (lp, u) => {
-        const layers = [3, 6, 8, 6, 2];
-        const lx = (i) => 16 + i * 80;
-        const ly = (i, j) => 60 + ((j + 0.5) * 300) / layers[i];
-        const net = clamp(lp * 1.7, 0, 1);
-        const edges = [];
-        for (let i = 0; i < layers.length - 1; i++)
-          for (let a = 0; a < layers[i]; a++) for (let b = 0; b < layers[i + 1]; b++) edges.push([i, a, b]);
-        const shown = net * edges.length;
-        ctx.lineWidth = 1;
-        edges.forEach(([i, a, b], k) => {
-          const v = clamp(shown - k, 0, 1);
-          if (v <= 0) return;
-          ctx.strokeStyle = C.ink(0.28 * v);
-          ctx.beginPath();
-          ctx.moveTo(lx(i), ly(i, a));
-          ctx.lineTo(lerp(lx(i), lx(i + 1), v), lerp(ly(i, a), ly(i + 1, b), v));
-          ctx.stroke();
-        });
-        layers.forEach((m, i) => {
-          for (let j = 0; j < m; j++) {
-            const on = net * layers.length - i > 0.5;
-            ctx.beginPath();
-            ctx.arc(lx(i), ly(i, j), 8 * smooth(u * 2 - i * 0.2), 0, Math.PI * 2);
-            ctx.fillStyle = on ? C.acc(1) : C.card(1);
-            ctx.strokeStyle = C.ink(1);
-            ctx.lineWidth = 2;
-            ctx.fill();
-            ctx.stroke();
-          }
-        });
-        label("IMAGENET → ALEXNET → RESNET", 0, 384, 11, 0.55);
-
-        const gx = 420;
-        const gy = 50;
-        const gs = 300;
-        const st = gs / 8;
-        ctx.fillStyle = C.card(1);
-        ctx.fillRect(gx - 14, gy - 14, gs + 28, gs + 28);
-        ctx.strokeStyle = C.ink(0.8);
-        ctx.lineWidth = 1;
-        for (let i = 0; i < 9; i++) {
-          const v = smooth(u * 1.6 - i * 0.05);
-          ctx.beginPath();
-          ctx.moveTo(gx, gy + i * st);
-          ctx.lineTo(gx + gs * v, gy + i * st);
-          ctx.moveTo(gx + i * st, gy);
-          ctx.lineTo(gx + i * st, gy + gs * v);
-          ctx.stroke();
-        }
-        const r = rng(2016);
-        const used = new Set();
-        const moves = [];
-        while (moves.length < 40) {
-          const m = Math.floor(r() * 81);
-          if (!used.has(m)) {
-            used.add(m);
-            moves.push(m);
-          }
-        }
-        const mv = clamp((lp - 0.12) / 0.8, 0, 1) * moves.length;
-        moves.forEach((m, k) => {
-          const v = clamp(mv - k, 0, 1);
-          if (v <= 0) return;
-          const cx = gx + (m % 9) * st;
-          const cy = gy + Math.floor(m / 9) * st;
-          ctx.beginPath();
-          ctx.arc(cx, cy, 15 * smooth(v * 1.4), 0, Math.PI * 2);
-          ctx.fillStyle = k % 2 ? C.card(1) : C.ink(1);
-          ctx.strokeStyle = C.ink(1);
-          ctx.lineWidth = 2;
-          ctx.fill();
-          ctx.stroke();
-          if (k === 36) {
-            ctx.strokeStyle = C.acc(1);
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 22, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.strokeStyle = C.ink(1);
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-            label("MOVE 37", cx + 26, cy - 18, 13, 1, 700);
-          }
-        });
-        label("ALPHAGO · 2016.03 · 4 : 1", gx - 14, 384, 11, 0.55);
-      },
-      // 04 注意力矩阵
-      (lp, u) => {
-        const tok = ["机器", "读完", "了", "人类", "写下", "的", "每一个", "字"];
-        const N = tok.length;
-        const q = 34;
-        const mx = 96;
-        const my = 70;
-        ctx.textAlign = "right";
-        tok.forEach((t, i) => label(t, mx - 10, my + i * q + 22, 14, smooth(u * 2 - i * 0.1), 700, "Noto Sans SC"));
-        ctx.textAlign = "left";
-        tok.forEach((t, j) => {
-          ctx.save();
-          ctx.translate(mx + j * q + 22, my - 8);
-          ctx.rotate(-Math.PI / 3);
-          label(t, 0, 0, 13, smooth(u * 2 - j * 0.1), 500, "Noto Sans SC");
-          ctx.restore();
-        });
-        const sweep = lp * (2 * N + 4);
-        for (let i = 0; i < N; i++) {
-          let best = 0;
-          const w = [];
-          for (let j = 0; j < N; j++) {
-            const v = j > i ? 0 : clamp(Math.exp(-(i - j) * 0.8) * 0.55 + (j === 3 ? 0.5 : 0) + (j === 0 ? 0.18 : 0), 0, 1);
-            w.push(v);
-            if (v > w[best]) best = j;
-          }
-          for (let j = 0; j < N; j++) {
-            const rv = clamp(sweep - (i + j), 0, 1);
-            const x = mx + j * q;
-            const y = my + i * q;
-            ctx.strokeStyle = C.ink(0.18);
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x + 0.5, y + 0.5, q - 1, q - 1);
-            if (rv <= 0 || w[j] === 0) continue;
-            const z = (q - 4) * rv;
-            ctx.fillStyle = j === best && i > 2 ? C.acc(1) : C.ink(w[j]);
-            ctx.fillRect(x + (q - z) / 2, y + (q - z) / 2, z, z);
-          }
-        }
-        label("ATTENTION(Q, K, V) = softmax(QKᵀ/√d)·V", mx, my + N * q + 28, 12, 0.7, 700);
-
-        const bx = 470;
-        for (let b = 0; b < 6; b++) {
-          const v = smooth(u * 2.4 - b * 0.22);
-          const y = 300 - b * 46;
-          ctx.fillStyle = b % 2 ? C.card(1) : C.ink(1);
-          ctx.strokeStyle = C.ink(1);
-          ctx.lineWidth = 2;
-          ctx.fillRect(bx, y, 220 * v, 34);
-          ctx.strokeRect(bx, y, 220 * v, 34);
-          if (v > 0.9) {
-            ctx.fillStyle = b % 2 ? C.ink(1) : C.card(1);
-            ctx.font = '700 12px "JetBrains Mono", monospace';
-            ctx.fillText(b % 2 ? "FEED FORWARD" : "MULTI-HEAD ATTENTION", bx + 12, y + 22);
-          }
-        }
-        label("× N", bx + 236, 140, 40, 1, 800, "Barlow Condensed");
-        const pr = Math.pow(10, lerp(Math.log10(1.17e8), Math.log10(1.75e11), clamp(lp * 1.15, 0, 1)));
-        const fmt = pr >= 1e9 ? `${(pr / 1e9).toFixed(pr >= 1e10 ? 0 : 1)}B` : `${Math.round(pr / 1e6)}M`;
-        label(fmt, bx, 372, 54, 1, 800, "Barlow Condensed");
-        label("PARAMETERS · GPT-1 → GPT-3", bx + 4, 390, 11, 0.55);
-      },
-      // 05 生成洪流
-      (lp, u) => {
-        const r = rng(2022);
-        const msgs = [];
-        for (let i = 0; i < 18; i++) {
-          const ai = i % 2 === 1;
-          const lines = ai ? 2 + Math.floor(r() * 3) : 1;
-          const ws = [];
-          for (let l = 0; l < lines; l++) ws.push(ai ? 0.55 + r() * 0.45 : 0.35 + r() * 0.3);
-          msgs.push({ ai, ws });
-        }
-        const shown = u * 2 + lp * (msgs.length - 2);
-        let y = 0;
-        const pos = [];
-        msgs.forEach((m) => {
-          const h = 16 + m.ws.length * 14;
-          pos.push([y, h]);
-          y += h + 10;
-        });
-        const head = shown >= 1 ? pos[Math.min(msgs.length - 1, Math.floor(shown))] : [0, 0];
-        const scroll = Math.max(0, head[0] + head[1] - 330);
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 40, 360, 340);
-        ctx.clip();
-        msgs.forEach((m, i) => {
-          const v = clamp(shown - i, 0, 1);
-          if (v <= 0) return;
-          const [yy, h] = pos[i];
-          const bw = m.ai ? 330 : 200;
-          const x = m.ai ? 0 : 360 - bw;
-          const top = 44 + yy - scroll + (1 - v) * 20;
-          ctx.globalAlpha = v;
-          ctx.fillStyle = m.ai ? C.ink(1) : C.card(1);
-          ctx.strokeStyle = C.ink(1);
-          ctx.lineWidth = 2;
-          ctx.fillRect(x, top, bw, h);
-          ctx.strokeRect(x, top, bw, h);
-          m.ws.forEach((w, l) => {
-            ctx.fillStyle = m.ai ? C.paper(0.75) : C.ink(0.5);
-            ctx.fillRect(x + 12, top + 12 + l * 14, (bw - 24) * w * (l === m.ws.length - 1 ? v : 1), 6);
-          });
-          ctx.globalAlpha = 1;
-        });
-        ctx.restore();
-
-        const tx = 400;
-        const ts = 70;
-        for (let k = 0; k < 20; k++) {
-          const v = smooth(u * 2 + lp * 22 - k * 1.05);
-          if (v <= 0) continue;
-          const cx = tx + (k % 5) * (ts + 6);
-          const cy = 44 + Math.floor(k / 5) * (ts + 6);
-          const z = ts * v;
-          ctx.save();
-          ctx.translate(cx + ts / 2, cy + ts / 2);
-          ctx.beginPath();
-          ctx.rect(-z / 2, -z / 2, z, z);
-          ctx.clip();
-          ctx.fillStyle = k % 3 === 0 ? C.acc(1) : C.card(1);
-          ctx.fillRect(-ts / 2, -ts / 2, ts, ts);
-          ctx.fillStyle = C.ink(1);
-          const kind = k % 4;
-          if (kind === 0) {
-            ctx.beginPath();
-            ctx.arc(0, 4, 20, 0, Math.PI * 2);
-            ctx.fill();
-          } else if (kind === 1) {
-            for (let l = -ts / 2; l < ts / 2; l += 8) ctx.fillRect(l, -ts / 2, 3, ts);
-          } else if (kind === 2) {
-            ctx.beginPath();
-            ctx.moveTo(-26, 24);
-            ctx.lineTo(0, -24);
-            ctx.lineTo(26, 24);
-            ctx.closePath();
-            ctx.fill();
-          } else {
-            for (let a = 0; a < 5; a++) for (let b = 0; b < 5; b++) if ((a + b + k) % 2) ctx.fillRect(-ts / 2 + a * 14, -ts / 2 + b * 14, 14, 14);
-          }
-          ctx.restore();
-          ctx.strokeStyle = C.ink(1);
-          ctx.lineWidth = 2;
-          ctx.strokeRect(cx + (ts - z) / 2, cy + (ts - z) / 2, z, z);
-        }
-        const users = Math.round(1e8 * smooth((lp - 0.3) / 0.4));
-        label(`${(users / 1e6).toFixed(0)}M USERS`, tx, 372, 44, 1, 800, "Barlow Condensed");
-        label("CHATGPT · 2 个月破亿", tx + 4, 390, 11, 0.55, 500, "Noto Sans SC");
-      },
-      // 06 思考树
-      (lp, u) => {
-        const D = 4;
-        const nodes = [];
-        const r = rng(2024);
-        const build = (d, y0, y1, path) => {
-          const y = (y0 + y1) / 2;
-          const node = { d, y, path, kids: [] };
-          nodes.push(node);
-          if (d < D) {
-            const k = d < 2 ? 3 : 2;
-            for (let i = 0; i < k; i++) node.kids.push(build(d + 1, y0 + ((y1 - y0) * i) / k, y0 + ((y1 - y0) * (i + 1)) / k, path + i));
-          }
-          node.prune = d > 1 && r() < 0.32;
-          return node;
-        };
-        const root = build(0, 50, 380, "");
-        const best = "1101";
-        const nx = (d) => 10 + d * 172;
-        const reveal = u * 1.2 + lp * (D + 1);
-        const walk = (nd) => {
-          nd.kids.forEach((kd) => {
-            const v = clamp(reveal - kd.d, 0, 1);
-            if (v <= 0) return;
-            const on = best.startsWith(kd.path) && lp > 0.55;
-            ctx.strokeStyle = on ? C.ink(1) : C.ink(0.3);
-            ctx.lineWidth = on ? 4 : 1.5;
-            ctx.beginPath();
-            ctx.moveTo(nx(nd.d), nd.y);
-            const mx = lerp(nx(nd.d), nx(kd.d), 0.5);
-            ctx.lineTo(lerp(nx(nd.d), mx, clamp(v * 2, 0, 1)), nd.y);
-            if (v > 0.5) {
-              ctx.lineTo(mx, lerp(nd.y, kd.y, clamp(v * 2 - 1, 0, 1)));
-              if (v >= 1) ctx.lineTo(nx(kd.d), kd.y);
-            }
-            ctx.stroke();
-            walk(kd);
-          });
-        };
-        walk(root);
-        nodes.forEach((nd) => {
-          const v = clamp(reveal - nd.d, 0, 1);
-          if (v < 1) return;
-          const on = best.startsWith(nd.path) && lp > 0.55;
-          const z = on ? 12 : 8;
-          ctx.fillStyle = on ? C.acc(1) : nd.prune && lp > 0.75 ? C.red(0.8) : C.card(1);
-          ctx.strokeStyle = C.ink(1);
-          ctx.lineWidth = 2;
-          ctx.fillRect(nx(nd.d) - z / 2, nd.y - z / 2, z, z);
-          ctx.strokeRect(nx(nd.d) - z / 2, nd.y - z / 2, z, z);
-        });
-        const steps = ["THINK", "PLAN", "ACT", "CHECK", "ANSWER"];
-        const sv = clamp(lp * 1.3, 0, 1) * steps.length;
-        label(steps.filter((_, i) => sv > i).join("  →  "), 0, 30, 15, 0.85, 700);
-      },
-      // 07 发布浪潮
-      (lp, u, p, ph) => {
-        for (let j = 0; j < 6; j++) {
-          ctx.strokeStyle = C.ink(0.14 + j * 0.03);
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          for (let x = 0; x <= 760; x += 8) {
-            const y = 120 + j * 40 + Math.sin(x / 70 + p * 1.4 + j * 0.8) * (14 + j * 3) * u;
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          }
-          ctx.stroke();
-        }
-        const evs = M.events.slice(ph.start, ph.end + 1);
-        const bw = Math.min(40, 700 / evs.length - 14);
-        const Hh = { high: 250, mid: 180, low: 120 };
-        evs.forEach((e, i) => {
-          const v = smooth(u * 1.5 + lp * (evs.length + 1) - i);
-          const h = (Hh[e.impact] || 190) * v;
-          const x = 10 + i * (bw + 14);
-          ctx.fillStyle = e.impact === "high" ? C.ink(1) : C.card(1);
-          ctx.strokeStyle = C.ink(1);
-          ctx.lineWidth = 2;
-          ctx.fillRect(x, 360 - h, bw, h);
-          ctx.strokeRect(x, 360 - h, bw, h);
-          if (v > 0.6) {
-            ctx.save();
-            ctx.translate(x + bw / 2 + 5, 352);
-            ctx.rotate(-Math.PI / 2);
-            ctx.font = '700 14px "Barlow Condensed", "Noto Sans SC", sans-serif';
-            ctx.fillStyle = e.impact === "high" ? C.paper(1) : C.ink(0.9);
-            let s = e.title;
-            while (s.length > 1 && ctx.measureText(s).width > h - 16) s = s.slice(0, -1);
-            ctx.fillText(s, 0, 0);
-            ctx.restore();
-          }
-          label(e.date.slice(5, 7), x + bw / 2 - 7, 378, 11, 0.6);
-        });
-        const cnt = Math.round(evs.length * clamp(lp * 1.1, 0, 1));
-        label(`${ph.y0} · ${pad(cnt)} 次值得记下的发布`, 0, 30, 15, 0.85, 700, "Noto Sans SC");
-      },
-      // 08 临界
-      (lp, u, p, ph, Hm) => {
-        const off = (p * 46) % 32;
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 44, 760, 34);
-        ctx.clip();
-        for (let x = -64; x < 800; x += 32) {
-          ctx.fillStyle = C.acc(1);
-          ctx.beginPath();
-          ctx.moveTo(x + off, 78);
-          ctx.lineTo(x + off + 16, 44);
-          ctx.lineTo(x + off + 32, 44);
-          ctx.lineTo(x + off + 16, 78);
-          ctx.fill();
-        }
-        ctx.restore();
-        ctx.strokeStyle = C.ink(1);
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 44, 760, 34);
-
-        label("CRITICAL", 0, 190, 120, 1, 800, "Barlow Condensed");
-        ctx.fillStyle = C.red(1);
-        ctx.fillRect(470, 104, 290, 90);
-        ctx.font = '800 64px "Barlow Condensed", sans-serif';
-        ctx.fillStyle = C.paper(1);
-        ctx.fillText("≤ 25%", 492, 172);
-
-        const cellsN = 50;
-        const keep = (Hm / 100) * cellsN;
-        for (let i = 0; i < cellsN; i++) {
-          const x = i * 15.2;
-          const v = clamp(keep - i, 0, 1);
-          ctx.strokeStyle = C.ink(0.35);
-          ctx.lineWidth = 1;
-          ctx.strokeRect(x + 0.5, 230.5, 12, 54);
-          if (v > 0) {
-            ctx.fillStyle = i < cellsN / 4 ? C.red(1) : C.ink(1);
-            ctx.fillRect(x, 230 + 54 * (1 - v), 13, 54 * v);
-          }
-        }
-        ctx.fillStyle = C.red(1);
-        ctx.fillRect(cellsN * 0.25 * 15.2 - 2, 220, 3, 76);
-        const crit = M.leaves.filter((l) => l.remaining <= CRIT).length;
-        const cv = Math.round(crit * smooth(lp * 1.2));
-        label(`${pad(cv)} / ${M.leaves.length}`, 0, 356, 64, 1, 800, "Barlow Condensed");
-        const tw = ctx.measureText(`${pad(cv)} / ${M.leaves.length}`).width;
-        label("项观察已进入临界区（人类剩余 ≤ 25%）", tw + 16, 348, 16, 0.8, 700, "Noto Sans SC");
-      },
-    ];
-
-    function drawMotifs(p, Hm) {
-      const P = M.phases;
-      const bAt = (k) => (k <= 0 ? 1 : k >= P.length ? 0 : smooth(p - P[k].start + 1));
-      const edges = [];
-      P.forEach((ph, k) => {
-        const bIn = bAt(k);
-        const bOut = bAt(k + 1);
-        const x0 = (1 - bIn) * MR.w;
-        const x1 = (1 - bOut) * MR.w;
-        if (x1 - x0 < 1) return;
-        if (bIn > 0 && bIn < 1) edges.push(x0);
-        const u = Math.min(bIn, 1 - bOut * 0.6);
-        const lp = clamp((p - ph.start + 0.5) / (ph.end - ph.start + 1), 0, 1);
-        const drift = (1 - bIn) * 70 - bOut * 70;
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(MR.x + x0, 0, x1 - x0, 624);
-        ctx.clip();
-        ctx.translate(MR.x + drift, MR.y);
-        ctx.textAlign = "left";
-        label(`FIG.${pad(ph.no)} — ${(STORY[ph.name] || [ph.name])[0]}`, 0, -6, 12, 0.7, 700);
-        ctx.fillStyle = C.ink(0.5);
-        ctx.fillRect(0, 2, MR.w * u, 1);
-        (MOTIF[k % MOTIF.length])(lp, u, p, ph, Hm);
-        ctx.restore();
-      });
-      edges.forEach((x) => {
-        ctx.fillStyle = C.acc(1);
-        ctx.fillRect(MR.x + x - 3, MR.y - 20, 6, MR.h + 24);
-        ctx.strokeStyle = C.ink(1);
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(MR.x + x - 3, MR.y - 20, 6, MR.h + 24);
-      });
-    }
-
-    function storyAt(p) {
-      const P = M.phases;
-      let best = null;
-      P.forEach((ph) => {
-        const a = ph.start === 0 ? 1 : (p - ph.start + 0.55) / 0.55;
-        const b = (ph.end + 0.5 - p) / 0.45;
-        const v = clamp(Math.min(a, b), 0, 1);
-        if (v > 0 && (!best || v > best.v)) best = { ph, v };
-      });
-      return best;
-    }
-
-    /* ---------- 信息条槽位 ---------- */
+    /* ---------- 文字槽位 ---------- */
 
     function titleSize(s) {
       let u = 0;
       for (const ch of s) u += ch === " " ? 0.24 : isCJK(ch) ? 0.92 : /[A-Z0-9]/.test(ch) ? 0.5 : 0.42;
-      const one = 590 / u;
-      if (one >= 46) return Math.min(one, 66);
-      return clamp((590 * 1.85) / u, 28, 44);
+      const one = (COL_W - 4) / u;
+      if (one >= 58) return Math.min(one, 96);
+      return clamp(((COL_W - 4) * 1.85) / u, 34, 56);
+    }
+
+    function titleHTML(s) {
+      return [...s].map((c) => (isCJK(c) ? `<span class="cjk">${esc(c)}</span>` : esc(c))).join("");
     }
 
     function fill(slot, i) {
@@ -1273,25 +1051,36 @@
         return [];
       }
       const e = M.events[i];
+      const p = M.phases[e.phase];
       const lvl = { low: 1, mid: 2, high: 3 }[e.impact] || 2;
       const rows = e.leaves;
-      const chips = rows.length
-        ? `<div class="sl-chips">${rows
-            .slice(0, 6)
-            .map((l) => `<span class="sl-chip${l.remaining <= CRIT ? " is-crit" : ""}">${esc(l.name)}<b>${l.remaining}</b></span>`)
-            .join("")}${rows.length > 6 ? `<span class="sl-chip">+${rows.length - 6}</span>` : ""}</div>`
+      const MAX = 3;
+      const rep = rows.length
+        ? rows
+            .slice(0, MAX)
+            .map(
+              (l) =>
+                `<div class="sl-row"><span>${esc(l.name)}<small>${esc(l.domain.name)}</small></span>${bar(l.remaining)}<b class="${l.remaining <= CRIT ? "is-crit" : ""}">${l.remaining}</b></div>`
+            )
+            .join("") + (rows.length > MAX ? `<p class="sl-more">+ ${rows.length - MAX} 项</p>` : "")
         : `<p class="sl-empty">未直接记入领域让渡，是其后 ${n - 1 - i} 个节点的前置。</p>`;
+
       slot.innerHTML = `
         <div class="sl-meta" data-r="0">
-          <p class="sl-date">${fmtDate(e.date)}</p>
-          <p class="sl-no"><span class="sl-era">${esc(e.era)}</span>No.${pad(i + 1, 3)} / ${pad(n, 3)}</p>
-          <p class="sl-imp" data-level="${e.impact || "mid"}">${[1, 2, 3].map((v) => `<i class="${v <= lvl ? "is-on" : ""}"></i>`).join("")}<b>${(e.impact || "mid").toUpperCase()}</b></p>
+          <span class="sl-era">${esc(e.era)}</span>
+          <span class="sl-phase">PHASE ${pad(p.no)}-${pad(i - p.start + 1)} · No.${pad(i + 1, 3)}</span>
+          <span class="sl-date">${fmtDate(e.date)}</span>
         </div>
-        <h3 class="sl-title" data-r="1" style="--fs:${titleSize(e.title).toFixed(1)}px">${[...e.title].map((c) => (isCJK(c) ? `<span class="cjk">${esc(c)}</span>` : esc(c))).join("")}</h3>
-        <p class="sl-blurb" data-r="2">${esc(e.blurb || "")}</p>
-        <div class="sl-rep" data-r="3">
-          <p class="sl-rep-h">让渡记录<span>IMPACT</span><b>${pad(rows.length)}</b></p>
-          ${chips}
+        <h3 class="sl-title" data-r="1" style="--fs:${titleSize(e.title).toFixed(1)}px">${titleHTML(e.title)}</h3>
+        <div class="sl-rule" data-r="2"></div>
+        <p class="sl-blurb" data-r="3">${esc(e.blurb || "")}</p>
+        <div class="sl-foot" data-r="4">
+          ${(e.tags || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
+          <span class="sl-imp" data-level="${e.impact || "mid"}">${[1, 2, 3].map((v) => `<i class="${v <= lvl ? "is-on" : ""}"></i>`).join("")}<b>${(e.impact || "mid").toUpperCase()}</b></span>
+        </div>
+        <div class="sl-rep" data-r="5">
+          <p class="sl-rep-h">让渡记录<span>TRANSFERRED</span><b>${pad(rows.length)}</b></p>
+          ${rep}
         </div>`;
       return [...slot.querySelectorAll("[data-r]")];
     }
@@ -1302,12 +1091,13 @@
       const d = new Date(ms);
       const y = d.getUTCFullYear();
       const a = Date.UTC(y, 0, 1);
-      return y + (ms - a) / (Date.UTC(y + 1, 0, 1) - a);
+      const b = Date.UTC(y + 1, 0, 1);
+      return y + (ms - a) / (b - a);
     }
 
     function odometer(yf) {
       const cols = el.year.querySelectorAll(".dg-col");
-      const digits = [(Math.floor(yf) % 10) + smooth(((yf % 1) - 0.86) / 0.14)];
+      const digits = [yf % 10];
       let carry = Math.max(0, digits[0] - 9);
       for (let k = 1; k < 4; k++) {
         const base = Math.floor(yf / Math.pow(10, k)) % 10;
@@ -1315,78 +1105,72 @@
         if (base !== 9) carry = 0;
       }
       for (let k = 0; k < 4; k++) {
-        if (cols[3 - k]) set(cols[3 - k], "transform", `translateY(${(-digits[k]).toFixed(4)}em)`);
+        const col = cols[3 - k];
+        if (col) set(col, "transform", `translateY(${(-digits[k]).toFixed(4)}em)`);
       }
     }
 
-    function render(p, dt) {
-      const k = clamp(Math.floor(p), 0, n - 2);
-      const t = clamp(p - k, 0, 1);
-      const sx = lerp(X[k], X[k + 1], t);
-      const cam = sx - CX;
+    function render(p) {
+      const k = n > 1 ? clamp(Math.floor(p), -1, n - 2) : 0;
+      const t = n > 1 ? clamp(p - k, 0, 1) : 0;
+      const rx = railX(p);
 
-      set(el.track, "transform", `translate3d(${(-cam).toFixed(2)}px,0,0)`);
-      set(el.grid, "--gx", `${(-cam * 0.3).toFixed(1)}px`);
+      set(el.world, "transform", `translate3d(${(HEAD_X - rx).toFixed(2)}px,0,0)`);
+      set(el.bg, "--gx", `${(-(rx * 0.3) % 120).toFixed(1)}px`);
+      set(el.bg, "--bx", `${(-rx % 1000).toFixed(1)}px`);
+      const cw = Math.round(rx - xMin);
+      if (cw !== clipW && el.eroRect) {
+        clipW = cw;
+        el.eroRect.setAttribute("width", String(Math.max(0, cw)));
+      }
 
-      evEls.forEach((ev, i) => set(ev, "--f", smooth(1 - Math.abs(p - i) * 1.2).toFixed(3)));
+      const h = human(p);
+      const hr = Math.round(h);
+      set(el.zone, "--m", ((100 - h) / 100).toFixed(4));
+      if (el.zoneH.textContent !== String(hr)) {
+        el.zoneH.textContent = String(hr);
+        el.zoneM.textContent = String(100 - hr);
+        el.rhH.textContent = String(hr);
+      }
+      set(el.rhVal, "transform", `translate3d(0,${clamp(curveY(h) - 46, 0, 60).toFixed(1)}px,0)`);
 
-      const e0 = M.events[k];
-      const e1 = M.events[k + 1];
-      const ms = lerp(e0.t, e1.t, t);
+      evEls.forEach((nd, i) => set(nd, "--f", smooth(1 - Math.abs(p - i) * 1.4).toFixed(3)));
+
+      const ka = clamp(k, 0, n - 1);
+      const kb = clamp(k + 1, 0, n - 1);
+      const ms = p < 0 ? M.events[0].t : M.events[ka].t + (M.events[kb].t - M.events[ka].t) * t;
       odometer(yearFloat(ms));
-
-      const span = Math.max(1, e1.t - e0.t) / YEAR;
-      const rate = Math.min(99999, (X[k + 1] - X[k]) / span);
-      rateS = rateS ? Math.exp(lerp(Math.log(rateS), Math.log(rate), 1 - Math.exp(-dt / 0.25))) : rate;
-      el.rate.textContent = rateS >= 99999 ? "∞" : Math.round(rateS).toLocaleString("en-US");
-
-      const Hm = humanAt(p);
-      const hi = Math.floor(Hm);
-      el.humanV.textContent = String(hi);
-      el.humanD.textContent = "." + String(Math.floor((Hm - hi) * 10));
-      el.humanBox.classList.toggle("is-crit", Hm <= CRIT);
-
-      const st = storyAt(p);
-      const key = st ? `${st.ph.no}:${Math.round(st.v * 200)}` : "";
-      if (key !== storyKey) {
-        storyKey = key;
-        if (st) {
-          const meta = STORY[st.ph.name] || [st.ph.name, ""];
-          const text = meta[1].replace("{agg}", String(M.agg));
-          el.storyPh.textContent = `PHASE ${pad(st.ph.no)} · ${st.ph.name}`;
-          el.storyFig.textContent = `FIG.${pad(st.ph.no)} / ${meta[0]} · ${st.ph.y0}—${st.ph.y1}`;
-          el.storyT.textContent = [...text].slice(0, Math.round(text.length * st.v)).join("");
-        } else {
-          el.storyT.textContent = "";
-        }
-      }
-
-      if (p !== lastP || dirty) {
-        lastP = p;
-        dirty = false;
-        ctx.clearRect(0, 0, 1920, 624);
-        drawMotifs(p, Hm);
-        drawGlyph(p, Hm);
-      }
+      const dd = new Date(ms);
+      const ds = `${dd.getUTCFullYear()}.${pad(dd.getUTCMonth() + 1)}`;
+      if (el.rhDate.textContent !== ds) el.rhDate.textContent = ds;
 
       if (slotK !== k) {
         slotK = k;
         rowsA = fill(el.slotA, k);
         rowsB = fill(el.slotB, k + 1);
       }
-      rowsA.forEach((r, j) => set(r, "--e", (1 - smooth((t - 0.08 - j * 0.06) / 0.32)).toFixed(3)));
-      rowsB.forEach((r, j) => set(r, "--e", smooth((t - 0.42 - j * 0.06) / 0.32).toFixed(3)));
-      set(el.scan, "transform", `translate3d(${((0.02 + 0.96 * t) * SLOTS_W).toFixed(1)}px,0,0)`);
+      rowsA.forEach((r, j) => set(r, "--e", (1 - smooth((t - 0.08 - j * 0.04) / 0.32)).toFixed(3)));
+      rowsB.forEach((r, j) => set(r, "--e", smooth((t - 0.42 - j * 0.04) / 0.32).toFixed(3)));
+      set(el.scan, "transform", `translate3d(${((0.02 + 0.96 * t) * COL_W).toFixed(1)}px,0,0)`);
       set(el.scan, "opacity", Math.sin(Math.PI * t).toFixed(3));
 
-      const fx = lerp(xs[k], xs[k + 1], t);
-      set(el.ovHead, "transform", `translate3d(${(fx * AXIS_W).toFixed(2)}px,0,0)`);
+      renderArt(p);
 
-      const near = Math.round(p);
+      const fx = p < 0 ? 0 : xs[ka] + (xs[kb] - xs[ka]) * t;
+      set(el.head, "transform", `translate3d(${(fx * AXIS_W).toFixed(2)}px,0,0)`);
+      set(el.progress, "transform", `scaleX(${fx.toFixed(4)})`);
+
+      const near = clamp(Math.round(p), 0, n - 1);
       if (near !== nearK) {
         nearK = near;
-        const ph = M.events[near].phase;
-        el.phases.querySelectorAll(".ph").forEach((b, i) => b.classList.toggle("is-on", i === ph));
+        const e = M.events[near];
+        el.ticks.querySelectorAll(".tk").forEach((tk, i) => {
+          tk.classList.toggle("is-past", i < near);
+          tk.classList.toggle("is-on", i === near);
+        });
+        el.phases.querySelectorAll(".ph").forEach((b, i) => b.classList.toggle("is-on", i === e.phase));
+        el.body.setAttribute("aria-valuenow", String(near + 1));
+        el.body.setAttribute("aria-valuetext", `${e.date} ${e.title}`);
       }
     }
 
@@ -1404,16 +1188,18 @@
     function frame(now) {
       const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000));
       lastT = now;
+
       if (!dragging && now - lastInput > 260) snap();
 
-      const w = dragging ? 24 : 4.6;
-      vel += (w * w * (target - pos) - 2 * w * vel) * dt;
+      const w = dragging ? 26 : pos < 0 ? 3.2 : 5.2;
+      const acc = w * w * (target - pos) - 2 * w * vel;
+      vel += acc * dt;
       pos += vel * dt;
       if (Math.abs(target - pos) < 1e-4 && Math.abs(vel) < 1e-3) {
         pos = target;
         vel = 0;
       }
-      pos = clamp(pos, 0, n - 1);
+      pos = clamp(pos, -1, n - 1);
 
       const settled = !dragging && pos === target && Number.isInteger(target);
       if (settled && !settledAt) settledAt = now;
@@ -1433,7 +1219,7 @@
         set(el.timer, "transform", "scaleX(0)");
       }
 
-      render(pos, dt);
+      render(pos);
       raf = requestAnimationFrame(frame);
     }
 
@@ -1462,6 +1248,12 @@
       target = clamp(Math.round(target) + d, 0, n - 1);
     }
 
+    function goTo(i) {
+      setPlaying(false);
+      lastDir = 0;
+      target = clamp(i, 0, n - 1);
+    }
+
     function wheel(e) {
       const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
       const d = raw * (e.deltaMode === 1 ? 33 : 1);
@@ -1484,22 +1276,24 @@
       $("#ac-prev").addEventListener("click", () => step(-1));
       $("#ac-next").addEventListener("click", () => step(1));
       el.play.addEventListener("click", toggle);
-      window.addEventListener("resize", resize);
+
+      el.phases.addEventListener("click", (ev) => {
+        const b = ev.target.closest(".ph");
+        if (b) goTo(M.phases[Number(b.dataset.k)].start);
+      });
 
       const scale = () => Number(stage.style.getPropertyValue("--s")) || 1;
+
       let lastX = 0;
+      let downX = 0;
       let lastMoveT = 0;
       let v = 0;
       el.hit.addEventListener("pointerdown", (ev) => {
         dragging = true;
         setPlaying(false);
-        try {
-          el.hit.setPointerCapture(ev.pointerId);
-        } catch (_) {
-          /* 合成事件没有可捕获的指针 */
-        }
+        el.hit.setPointerCapture(ev.pointerId);
         el.hit.classList.add("is-drag");
-        lastX = ev.clientX;
+        lastX = downX = ev.clientX;
         lastMoveT = performance.now();
         v = 0;
         target = pos;
@@ -1511,15 +1305,35 @@
         const dx = (ev.clientX - lastX) / scale();
         lastX = ev.clientX;
         const k = clamp(Math.floor(target), 0, n - 2);
-        const dp = -dx / (X[k + 1] - X[k]);
-        target = clamp(target + dp, 0, n - 1);
-        v = v * 0.6 + (dp / Math.max(1, now - lastMoveT)) * 1000 * 0.4;
+        const sp = RX[k + 1] - RX[k] || S;
+        const dp = -dx / sp;
+        target = clamp(target + dp, -0.4, n - 1);
+        const dtm = Math.max(1, now - lastMoveT);
+        v = v * 0.6 + (dp / dtm) * 1000 * 0.4;
         lastMoveT = now;
       });
-      const up = () => {
+      const up = (ev) => {
         if (!dragging) return;
         dragging = false;
         el.hit.classList.remove("is-drag");
+        if (Math.abs(ev.clientX - downX) < 6) {
+          const r = el.hit.getBoundingClientRect();
+          const sy = (ev.clientY - r.top) / scale() + 180;
+          if (sy >= 700) {
+            const wx = (ev.clientX - r.left) / scale() - HEAD_X + railX(pos);
+            let best = Math.round(pos);
+            let bd = Infinity;
+            RX.forEach((x, i) => {
+              const dd = Math.abs(wx - x - 60);
+              if (dd < bd) {
+                bd = dd;
+                best = i;
+              }
+            });
+            goTo(best);
+          }
+          return;
+        }
         if (performance.now() - lastMoveT > 120) v = 0;
         lastDir = Math.sign(v);
         target = clamp(target + clamp(v * 0.22, -3, 3), 0, n - 1);
@@ -1528,38 +1342,34 @@
       el.hit.addEventListener("pointerup", up);
       el.hit.addEventListener("pointercancel", up);
 
-      let ovDrag = false;
-      const ovTo = (ev) => {
-        const r = el.overview.getBoundingClientRect();
-        const f = clamp((ev.clientX - r.left) / r.width, 0, 1);
-        let k = 0;
-        while (k < n - 2 && xs[k + 1] < f) k++;
-        target = clamp(k + (f - xs[k]) / (xs[k + 1] - xs[k] || 1), 0, n - 1);
+      let axisDrag = false;
+      const axisTo = (ev) => {
+        const r = el.body.getBoundingClientRect();
+        target = invXs(clamp((ev.clientX - r.left) / r.width, 0, 1));
       };
-      el.overview.addEventListener("pointerdown", (ev) => {
-        ovDrag = true;
+      el.body.addEventListener("pointerdown", (ev) => {
+        axisDrag = true;
         dragging = true;
         setPlaying(false);
-        el.overview.setPointerCapture(ev.pointerId);
-        ovTo(ev);
+        el.body.setPointerCapture(ev.pointerId);
+        axisTo(ev);
       });
-      el.overview.addEventListener("pointermove", (ev) => ovDrag && ovTo(ev));
-      const ovUp = () => {
-        if (!ovDrag) return;
-        ovDrag = false;
+      el.body.addEventListener("pointermove", (ev) => axisDrag && axisTo(ev));
+      const axisUp = () => {
+        if (!axisDrag) return;
+        axisDrag = false;
         dragging = false;
         lastDir = 0;
         lastInput = 0;
       };
-      el.overview.addEventListener("pointerup", ovUp);
-      el.overview.addEventListener("pointercancel", ovUp);
+      el.body.addEventListener("pointerup", axisUp);
+      el.body.addEventListener("pointercancel", axisUp);
     }
 
     function enter() {
       lastT = performance.now();
       settledAt = 0;
       edgeAt = 0;
-      dirty = true;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(frame);
     }
@@ -1568,7 +1378,7 @@
       cancelAnimationFrame(raf);
     }
 
-    return { layout, bind, enter, leave, step, toggle, wheel, setPlaying, recolor };
+    return { layout, bind, enter, leave, step, toggle, wheel, setPlaying };
   })();
 
   /* ==========================================================
