@@ -104,32 +104,28 @@
         </div>
       </section>
 
-      <!-- ===== 01 时间轴：连续关卡地图 ===== -->
+      <!-- ===== 01 时间轴 ===== -->
       <section class="scene scene-timeline" data-scene="1" id="timeline" aria-label="时间轴">
-        <div class="map" id="map" aria-hidden="true">
-          <div class="tl-year" id="tl-year"></div>
-          <div class="ly ly-far" id="ly-far"></div>
-          <div class="ly ly-mid" id="ly-mid"></div>
-          <div class="map-band" id="map-band"></div>
-          <div class="ly ly-world" id="ly-world">
-            <svg class="paths" id="paths" xmlns="http://www.w3.org/2000/svg">
-              <defs><clipPath id="tl-clip"><rect id="tl-cliprect" x="0" y="0" width="0" height="1080" /></clipPath></defs>
-              <path class="path-base" id="path-base" />
-              <path class="path-prog" id="path-prog" clip-path="url(#tl-clip)" />
-            </svg>
-            <div id="gates"></div>
-            <div id="nodes"></div>
-          </div>
-          <div class="scanline" id="scanline"><b id="scan-y">1946</b></div>
-          <div class="reticle" id="reticle"><i></i><i></i><i></i><i></i></div>
-          <div class="ly ly-fore" id="ly-fore"></div>
+        <div class="tl-grid" id="tl-grid" aria-hidden="true"></div>
+        <canvas class="art" id="art" width="1920" height="624" aria-hidden="true"></canvas>
+
+        <div class="story" id="story" aria-live="polite">
+          <p class="story-k"><b id="story-ph">PHASE 01</b><span id="story-fig">FIG.01</span></p>
+          <p class="story-t"><span id="story-t"></span><i aria-hidden="true"></i></p>
         </div>
-        <div class="map-hit" id="map-hit" aria-hidden="true"></div>
+
+        <div class="human" id="human">
+          <p class="human-k">FIG.H · 人 · HUMAN REMAINING</p>
+          <p class="human-v"><span id="human-v">100</span><small id="human-d">.0</small><sup>%</sup></p>
+          <p class="human-n">像素被吃掉的比例 = 已让渡给 AI 的人类事务（按影响力累积估算）</p>
+        </div>
+
+        <div class="tl-hit" id="tl-hit" aria-hidden="true"></div>
 
         <div class="tl-head rv" style="--d:.1s">
           <span class="sec-no">01</span>
           <span class="sec-t">时间轴<em>TIMELINE</em></span>
-          <span class="sec-hint">拖拽地图 / 滚轮 / ← → 连续回放</span>
+          <span class="sec-hint">拖拽 / 滚轮 / ← → 连续回放</span>
         </div>
 
         <div class="tl-ctrl rv" style="--d:.2s">
@@ -139,14 +135,16 @@
           <span class="ac-timer"><i id="ac-timer"></i></span>
         </div>
 
+        <div class="ruler" id="ruler" aria-hidden="true">
+          <div class="ruler-track" id="ruler-track"></div>
+        </div>
+
+        <div class="needle" aria-hidden="true">
+          <div class="odo" id="tl-year"></div>
+          <p class="rate">刻度 1 年 = <b id="rate">—</b> px</p>
+        </div>
+
         <div class="strip" id="strip" aria-live="polite">
-          <div class="live">
-            <p class="live-k"><i></i>PLAYBACK</p>
-            <p class="live-date" id="live-date">1946.02.14</p>
-            <p class="live-idx"><b id="live-idx">01</b><span>/ <em id="live-total">65</em></span></p>
-            <div class="live-seg"><i id="live-seg"></i></div>
-            <p class="live-phase" id="live-phase">—</p>
-          </div>
           <div class="slots" id="slots">
             <div class="slot is-out" id="slot-a"></div>
             <div class="slot is-in" id="slot-b"></div>
@@ -154,15 +152,9 @@
           </div>
         </div>
 
-        <div class="axis" id="axis">
-          <div class="axis-phases" id="axis-phases"></div>
-          <div class="axis-body" id="axis-body" tabindex="0" role="slider" aria-label="时间轴进度" aria-valuemin="1" aria-valuenow="1">
-            <div class="axis-base" aria-hidden="true"></div>
-            <div class="axis-progress" id="axis-progress" aria-hidden="true"></div>
-            <div class="axis-ticks" id="axis-ticks"></div>
-            <div class="axis-years" id="axis-years" aria-hidden="true"></div>
-            <div class="playhead" id="playhead" aria-hidden="true"><i></i></div>
-          </div>
+        <div class="overview" id="overview">
+          <div id="axis-phases"></div>
+          <i class="ov-head" id="ov-head"></i>
         </div>
       </section>
 
