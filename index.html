@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="endfield">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,6 +10,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    try {
+      var t = localStorage.getItem("he-theme");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (_) {}
+  </script>
 </head>
 <body>
   <div class="viewport" id="viewport">
@@ -29,6 +35,11 @@
           <button type="button" data-go="3"><em>03</em><span>出局名单</span></button>
         </nav>
         <span class="hud-date">基准日 <time id="hud-date">—</time><b>估算</b></span>
+        <div class="theme" id="theme" role="group" aria-label="界面配色">
+          <button type="button" data-t="endfield" title="终末地 · 黄黑" aria-label="配色：终末地黄黑"></button>
+          <button type="button" data-t="cobalt" title="蓝白 · 钴蓝" aria-label="配色：蓝白"></button>
+          <button type="button" data-t="tundra" title="苔原 · 信号绿" aria-label="配色：苔原信号绿"></button>
+        </div>
       </header>
 
       <aside class="hud-side" aria-hidden="true">

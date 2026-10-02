@@ -7,18 +7,19 @@
   --bg-2: #141619;
   --bg-3: #1b1e22;
   --ink: #f1efe9;
-  --ink-2: rgba(241, 239, 233, 0.62);
-  --ink-3: rgba(241, 239, 233, 0.34);
-  --line: rgba(241, 239, 233, 0.14);
+  --ink-2: color-mix(in srgb, var(--ink) 62%, transparent);
+  --ink-3: color-mix(in srgb, var(--ink) 34%, transparent);
+  --line: color-mix(in srgb, var(--ink) 14%, transparent);
   --paper: #e8e6e0;
   --paper-2: #dcd9d1;
   --pink: #111214;
-  --pink-2: rgba(17, 18, 20, 0.62);
-  --pink-3: rgba(17, 18, 20, 0.32);
-  --pline: rgba(17, 18, 20, 0.16);
+  --pink-2: color-mix(in srgb, var(--pink) 62%, transparent);
+  --pink-3: color-mix(in srgb, var(--pink) 32%, transparent);
+  --pline: color-mix(in srgb, var(--pink) 16%, transparent);
   --y: #ffe600;
   --red: #e8452c;
-  --green: #8aa57a;
+  --void: #050506;
+  --card: #f8f7f3;
 
   --f-display: "Barlow Condensed", "Oswald", "Arial Narrow", "Noto Sans SC", sans-serif;
   --f-sans: "Noto Sans SC", "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -26,6 +27,94 @@
 
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-io: cubic-bezier(0.75, 0, 0.2, 1);
+}
+
+/* 配色：--bg* 深色章节底，--ink 深底上的字；--paper* 浅色章节底，--pink 浅底上的字与深色面板；--y 强调色（其上文字用 --pink） */
+
+:root[data-theme="cobalt"] {
+  --bg: #0f3b8c;
+  --bg-2: #0c3278;
+  --bg-3: #1a4ea6;
+  --ink: #f5f8ff;
+  --paper: #eef2f8;
+  --paper-2: #dde5f2;
+  --pink: #0a2252;
+  --y: #41c8ff;
+  --red: #ff4f6d;
+  --void: #061430;
+  --card: #ffffff;
+}
+
+:root[data-theme="tundra"] {
+  --bg: #0f1310;
+  --bg-2: #161c17;
+  --bg-3: #1e2620;
+  --ink: #e9ecdf;
+  --paper: #e2e4d6;
+  --paper-2: #d2d5c3;
+  --pink: #121812;
+  --y: #c6f135;
+  --red: #ff5b37;
+  --void: #070907;
+  --card: #f2f3ea;
+}
+
+/* 配色切换器 */
+
+.theme {
+  display: flex;
+  gap: 6px;
+  padding-left: 24px;
+  border-left: 1px solid var(--hud-line);
+}
+
+.theme button {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, var(--sw-a) 0 50%, var(--sw-b) 50% 100%);
+  box-shadow: inset 0 0 0 1px var(--hud-line);
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+  transition: transform 0.25s var(--ease);
+}
+
+.theme button:hover {
+  transform: translateY(-2px);
+}
+
+.theme button[data-t="endfield"] {
+  --sw-a: #111214;
+  --sw-b: #ffe600;
+}
+
+.theme button[data-t="cobalt"] {
+  --sw-a: #0f3b8c;
+  --sw-b: #eef2f8;
+}
+
+.theme button[data-t="tundra"] {
+  --sw-a: #161c17;
+  --sw-b: #c6f135;
+}
+
+.theme button.is-on::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: -8px;
+  height: 3px;
+  background: var(--hud);
+}
+
+.theme-tip {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--hud-2);
+  align-self: center;
+  margin-left: 6px;
+  min-width: 64px;
 }
 
 *,
@@ -38,7 +127,7 @@ html,
 body {
   margin: 0;
   height: 100%;
-  background: #050506;
+  background: var(--void);
   overflow: hidden;
 }
 
@@ -100,8 +189,8 @@ a {
   inset: 0;
   overflow: hidden;
   background:
-    repeating-linear-gradient(135deg, transparent 0 14px, rgba(255, 255, 255, 0.018) 14px 15px),
-    #050506;
+    repeating-linear-gradient(135deg, transparent 0 14px, color-mix(in srgb, var(--ink) 1.8%, transparent) 14px 15px),
+    var(--void);
 }
 
 .stage {
@@ -430,7 +519,7 @@ a {
 
 .scene-cover {
   background:
-    radial-gradient(ellipse 60% 70% at 75% 45%, rgba(255, 230, 0, 0.05), transparent 70%),
+    radial-gradient(ellipse 60% 70% at 75% 45%, color-mix(in srgb, var(--y) 5%, transparent), transparent 70%),
     var(--bg);
 }
 
@@ -454,7 +543,7 @@ a {
   left: 1040px;
   right: 0;
   background:
-    repeating-linear-gradient(135deg, rgba(241, 239, 233, 0.04) 0 2px, transparent 2px 14px) top / 100% 120px no-repeat,
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--ink) 4%, transparent) 0 2px, transparent 2px 14px) top / 100% 120px no-repeat,
     var(--bg-2);
   clip-path: polygon(70px 0, 100% 0, 100% 100%, 0 100%, 0 70px);
   transform: translateX(110%);
@@ -499,7 +588,7 @@ a {
 
 .cover-dial .dial-dash {
   fill: none;
-  stroke: rgba(241, 239, 233, 0.22);
+  stroke: color-mix(in srgb, var(--ink) 22%, transparent);
   stroke-width: 10;
   stroke-dasharray: 2 10;
   transform-origin: 400px 400px;
@@ -512,7 +601,7 @@ a {
 }
 
 .dial-ticks line {
-  stroke: rgba(241, 239, 233, 0.28);
+  stroke: color-mix(in srgb, var(--ink) 28%, transparent);
   stroke-width: 1.5;
 }
 
@@ -850,12 +939,12 @@ a {
 
 .hp-cells i.is-out {
   background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(241, 239, 233, 0.2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 20%, transparent);
 }
 
 .hp-cells i.is-hit {
   background: var(--red);
-  box-shadow: 0 0 18px rgba(232, 69, 44, 0.7);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--red) 70%, transparent);
 }
 
 .hp-scale {
@@ -903,7 +992,7 @@ a {
   align-items: stretch;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  background: rgba(12, 13, 15, 0.7);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
 }
 
 .ticker-k {
@@ -1063,7 +1152,7 @@ a {
   line-height: 1;
   letter-spacing: -0.02em;
   color: transparent;
-  -webkit-text-stroke: 2px rgba(17, 18, 20, 0.08);
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--pink) 8%, transparent);
 }
 
 .dg {
@@ -1095,7 +1184,7 @@ a {
   font-size: 250px;
   line-height: 1;
   letter-spacing: 0.02em;
-  color: rgba(17, 18, 20, 0.055);
+  color: color-mix(in srgb, var(--pink) 5.5%, transparent);
   clip-path: inset(0 calc((1 - var(--r, 0)) * 100%) 0 0);
   opacity: calc(0.3 + 0.7 * var(--r, 0));
 }
@@ -1108,7 +1197,7 @@ a {
   font-weight: 700;
   font-size: 64px;
   letter-spacing: 0.3em;
-  color: rgba(17, 18, 20, 0.14);
+  color: color-mix(in srgb, var(--pink) 14%, transparent);
 }
 
 /* 中景装饰 */
@@ -1121,14 +1210,14 @@ a {
 .dc-hatch {
   width: 150px;
   height: 36px;
-  background: repeating-linear-gradient(-45deg, rgba(17, 18, 20, 0.18) 0 2px, transparent 2px 9px);
+  background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--pink) 18%, transparent) 0 2px, transparent 2px 9px);
 }
 
 .dc-ring {
   width: var(--sz, 120px);
   height: var(--sz, 120px);
   border-radius: 50%;
-  border: 1px solid rgba(17, 18, 20, 0.18);
+  border: 1px solid color-mix(in srgb, var(--pink) 18%, transparent);
 }
 
 .dc-ring::after {
@@ -1136,7 +1225,7 @@ a {
   position: absolute;
   inset: 18%;
   border-radius: 50%;
-  border: 1px dashed rgba(17, 18, 20, 0.18);
+  border: 1px dashed color-mix(in srgb, var(--pink) 18%, transparent);
 }
 
 .dc-cross {
@@ -1152,7 +1241,7 @@ a {
   font-family: var(--f-mono);
   font-size: 11px;
   letter-spacing: 0.1em;
-  color: rgba(17, 18, 20, 0.4);
+  color: color-mix(in srgb, var(--pink) 40%, transparent);
   white-space: nowrap;
 }
 
@@ -1169,7 +1258,7 @@ a {
 .dc-bars {
   width: 96px;
   height: 22px;
-  background: repeating-linear-gradient(90deg, rgba(17, 18, 20, 0.35) 0 2px, transparent 2px 5px, rgba(17, 18, 20, 0.35) 5px 6px, transparent 6px 10px);
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--pink) 35%, transparent) 0 2px, transparent 2px 5px, color-mix(in srgb, var(--pink) 35%, transparent) 5px 6px, transparent 6px 10px);
 }
 
 .dc-tri {
@@ -1190,7 +1279,7 @@ a {
   right: 0;
   top: 556px;
   height: 14px;
-  background: repeating-linear-gradient(-45deg, rgba(17, 18, 20, 0.16) 0 3px, transparent 3px 12px);
+  background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--pink) 16%, transparent) 0 3px, transparent 3px 12px);
   background-position: var(--bx, 0) 0;
 }
 
@@ -1206,7 +1295,7 @@ a {
 
 .path-base {
   fill: none;
-  stroke: rgba(17, 18, 20, 0.32);
+  stroke: color-mix(in srgb, var(--pink) 32%, transparent);
   stroke-width: 2;
   stroke-dasharray: 6 8;
 }
@@ -1227,7 +1316,7 @@ a {
   height: 560px;
   margin-left: -56px;
   background:
-    repeating-linear-gradient(-45deg, rgba(241, 239, 233, 0.06) 0 2px, transparent 2px 12px),
+    repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ink) 6%, transparent) 0 2px, transparent 2px 12px),
     var(--pink);
   color: var(--ink);
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%);
@@ -1363,7 +1452,7 @@ a {
   justify-content: center;
   gap: 4px;
   padding: 0 12px;
-  background: #f8f7f3;
+  background: var(--card);
   border: 2px solid var(--pink);
   border-left: 0;
 }
@@ -1414,7 +1503,7 @@ a {
   top: 0;
   height: 614px;
   width: 0;
-  border-left: 1px dashed rgba(17, 18, 20, 0.45);
+  border-left: 1px dashed color-mix(in srgb, var(--pink) 45%, transparent);
   pointer-events: none;
 }
 
@@ -1683,7 +1772,7 @@ a {
 .live-seg {
   margin-top: 10px;
   height: 6px;
-  background: rgba(17, 18, 20, 0.2);
+  background: color-mix(in srgb, var(--pink) 20%, transparent);
 }
 
 .live-seg i {
@@ -1736,7 +1825,7 @@ a {
   left: 0;
   width: 8px;
   background: var(--y);
-  box-shadow: -40px 0 60px rgba(255, 230, 0, 0.18);
+  box-shadow: -40px 0 60px color-mix(in srgb, var(--y) 18%, transparent);
   opacity: 0;
   will-change: transform, opacity;
 }
@@ -1899,7 +1988,7 @@ a {
   gap: 10px;
   height: 30px;
   font-size: 14px;
-  border-bottom: 1px solid rgba(241, 239, 233, 0.08);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
 .sl-row span:first-child {
@@ -1947,7 +2036,7 @@ a {
   font-size: 30px;
   letter-spacing: 0.06em;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(241, 239, 233, 0.5);
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--ink) 50%, transparent);
 }
 
 @keyframes fadeUp {
@@ -2000,7 +2089,7 @@ a {
 
 .ph:hover {
   color: var(--pink);
-  background: rgba(17, 18, 20, 0.06);
+  background: color-mix(in srgb, var(--pink) 6%, transparent);
 }
 
 .ph.is-on {
@@ -2114,8 +2203,8 @@ a {
 .bar {
   position: relative;
   height: 10px;
-  background: repeating-linear-gradient(-45deg, rgba(232, 69, 44, 0.5) 0 2px, transparent 2px 6px);
-  box-shadow: inset 0 0 0 1px rgba(232, 69, 44, 0.35);
+  background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--red) 50%, transparent) 0 2px, transparent 2px 6px);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--red) 35%, transparent);
 }
 
 .bar > i {
@@ -2837,7 +2926,7 @@ a {
 
 .shutter i:nth-child(3) {
   background:
-    repeating-linear-gradient(-45deg, rgba(241, 239, 233, 0.06) 0 2px, transparent 2px 14px),
+    repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ink) 6%, transparent) 0 2px, transparent 2px 14px),
     var(--bg-3);
 }
 

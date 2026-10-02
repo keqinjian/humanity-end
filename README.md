@@ -42,6 +42,12 @@ python3 -c "import json;from pathlib import Path;d=json.loads(Path('data.json').
 
 整站是一块 1920×1080 的 16:9 舞台，按视口等比缩放，四个章节（总览 / 时间轴 / 领域血条 / 出局名单）以斜切快门转场切换，明暗交替。
 
-配色：深底 `#0c0d0f`、纸底 `#e8e6e0`、骨色字 `#f1efe9`、工业黄 `#ffe600`、临界红 `#e8452c`。字体：Barlow Condensed（数字与拉丁标题）、Noto Sans SC（中文）、JetBrains Mono（编号与日期）。
+配色：右上角可切换三套（按 `T` 也可循环），选择存于 localStorage。每套只定义 `styles.css` 顶部的十来个基础色，其余半透明色均由 `color-mix` 派生：
+
+- `endfield` 终末地黄黑（默认）：深底 `#0c0d0f`、纸底 `#e8e6e0`、工业黄 `#ffe600`、临界红 `#e8452c`
+- `cobalt` 蓝白：钴蓝底 `#0f3b8c`、白纸 `#eef2f8`、藏青 `#0a2252`、天蓝强调 `#41c8ff`
+- `tundra` 苔原信号绿：苔黑底 `#0f1310`、砂纸 `#e2e4d6`、酸性绿 `#c6f135`、信号橙 `#ff5b37`
+
+字体：Barlow Condensed（数字与拉丁标题）、Noto Sans SC（中文）、JetBrains Mono（编号与日期）。
 
 时间轴是一张连续的关卡地图：唯一状态是浮点位置 `pos`（单位为事件序号），由拖拽、滚轮、键盘或自动回放驱动，经临界阻尼弹簧平滑。相机、四层视差、路径进度、节点焦点、年份里程表、信息条擦除都是 `pos` 的函数，任何中间位置都对应一个确定的动画状态。阶段在地图上以「闸门」呈现。节点的「让渡记录」由叶节点的 `movedBy` 与事件标题匹配得出。

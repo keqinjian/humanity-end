@@ -189,6 +189,62 @@
     }, 1200);
   }
 
+  /* ---------- 配色 ---------- */
+
+  const THEMES = ["endfield", "cobalt", "tundra"];
+
+  function markTheme() {
+    const cur = document.documentElement.dataset.theme;
+    document.querySelectorAll("#theme button").forEach((b) => {
+      b.classList.toggle("is-on", b.dataset.t === cur);
+      b.setAttribute("aria-pressed", String(b.dataset.t === cur));
+    });
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+  }
+
+  function setTheme(t) {
+    if (!THEMES.includes(t) || t === document.documentElement.dataset.theme || busy) return;
+    const apply = () => {
+      document.documentElement.dataset.theme = t;
+      try {
+        localStorage.setItem("he-theme", t);
+      } catch (_) {
+        /* 隐私模式下不持久化 */
+      }
+      markTheme();
+    };
+    if (reduce) {
+      apply();
+      return;
+    }
+    busy = true;
+    const sh = $("#shutter");
+    sh.classList.remove("is-run", "is-back");
+    void sh.offsetWidth;
+    sh.classList.add("is-run");
+    setTimeout(apply, 560);
+    setTimeout(() => {
+      busy = false;
+      sh.classList.remove("is-run");
+    }, 1200);
+  }
+
+  function bindTheme() {
+    if (!THEMES.includes(document.documentElement.dataset.theme)) document.documentElement.dataset.theme = THEMES[0];
+    markTheme();
+    $("#theme").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-t]");
+      if (b) setTheme(b.dataset.t);
+    });
+    window.addEventListener("keydown", (e) => {
+      if ((e.key === "t" || e.key === "T") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const i = THEMES.indexOf(document.documentElement.dataset.theme);
+        setTheme(THEMES[(i + 1) % THEMES.length]);
+      }
+    });
+  }
+
   function bindNav() {
     document.querySelectorAll("[data-go]").forEach((b) => {
       b.addEventListener("click", () => go(Number(b.dataset.go)));
@@ -1115,6 +1171,7 @@
       hooks.enter[2] = () => DM.enter();
 
       bindNav();
+      bindTheme();
       const start = Math.max(0, SCENES.indexOf(location.hash.slice(1)));
       swap(start);
     })
