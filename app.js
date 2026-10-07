@@ -1366,22 +1366,22 @@
     function cardPose(age) {
       const trail = cardTrail();
       if (age < -1.05 || age > trail) return null;
-      const inn = smooth(clamp((age + 1.02) / 0.42, 0, 1));
-      const thrown = smooth(clamp((age - 0.05) / 0.28, 0, 1));
-      const fade = smooth(clamp((age - 0.05) / 0.18, 0, 1));
-      const dep = smooth(clamp((age - 0.05) / (trail - 0.05), 0, 1));
-      const x = thrown * (reduce ? 72 : 540) + dep * (reduce ? 12 : 48);
-      const y = thrown * (reduce ? -8 : -26) - dep * (reduce ? 6 : 42);
-      const s = 1 - thrown * (reduce ? 0.1 : 0.2) - dep * (reduce ? 0.12 : 0.32);
-      const o = inn * (1 - fade * (reduce ? 0.78 : 0.64)) * (1 - dep);
-      if (o < 0.03) return null;
+      // 下一条在上一条离开文字栏之后才铺满，两条高对比标题不叠在同一块字上。
+      const inn = smooth(clamp((age + 0.78) / 0.18, 0, 1));
+      const thrown = smooth(clamp((age - 0.1) / 0.14, 0, 1));
+      const dep = smooth(clamp((age - 0.1) / Math.max(0.45, trail - 0.1), 0, 1));
+      const x = thrown * (reduce ? 70 : 640) + dep * (reduce ? 6 : 22);
+      const y = -thrown * (reduce ? 3 : 12) - dep * (reduce ? 6 : 28);
+      const s = 1 - thrown * (reduce ? 0.05 : 0.16) - dep * (reduce ? 0.08 : 0.3);
+      const o = inn * (1 - thrown * 0.68) * (1 - dep * 0.92);
+      if (o < 0.028) return null;
       return {
         x,
         y,
         s,
         o,
-        blur: reduce ? 0 : thrown * 2.4 + dep * 3.2,
-        z: age < 0.12 ? 40 : 22 - Math.round(age * 4),
+        blur: reduce || thrown < 0.9 ? 0 : (thrown - 0.9) * 8 + dep * 2,
+        z: age < 0.12 ? 40 : 18 - Math.round(age * 3),
       };
     }
 
@@ -1491,10 +1491,10 @@
       return 0.74 + 0.36 * smooth(dist / 0.5);
     }
 
-    /* 早期约 0.36 事件/秒，平滑加到末段约 1.1，后期密集发布会明显更快。 */
+    /* 早期约 0.40 事件/秒，平滑加到末段约 1.10，再乘靠近事件时的轻微减速。 */
     function cruiseAt(p) {
       const u = smooth(clamp(p / Math.max(1, n - 1), 0, 1));
-      return 0.36 + 0.74 * u;
+      return 0.4 + 0.7 * u;
     }
 
     function frame(now) {
