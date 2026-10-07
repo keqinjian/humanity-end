@@ -474,8 +474,8 @@
     const HEAD_X = 960;
     const ART_X = 740;
     const ART_Y = 150;
-    /* 自动回放的巡航速度（事件 / 秒）。经过事件时乘 playEase，只放慢、不停住。 */
-    const CRUISE = 0.25;
+    /* 自动回放：早期约 0.36 事件/秒，越往后越快，末段约 1.1。再乘 playEase，经过事件时略慢。 */
+    const CARD_SLOTS = 5;
     const AXIS_W = 1680;
     const COL_W = 600;
 
@@ -497,10 +497,8 @@
     let edgeAt = 0;
     let raf = 0;
     let lastT = 0;
-    let slotK = -2;
     let nearK = -1;
-    let rowsA = [];
-    let rowsB = [];
+    let cardSlots = [];
     let evEls = [];
     let tickEls = [];
     let phaseEls = [];
@@ -949,7 +947,7 @@
       const find = (t) => ev.findIndex((e) => e.title === t);
       const out = [];
       const covered = new Set();
-      const push = (it, ai, ui) => {
+      const push = (it, ai, ui, trail) => {
         const iai = it.at !== undefined ? (typeof it.at === "number" ? it.at : find(it.at)) : ai;
         const iui = it.u !== undefined ? find(it.u) : ui;
         const clip = it.c || it.tc;
@@ -964,6 +962,7 @@
           outA: it.outA ?? iui + 0.15 + (it.od || 0),
           outW: it.outW ?? 0.4,
           dr: it.dr ?? 50,
+          trail: trail !== false,
         });
       };
 
@@ -997,8 +996,8 @@
 
       M.phases.forEach((p, k) => {
         const win = { inA: p.start - 0.9, inW: 0.6, outA: p.end + 0.2, outW: 0.6, anchor: (p.start + p.end) / 2 };
-        push(R(792, 190, "v-plate", `<b>${pad(p.no)}</b><span>${esc(p.name)}</span><em>${p.y0} — ${p.y1}</em>`, { ...win, c: "l", tc: "l", dr: 0 }), p.start, p.end);
-        push(R(1190, 186, "v-word", ERA_EN[p.name] || p.name, { ...win, f: { x: 160, o: 0 }, t: { x: -160, o: 0 }, dr: 36 }), p.start, p.end);
+        push(R(792, 190, "v-plate", `<b>${pad(p.no)}</b><span>${esc(p.name)}</span><em>${p.y0} — ${p.y1}</em>`, { ...win, c: "l", tc: "l", dr: 0 }), p.start, p.end, false);
+        push(R(1190, 186, "v-word", ERA_EN[p.name] || p.name, { ...win, f: { x: 160, o: 0 }, t: { x: -160, o: 0 }, dr: 36 }), p.start, p.end, false);
       });
 
       el.art.innerHTML = "";
@@ -1016,27 +1015,46 @@
     }
 
     function renderArt(p) {
+      const trail = reduce ? 1.2 : 3.05;
       for (const it of items) {
         const e = it.el;
-        if (p <= it.inA || p >= it.outA + it.outW) {
+        const past = p - it.outA;
+        const held = it.trail && past > 0;
+        if (p <= it.inA || (it.trail ? past >= trail : p >= it.outA + it.outW)) {
           set(e, "visibility", "hidden");
           continue;
         }
-        const ein = smooth((p - it.inA) / it.inW);
-        const eout = smooth((p - it.outA) / it.outW);
+        const pEval = held ? it.outA : p;
+        const ein = smooth((pEval - it.inA) / it.inW);
+        const eout = held ? 0 : smooth((p - it.outA) / it.outW);
         const qi = 1 - ein;
         const f = it.f;
         const t = it.t;
         const m = it.mid;
-        const em = m ? smooth((p - it.anchor - m.p[0]) / (m.p[1] - m.p[0])) : 0;
-        const x = (f.x || 0) * qi + (t.x || 0) * eout - (p - it.anchor) * it.dr + (m ? (m.x || 0) * em : 0);
-        const y = (f.y || 0) * qi + (t.y || 0) * eout + (m ? (m.y || 0) * em : 0);
+        const em = m ? smooth((pEval - it.anchor - m.p[0]) / (m.p[1] - m.p[0])) : 0;
+        let x = (f.x || 0) * qi + (t.x || 0) * eout - (pEval - it.anchor) * it.dr + (m ? (m.x || 0) * em : 0);
+        let y = (f.y || 0) * qi + (t.y || 0) * eout + (m ? (m.y || 0) * em : 0);
         const r = (f.r || 0) * qi + (t.r || 0) * eout + (m ? (m.r || 0) * em : 0);
-        const s = 1 + ((f.s ?? 1) - 1) * qi + ((t.s ?? 1) - 1) * eout + (m ? ((m.s ?? 1) - 1) * em : 0);
+        let s = 1 + ((f.s ?? 1) - 1) * qi + ((t.s ?? 1) - 1) * eout + (m ? ((m.s ?? 1) - 1) * em : 0);
         let o = 1;
         if (f.o !== undefined) o *= f.o + (1 - f.o) * ein;
         if (t.o !== undefined) o *= 1 + (t.o - 1) * eout;
-        set(e, "visibility", o > 0.004 ? "visible" : "hidden");
+        if (held) {
+          const dep = smooth(past / trail);
+          const fall = smooth(clamp(past / (reduce ? 0.45 : 0.7), 0, 1));
+          x += (reduce ? -10 : -34) * dep;
+          y += (reduce ? -8 : -46) * dep;
+          s *= 1 - (reduce ? 0.18 : 0.42) * dep;
+          o *= Math.min(1, (1 - fall) * 0.88 + (1 - dep) * 0.3);
+          set(e, "zIndex", String(-2 - Math.round(past * 2)));
+        } else if (it.trail) {
+          set(e, "zIndex", "auto");
+        }
+        if (o <= 0.012) {
+          set(e, "visibility", "hidden");
+          continue;
+        }
+        set(e, "visibility", "visible");
         set(e, "opacity", o.toFixed(3));
         set(e, "transform", `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${Math.max(0, s).toFixed(3)})`);
         if (it.clip) {
@@ -1155,6 +1173,7 @@
         html += `<span class="dg"><span class="dg-col">${col}</span></span>`;
       }
       el.year.innerHTML = html;
+      ensureCardSlots();
     }
 
     function layoutAxis() {
@@ -1318,15 +1337,8 @@
       const ds = `${dd.getUTCFullYear()}.${pad(dd.getUTCMonth() + 1)}`;
       if (el.rhDate.textContent !== ds) el.rhDate.textContent = ds;
 
-      if (slotK !== k) {
-        slotK = k;
-        rowsA = fill(el.slotA, k);
-        rowsB = fill(el.slotB, k + 1);
-      }
-      rowsA.forEach((r, j) => set(r, "--e", (1 - smooth((t - 0.08 - j * 0.04) / 0.32)).toFixed(3)));
-      rowsB.forEach((r, j) => set(r, "--e", smooth((t - 0.42 - j * 0.04) / 0.32).toFixed(3)));
-      set(el.scan, "transform", `translate3d(${((0.02 + 0.96 * t) * COL_W).toFixed(1)}px,0,0)`);
-      set(el.scan, "opacity", Math.sin(Math.PI * t).toFixed(3));
+      renderCards(p);
+      set(el.scan, "opacity", "0");
 
       renderArt(p);
 
@@ -1343,6 +1355,86 @@
         el.body.setAttribute("aria-valuenow", String(near + 1));
         el.body.setAttribute("aria-valuetext", `${e.date} ${e.title}`);
       }
+    }
+
+    /* 刚经过的事件缩进背景：分镜变小、变淡、视差变慢；卡片甩到栏外，当前标题保持可读。 */
+
+    function cardTrail() {
+      return reduce ? 1.25 : 3.15;
+    }
+
+    function cardPose(age) {
+      const trail = cardTrail();
+      if (age < -1.05 || age > trail) return null;
+      // 下一条在上一条离开文字栏之后才铺满，两条高对比标题不叠在同一块字上。
+      const inn = smooth(clamp((age + 0.78) / 0.18, 0, 1));
+      const thrown = smooth(clamp((age - 0.1) / 0.14, 0, 1));
+      const dep = smooth(clamp((age - 0.1) / Math.max(0.45, trail - 0.1), 0, 1));
+      const x = thrown * (reduce ? 70 : 640) + dep * (reduce ? 6 : 22);
+      const y = -thrown * (reduce ? 3 : 12) - dep * (reduce ? 6 : 28);
+      const s = 1 - thrown * (reduce ? 0.05 : 0.16) - dep * (reduce ? 0.08 : 0.3);
+      const o = inn * (1 - thrown * 0.68) * (1 - dep * 0.92);
+      if (o < 0.028) return null;
+      return {
+        x,
+        y,
+        s,
+        o,
+        blur: reduce || thrown < 0.9 ? 0 : (thrown - 0.9) * 8 + dep * 2,
+        z: age < 0.12 ? 40 : 18 - Math.round(age * 3),
+      };
+    }
+
+    function ensureCardSlots() {
+      if (cardSlots.length) return;
+      const col = $("#col");
+      const scan = el.scan;
+      col.querySelectorAll(".slot").forEach((node) => {
+        node.classList.remove("is-out", "is-in");
+        cardSlots.push({ el: node, idx: -1 });
+      });
+      while (cardSlots.length < CARD_SLOTS) {
+        const d = document.createElement("div");
+        d.className = "slot";
+        col.insertBefore(d, scan);
+        cardSlots.push({ el: d, idx: -1 });
+      }
+    }
+
+    function renderCards(p) {
+      if (!cardSlots.length || !n) return;
+      const need = [];
+      const lo = Math.max(0, Math.floor(p) - 3);
+      const hi = Math.min(n - 1, Math.ceil(p));
+      for (let i = lo; i <= hi; i++) {
+        const pose = cardPose(p - i);
+        if (pose) need.push({ i, pose });
+      }
+      const used = new Set();
+      for (const item of need) {
+        let slot = cardSlots.find((s) => s.idx === item.i && !used.has(s));
+        if (!slot) slot = cardSlots.find((s) => !used.has(s) && !need.some((q) => q.i === s.idx));
+        if (!slot) slot = cardSlots.find((s) => !used.has(s));
+        if (!slot) break;
+        used.add(slot);
+        if (slot.idx !== item.i) {
+          fill(slot.el, item.i);
+          slot.idx = item.i;
+        }
+        const pose = item.pose;
+        set(slot.el, "visibility", "visible");
+        set(slot.el, "opacity", pose.o.toFixed(3));
+        set(slot.el, "zIndex", String(pose.z));
+        set(slot.el, "transformOrigin", "0 0");
+        set(slot.el, "transform", `translate3d(${pose.x.toFixed(1)}px,${pose.y.toFixed(1)}px,0) scale(${pose.s.toFixed(3)})`);
+        set(slot.el, "filter", pose.blur > 0.15 ? `blur(${pose.blur.toFixed(2)}px)` : "none");
+      }
+      cardSlots.forEach((slot) => {
+        if (used.has(slot) || slot.idx === -1) return;
+        slot.idx = -1;
+        set(slot.el, "visibility", "hidden");
+        set(slot.el, "filter", "none");
+      });
     }
 
     /* 刻度、阶段和时代色是 pos 的连续函数：整数上与原先的选中态一致，半路交叉淡化。 */
@@ -1396,7 +1488,13 @@
     function playEase(p) {
       const frac = p - Math.floor(p);
       const dist = Math.min(frac, 1 - frac);
-      return 0.62 + 0.66 * smooth(dist / 0.5);
+      return 0.74 + 0.36 * smooth(dist / 0.5);
+    }
+
+    /* 早期约 0.40 事件/秒，平滑加到末段约 1.10，再乘靠近事件时的轻微减速。 */
+    function cruiseAt(p) {
+      const u = smooth(clamp(p / Math.max(1, n - 1), 0, 1));
+      return 0.4 + 0.7 * u;
     }
 
     function frame(now) {
@@ -1408,7 +1506,7 @@
           target = 0;
         } else {
           if (target < pos) target = pos;
-          if (target < n - 1) target = Math.min(n - 1, target + CRUISE * playEase(clamp(pos, 0, n - 1)) * dt);
+          if (target < n - 1) target = Math.min(n - 1, target + cruiseAt(pos) * playEase(clamp(pos, 0, n - 1)) * dt);
           if (target >= n - 1 - 1e-6 && pos >= n - 1 - 0.008) setPlaying(false);
         }
       }
