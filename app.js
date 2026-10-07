@@ -464,12 +464,6 @@
     const DIAG = 118;
     const SCRUB_W = 1360;
     const LEAD = 460;
-    /* 年份牌实测底边约 319，底部刻度顶边 962。卡片在静止和回弹时都要留在这两条线之间。 */
-    const PLATE_BOTTOM = 320;
-    const SCRUB_TOP = 962;
-    const CLEAR_TOP = 344;
-    const CLEAR_BOT = 944;
-    const MAX_UP = AXIS_Y - CARD_H - CLEAR_TOP;
 
     let n = 0;
     let ev = [];
@@ -636,17 +630,24 @@
       return 176 * m;
     }
 
-    function cardBox(x, side, reach, shift) {
-      const endX = x + shift;
-      const endY = side === "up" ? AXIS_Y - reach : AXIS_Y + reach;
+    function cardBox(x, side, L, ang) {
+      let endX;
+      let endY;
+      if (ang === 90) {
+        endX = x;
+        endY = side === "up" ? AXIS_Y - L : AXIS_Y + L;
+      } else {
+        endX = x + DIAG;
+        endY = side === "up" ? AXIS_Y - DIAG : AXIS_Y + DIAG;
+      }
       return {
         endX,
         endY,
         cardX: endX - 22,
         cardY: side === "up" ? endY - CARD_H : endY,
         side,
-        L: reach,
-        ang: shift > 12 ? 45 : 90,
+        L,
+        ang,
       };
     }
 
@@ -661,34 +662,8 @@
     }
 
     function boxFits(box, placed) {
-      if (box.cardY < CLEAR_TOP || box.cardY + CARD_H > CLEAR_BOT) return false;
+      if (box.cardY < 104 || box.cardY + CARD_H > 948) return false;
       return !placed.some((c) => hits(box, c));
-    }
-
-    /* 先试偏好的一侧，再翻到轴的另一侧，最后把卡片沿支线往右让。 */
-    function solveMajor(x, preferSide, ord, placed) {
-      const sides = [preferSide, preferSide === "up" ? "down" : "up"];
-      for (const side of sides) {
-        const reaches = side === "up" ? [MAX_UP, MAX_UP - 16, MAX_UP - 30] : [122, 100, 148, 176];
-        const shifts = ord % 3 === 0 ? [Math.min(DIAG, MAX_UP), 0, 110] : [0, Math.min(DIAG, MAX_UP), 110];
-        for (const shift of shifts) {
-          for (const reach of reaches) {
-            const box = cardBox(x, side, side === "up" ? Math.min(reach, MAX_UP) : reach, side === "up" ? Math.min(shift, 120) : shift);
-            if (boxFits(box, placed)) return box;
-          }
-        }
-      }
-      for (let shift = 0; shift <= 360; shift += 36) {
-        for (const reach of [100, 140, 176]) {
-          const box = cardBox(x, "down", reach, shift);
-          if (boxFits(box, placed)) return box;
-        }
-        for (const reach of [MAX_UP, 40]) {
-          const box = cardBox(x, "up", Math.min(reach, MAX_UP), shift);
-          if (boxFits(box, placed)) return box;
-        }
-      }
-      return cardBox(x, "down", 100, 0);
     }
 
     function layoutNodes() {
@@ -705,10 +680,31 @@
           nodes.push(nd);
           return;
         }
-        const side = upNext ? "up" : "down";
+        let side = upNext ? "up" : "down";
         upNext = !upNext;
-        const box = solveMajor(RX[i], side, ord, placed);
+        let L = side === "up" ? [136, 158, 184][ord % 3] : [100, 122][ord % 2];
+        let ang = ord % 3 === 0 ? 45 : 90;
         ord += 1;
+        let box = cardBox(RX[i], side, L, ang);
+        if (!boxFits(box, placed)) {
+          ang = 90;
+          box = cardBox(RX[i], side, L, ang);
+        }
+        let tries = 0;
+        while (!boxFits(box, placed) && tries < 10) {
+          tries += 1;
+          ang = 90;
+          L += 28;
+          if (side === "up" && AXIS_Y - L - CARD_H < 104) {
+            side = "down";
+            L = 96;
+          }
+          if (side === "down" && AXIS_Y + L + CARD_H > 948) {
+            side = "up";
+            L = 136;
+          }
+          box = cardBox(RX[i], side, L, ang);
+        }
         Object.assign(nd, box);
         placed.push(box);
         nodes.push(nd);
@@ -898,14 +894,6 @@
       nd.ready = true;
     }
 
-    /* 回弹会把卡片往支点外侧放大，放大后的边不能探进年份牌或底部刻度。 */
-    function cardScale(nd, s) {
-      if (s <= 1) return s;
-      const room = nd.side === "up" ? nd.cardY - (PLATE_BOTTOM + 4) : SCRUB_TOP - 4 - (nd.cardY + CARD_H);
-      const cap = 1 + Math.max(0, room) / CARD_H;
-      return Math.min(s, cap);
-    }
-
     function paintMajor(nd, u) {
       prep(nd);
       if (u <= 0) {
@@ -943,7 +931,7 @@
       const bu = band(u, 0.68, 0.96);
       const js = reduce ? ju : pop(ju);
       const ds = reduce ? du : pop(du);
-      const ss = cardScale(nd, reduce ? su : pop(su));
+      const ss = reduce ? su : pop(su);
       const off = (nd.pathLen * (1 - cu)).toFixed(2);
       set(nd.path, "strokeDashoffset", off);
       set(nd.ink, "strokeDashoffset", off);
