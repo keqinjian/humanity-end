@@ -1,44 +1,61 @@
 (() => {
   "use strict";
 
-  const DATA_URL = new URL("data.json", document.baseURI || window.location.href).href;
+  const W = 1920;
+  const H = 1080;
+  const CRIT = 25;
+  const SCENES = ["cover", "timeline", "domains", "ledger"];
+  const HINTS = [
+    "滚轮 / ↑ ↓ 切换章节 · T 切换配色",
+    "拖动 / 滚轮连续推进 · ← → 逐事件 · 空格暂停 · 悬停暂停 · 滚到两端换章",
+    "↑ ↓ 切换领域 · 点击叶节点展开注释 · PageUp / PageDown 换章",
+    "悬停柱体查看详情 · 悬停图例按领域筛选 · ↑ ↓ 换章",
+  ];
+
+  const ERA_EN = {
+    奠基: "FOUNDATION",
+    专用智能: "NARROW AI",
+    深度学习: "DEEP LEARNING",
+    Transformer: "TRANSFORMER",
+    生成爆发: "GENERATIVE",
+    推理与代理: "REASONING",
+    "2025 浪潮": "SURGE",
+    "2026 临界": "THRESHOLD",
+  };
+
+  const ERA_WASH = {
+    奠基: "#c4b49a",
+    专用智能: "#e0b2a2",
+    深度学习: "#b7c6e6",
+    Transformer: "#ead56a",
+    生成爆发: "#e7b4c4",
+    推理与代理: "#a9d8cb",
+    "2025 浪潮": "#efc15a",
+    "2026 临界": "#ee8d7c",
+  };
 
   const $ = (sel, root = document) => root.querySelector(sel);
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const stage = $("#stage");
 
-  function avgLeaves(domain) {
-    const leaves = domain.children || [];
-    if (!leaves.length) return 0;
-    const sum = leaves.reduce((a, c) => a + Number(c.remaining || 0), 0);
-    return Math.round(sum / leaves.length);
+  /* ---------- 16:9 等比缩放 ---------- */
+
+  function fit() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    stage.style.setProperty("--s", String(s));
   }
+  window.addEventListener("resize", fit);
+  fit();
 
-  function allLeaves(domains) {
-    return domains.flatMap((d) => d.children || []);
-  }
+  /* ---------- 工具 ---------- */
 
-  function pctClass(n) {
-    if (n <= 25) return "critical";
-    return "";
-  }
+  const pad = (n, w = 2) => String(n).padStart(w, "0");
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const fmtDate = (iso) => iso.replace(/-/g, ".");
+  const toTime = (iso) => Date.parse(iso + "T00:00:00Z");
+  const isCJK = (ch) => /[\u3000-\u9fff\uff00-\uffef]/.test(ch);
 
-  function formatArchiveDate(iso) {
-    if (!iso) return "";
-    const parts = iso.split("-");
-    if (parts.length < 2) return iso;
-    return `${parts[1]}.${parts[2] || ""}`;
-  }
-
-  function formatISO(iso) {
-    if (!iso) return "";
-    const [y, m, d] = iso.split("-");
-    return `${y}.${m}.${d}`;
-  }
-
-  function yearOf(iso) {
-    return iso.slice(0, 4);
-  }
-
-  function escapeHtml(str) {
+  function esc(str) {
     return String(str)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -46,1611 +63,1728 @@
       .replace(/"/g, "&quot;");
   }
 
-  function renderHero(data, aggregate) {
-    $("#site-title").textContent = data.title;
-    document.title = data.title;
-    $("#site-subtitle").textContent = data.subtitle || "";
-    const t = $("#updated-date");
-    t.dateTime = data.updated;
-    t.textContent = formatArchiveDate(data.updated);
-    $("#aggregate-num").textContent = String(aggregate);
-    const ring = document.getElementById("aggregate-ring-val");
-    if (ring) {
-      const circ = 2 * Math.PI * 44;
-      const pct = Math.max(0, Math.min(100, Number(aggregate) || 0));
-      ring.style.strokeDasharray = String(circ);
-      ring.style.strokeDashoffset = String(circ * (1 - pct / 100));
-    }
-    $("#score-disclaimer").textContent =
-      data.scoreDisclaimer ||
-      `血条为编辑估算（估算），非测量值。基准日 ${data.updated}。`;
+  function restart(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
   }
 
-  function makeBar(remaining) {
-    const wrap = document.createElement("div");
-    wrap.className = "bar-wrap";
+  function countTo(el, from, to, dur, fmt = (v) => String(v)) {
+    if (el._raf) cancelAnimationFrame(el._raf);
+    if (reduce || dur <= 0) {
+      el.textContent = fmt(to);
+      return;
+    }
+    const t0 = performance.now();
+    const tick = (now) => {
+      const p = clamp((now - t0) / dur, 0, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round(from + (to - from) * e));
+      if (p < 1) el._raf = requestAnimationFrame(tick);
+    };
+    el._raf = requestAnimationFrame(tick);
+  }
 
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    bar.setAttribute("role", "img");
-    bar.setAttribute(
-      "aria-label",
-      `人类剩余 ${remaining}%，AI 占据 ${100 - remaining}%`
+  function bar(v, i = 0) {
+    const crit = v <= CRIT ? " is-crit" : "";
+    return `<div class="bar${crit}" role="img" aria-label="人类剩余 ${v}%"><i style="--v:${Math.max(v, 0.5)};--i:${i}"></i></div>`;
+  }
+
+  /* ---------- 数据 ---------- */
+
+  async function load() {
+    if (location.protocol !== "file:") {
+      try {
+        const r = await fetch("data.json", { cache: "no-cache" });
+        if (r.ok) return await r.json();
+      } catch (_) {
+        /* 回退到 data.js */
+      }
+    }
+    if (window.__HUMANITY_DATA__) return window.__HUMANITY_DATA__;
+    throw new Error("未能读取 data.json / data.js");
+  }
+
+  function model(data) {
+    const events = data.events
+      .map((e, o) => ({ ...e, _o: o, t: toTime(e.date) }))
+      .sort((a, b) => a.t - b.t || a._o - b._o);
+
+    const domains = data.domains.map((d, i) => {
+      const kids = d.children || [];
+      const avg = kids.length ? Math.round(kids.reduce((a, c) => a + Number(c.remaining || 0), 0) / kids.length) : 0;
+      return { ...d, no: i + 1, avg, children: kids };
+    });
+
+    const leaves = domains.flatMap((d) => d.children.map((c) => ({ ...c, remaining: Number(c.remaining || 0), domain: d, hits: [] })));
+    const agg = leaves.length ? Math.round(leaves.reduce((a, c) => a + c.remaining, 0) / leaves.length) : 0;
+
+    const phases = [];
+    events.forEach((e, i) => {
+      const last = phases[phases.length - 1];
+      if (!last || last.name !== e.era) phases.push({ name: e.era, start: i, end: i });
+      else last.end = i;
+    });
+    phases.forEach((p, k) => {
+      p.no = k + 1;
+      p.y0 = events[p.start].date.slice(0, 4);
+      p.y1 = events[p.end].date.slice(0, 4);
+    });
+    events.forEach((e, i) => {
+      e.phase = phases.findIndex((p) => i >= p.start && i <= p.end);
+      e.leaves = [];
+    });
+
+    const splitT = (s) => s.split(/\s+\/\s+/).map((x) => x.trim()).filter(Boolean);
+    const resolve = (token) => {
+      for (const t of [token, token.replace(/\/.*$/, "")]) {
+        const exact = events.findIndex((e) => e.title === t || splitT(e.title).includes(t));
+        if (exact >= 0) return exact;
+        const pre = events.findIndex(
+          (e) => e.title.startsWith(t) && /^(-|\s+[\u4e00-\u9fff《])/.test(e.title.slice(t.length))
+        );
+        if (pre >= 0) return pre;
+      }
+      return -1;
+    };
+    leaves.forEach((leaf) => {
+      const idx = new Set(splitT(leaf.movedBy || "").map(resolve).filter((i) => i >= 0));
+      idx.forEach((i) => {
+        events[i].leaves.push(leaf);
+        leaf.hits.push(events[i]);
+      });
+    });
+    events.forEach((e) => e.leaves.sort((a, b) => a.remaining - b.remaining));
+
+    return { data, events, domains, leaves, agg, phases };
+  }
+
+  /* ==========================================================
+     章节切换
+     ========================================================== */
+
+  let M = null;
+  let scene = -1;
+  let busy = false;
+  let lastNav = 0;
+  const hooks = { enter: [], leave: [] };
+
+  function swap(n) {
+    const prev = scene;
+    if (prev >= 0) hooks.leave[prev] && hooks.leave[prev]();
+    scene = n;
+    document.querySelectorAll(".scene").forEach((el) => {
+      el.classList.toggle("is-active", Number(el.dataset.scene) === n);
+    });
+    stage.dataset.tone = n === 1 || n === 3 ? "light" : "dark";
+    document.querySelectorAll("#hud-nav button").forEach((b) => {
+      b.classList.toggle("is-on", Number(b.dataset.go) === n);
+    });
+    $("#side-num").textContent = pad(n);
+    $("#side-fill").style.transform = `translateY(${n * 100}%)`;
+    $("#hb-hint").textContent = HINTS[n];
+    if (history.replaceState) history.replaceState(null, "", "#" + SCENES[n]);
+    hooks.enter[n] && hooks.enter[n](prev);
+  }
+
+  let queuedScene = null;
+
+  function go(n) {
+    n = clamp(n, 0, SCENES.length - 1);
+    if (n === scene) return;
+    if (busy) {
+      queuedScene = n;
+      return;
+    }
+    lastNav = performance.now();
+    if (reduce || scene < 0) {
+      swap(n);
+      return;
+    }
+    busy = true;
+    const sh = $("#shutter");
+    sh.classList.remove("is-run", "is-back");
+    void sh.offsetWidth;
+    if (n < scene) sh.classList.add("is-back");
+    sh.classList.add("is-run");
+    setTimeout(() => swap(n), 560);
+    setTimeout(() => {
+      busy = false;
+      sh.classList.remove("is-run", "is-back");
+      if (queuedScene != null && queuedScene !== scene) {
+        const next = queuedScene;
+        queuedScene = null;
+        go(next);
+      } else {
+        queuedScene = null;
+      }
+    }, 1200);
+  }
+
+  /* ---------- 配色 ---------- */
+
+  const THEMES = ["endfield", "cobalt", "tundra"];
+
+  function markTheme() {
+    const cur = document.documentElement.dataset.theme;
+    document.querySelectorAll("#theme button").forEach((b) => {
+      b.classList.toggle("is-on", b.dataset.t === cur);
+      b.setAttribute("aria-pressed", String(b.dataset.t === cur));
+    });
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+  }
+
+  function setTheme(t) {
+    if (!THEMES.includes(t) || t === document.documentElement.dataset.theme) return;
+    const apply = () => {
+      document.documentElement.dataset.theme = t;
+      try {
+        localStorage.setItem("he-theme", t);
+      } catch (_) {
+        /* 隐私模式下不持久化 */
+      }
+      markTheme();
+    };
+    if (reduce || busy) {
+      apply();
+      return;
+    }
+    busy = true;
+    const sh = $("#shutter");
+    sh.classList.remove("is-run", "is-back");
+    void sh.offsetWidth;
+    sh.classList.add("is-run");
+    setTimeout(apply, 560);
+    setTimeout(() => {
+      busy = false;
+      sh.classList.remove("is-run");
+    }, 1200);
+  }
+
+  function bindTheme() {
+    if (!THEMES.includes(document.documentElement.dataset.theme)) document.documentElement.dataset.theme = THEMES[0];
+    markTheme();
+    $("#theme").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-t]");
+      if (b) setTheme(b.dataset.t);
+    });
+    window.addEventListener("keydown", (e) => {
+      if ((e.key === "t" || e.key === "T") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const i = THEMES.indexOf(document.documentElement.dataset.theme);
+        setTheme(THEMES[(i + 1) % THEMES.length]);
+      }
+    });
+  }
+
+  function bindNav() {
+    document.querySelectorAll("[data-go]").forEach((b) => {
+      b.addEventListener("click", () => {
+        if (b.dataset.dm != null) DM.arm(Number(b.dataset.dm));
+        go(Number(b.dataset.go));
+      });
+    });
+
+    const scrollable = (node, dy) => {
+      let el = node instanceof Element ? node : null;
+      while (el && el !== document.body) {
+        const s = getComputedStyle(el);
+        if ((s.overflowY === "auto" || s.overflowY === "scroll") && el.scrollHeight > el.clientHeight + 2) {
+          if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return el;
+          if (dy < 0 && el.scrollTop > 1) return el;
+        }
+        el = el.parentElement;
+      }
+      return null;
+    };
+
+    window.addEventListener(
+      "wheel",
+      (e) => {
+        const sc = scrollable(e.target, e.deltaY);
+        if (sc) {
+          sc.scrollTop += e.deltaY;
+          e.preventDefault();
+          return;
+        }
+        e.preventDefault();
+        if (busy) return;
+        if (scene === 1 && TL.wheel(e)) return;
+        if (Math.abs(e.deltaY) < 24) return;
+        if (performance.now() - lastNav < 1100) return;
+        go(scene + (e.deltaY > 0 ? 1 : -1));
+      },
+      { passive: false }
     );
 
-    const fill = document.createElement("div");
-    fill.className = "bar-fill";
-    const clamped = Math.max(0, Math.min(100, remaining));
-    fill.style.width = `${clamped}%`;
-
-    const lost = document.createElement("div");
-    lost.className = "bar-lost";
-    lost.style.width = `${100 - clamped}%`;
-
-    bar.append(fill, lost);
-    wrap.append(bar);
-    return wrap;
-  }
-
-  function makePct(remaining) {
-    const el = document.createElement("span");
-    el.className = `pct ${pctClass(remaining)}`.trim();
-    el.textContent = `${remaining}%`;
-    return el;
-  }
-
-  function renderDomains(domains) {
-    const root = $("#domain-tree");
-    root.textContent = "";
-
-    domains.forEach((domain, i) => {
-      const remaining = avgLeaves(domain);
-      const idx = String(i + 1).padStart(2, "0");
-      const row = document.createElement("div");
-      row.className = "domain-row";
-      row.dataset.idx = idx;
-      row.setAttribute("role", "treeitem");
-      row.setAttribute("aria-expanded", "false");
-
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "domain-btn";
-      if (remaining <= 25) btn.classList.add("is-critical");
-      btn.setAttribute("aria-expanded", "false");
-      btn.setAttribute("aria-controls", `domain-kids-${domain.id}`);
-      btn.id = `domain-btn-${domain.id}`;
-
-      const idxEl = document.createElement("span");
-      idxEl.className = "domain-idx";
-      idxEl.textContent = idx;
-      idxEl.setAttribute("aria-hidden", "true");
-
-      const name = document.createElement("span");
-      name.className = "domain-name";
-      name.innerHTML = `<span class="chev" aria-hidden="true"></span><span class="domain-name-text">${escapeHtml(
-        domain.name
-      )}</span>`;
-
-      const meta = document.createElement("span");
-      meta.className = "domain-meta";
-      const childCount = (domain.children || []).length;
-      meta.textContent = `${childCount} 项`;
-
-      const spark = document.createElement("span");
-      spark.className = "domain-spark";
-      spark.setAttribute("aria-hidden", "true");
-      (domain.children || []).forEach((child) => {
-        const tick = document.createElement("i");
-        const rem = Math.max(0, Math.min(100, Number(child.remaining) || 0));
-        tick.style.setProperty("--h", `${Math.max(10, rem)}%`);
-        tick.title = `${child.name} ${rem}%`;
-        if (rem <= 25) tick.classList.add("is-low");
-        spark.append(tick);
-      });
-
-      const bits = [idxEl, name, makePct(remaining), makeBar(remaining), spark, meta];
-      if (domain.note) {
-        const note = document.createElement("span");
-        note.className = "domain-card-note";
-        note.textContent = domain.note;
-        bits.push(note);
-      }
-      btn.append(...bits);
-
-      const kids = document.createElement("div");
-      kids.className = "domain-children";
-      kids.id = `domain-kids-${domain.id}`;
-      kids.setAttribute("role", "group");
-      kids.hidden = true;
-
-      const inner = document.createElement("div");
-      inner.className = "domain-children-inner";
-
-      if (domain.note) {
-        const parentNote = document.createElement("p");
-        parentNote.className = "parent-note";
-        parentNote.textContent = domain.note;
-        inner.append(parentNote);
-      }
-
-      (domain.children || []).forEach((child) => {
-        const cr = document.createElement("div");
-        cr.className = "child-row";
-        cr.setAttribute("role", "treeitem");
-
-        const spacer = document.createElement("span");
-        spacer.className = "domain-idx child-idx";
-        spacer.setAttribute("aria-hidden", "true");
-        spacer.textContent = "·";
-
-        const cn = document.createElement("div");
-        cn.className = "child-name";
-        cn.textContent = child.name;
-
-        const meta = document.createElement("p");
-        meta.className = "child-meta";
-        meta.innerHTML = `${escapeHtml(child.note || "")}${
-          child.movedBy
-            ? ` <strong>推动模型：</strong><span class="moved-by">${escapeHtml(
-                child.movedBy
-              )}</span>`
-            : ""
-        } <strong>· 估算</strong>`;
-
-        cr.append(spacer, cn, makeBar(child.remaining), makePct(child.remaining), meta);
-        inner.append(cr);
-      });
-
-      kids.append(inner);
-
-      const toggle = () => {
-        const open = btn.getAttribute("aria-expanded") === "true";
-        const next = !open;
-        if (next) {
-          root.querySelectorAll(".domain-row").forEach((other) => {
-            if (other === row) return;
-            const ob = other.querySelector(".domain-btn");
-            const ok = other.querySelector(".domain-children");
-            if (!ob || !ok) return;
-            ob.setAttribute("aria-expanded", "false");
-            other.setAttribute("aria-expanded", "false");
-            ok.classList.remove("open");
-            ok.hidden = true;
-          });
-        }
-        btn.setAttribute("aria-expanded", String(next));
-        row.setAttribute("aria-expanded", String(next));
-        if (next) {
-          kids.hidden = false;
-          requestAnimationFrame(() => {
-            kids.classList.add("open");
-            requestAnimationFrame(() => {
-              const tree = root.getBoundingClientRect();
-              const box = row.getBoundingClientRect();
-              root.scrollTop += box.top - tree.top;
-            });
-          });
-        } else {
-          kids.classList.remove("open");
-          const done = () => {
-            if (btn.getAttribute("aria-expanded") === "false") {
-              kids.hidden = true;
-            }
-            kids.removeEventListener("transitionend", done);
-          };
-          kids.addEventListener("transitionend", done);
-          setTimeout(done, 400);
-        }
-      };
-
-      btn.addEventListener("click", toggle);
-      row.append(btn, kids);
-      root.append(row);
-    });
-  }
-
-  function renderDossierStats(domains) {
-    const leaves = allLeaves(domains);
-    const critical = leaves.filter((c) => Number(c.remaining) <= 25).length;
-    let lowest = null;
-    leaves.forEach((c) => {
-      if (!lowest || Number(c.remaining) < Number(lowest.remaining)) lowest = c;
-    });
-    const set = (id, text) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = text;
-    };
-    set("stat-domains", String(domains.length).padStart(2, "0"));
-    set("stat-leaves", String(leaves.length).padStart(2, "0"));
-    set("stat-critical", String(critical).padStart(2, "0"));
-    set("domains-count", `${String(domains.length).padStart(2, "0")} 领域`);
-    if (lowest) set("stat-lowest", `${lowest.name}  ${lowest.remaining}%`);
-  }
-
-  function uniqueEras(events) {
-    const seen = new Set();
-    const order = [];
-    events.forEach((e) => {
-      if (!seen.has(e.era)) {
-        seen.add(e.era);
-        order.push(e.era);
-      }
-    });
-    return order;
-  }
-
-  /* ——— Horizontal axis timeline ——— */
-
-  /* Three interlocking rails — mind merges 语言/推理; image & control stay. */
-  const TRACKS = [
-    { id: "mind", name: "语言与推理", top: "34%" },
-    { id: "image", name: "图像与创作", top: "52%" },
-    { id: "control", name: "棋与控制", top: "70%" },
-  ];
-
-  function trackOf(evt) {
-    const tags = new Set(evt.tags || []);
-    const t = evt.title || "";
-    if (
-      /DALL|Midjourney|Stable Diffusion|Sora|AlexNet|GAN/.test(t) ||
-      tags.has("图像") ||
-      tags.has("视频") ||
-      tags.has("视觉") ||
-      tags.has("CNN") ||
-      tags.has("语音")
-    ) {
-      return "image";
-    }
-    if (
-      tags.has("博弈") ||
-      tags.has("强化学习") ||
-      tags.has("硬件") ||
-      tags.has("计算机") ||
-      tags.has("计算机使用") ||
-      tags.has("智能体") ||
-      /深蓝|AlphaGo|ENIAC/.test(t)
-    ) {
-      return "control";
-    }
-    /* 语言、代码、推理、旗舰、科学 → 同一条「语言与推理」 */
-    return "mind";
-  }
-
-  function trackMeta(id) {
-    return TRACKS.find((t) => t.id === id) || TRACKS[0];
-  }
-
-  window.__HUMANITY_TRACKS__ = { TRACKS, trackOf, trackMeta };
-
-
-  function dayStamp(iso) {
-    const [y, m, d] = iso.split("-").map(Number);
-    return Date.UTC(y, (m || 1) - 1, d || 1) / 86400000;
-  }
-
-  function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
-  }
-
-  function createAxisController(events) {
-    const viewport = $("#axis-viewport");
-    const track = $("#timeline-list");
-    const stage = $("#axis-stage");
-    const hint = $("#axis-hint");
-    const readout = $("#axis-detail");
-    const elYear = $("#readout-year");
-    const elMeta = $("#readout-meta");
-    const elTitle = $("#readout-title");
-    const elBlurb = $("#readout-blurb");
-    const elTags = $("#readout-tags");
-    const elPlayheadYear = $("#playhead-year");
-    const storyStrip = { el: null };
-
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const stamps = events.map((e) => dayStamp(e.date));
-    const tMin = Math.min(...stamps);
-    const tMax = Math.max(...stamps);
-
-    /**
-     * Density scale: KDE over event days → smooth stretch so packed years
-     * claim more horizontal pixels. Positions are cumulative gaps; arbitrary
-     * stamps (year ticks) interpolate in time between neighboring events.
-     * Same scrollLeft still maps 1:1 to the same picture.
-     */
-    function yearFromStamp(stamp) {
-      return new Date(stamp * 86400000).getUTCFullYear();
-    }
-
-    /**
-     * Density scale with early-decade floor: 1946–1990 stays readable
-     * (wide min gaps), while 2020s still expand under KDE pressure.
-     */
-    function buildDensityScale(stampList) {
-      const n = stampList.length;
-      const h = 160;
-      let dens = stampList.map((t) => {
-        let s = 0;
-        for (let j = 0; j < n; j++) {
-          const u = (t - stampList[j]) / h;
-          s += Math.exp(-0.5 * u * u);
-        }
-        return s;
-      });
-      for (let pass = 0; pass < 2; pass++) {
-        dens = dens.map((d, i) => {
-          const a = dens[Math.max(0, i - 1)];
-          const b = dens[Math.min(n - 1, i + 1)];
-          return 0.2 * a + 0.6 * d + 0.2 * b;
-        });
-      }
-      const dMin = Math.min(...dens);
-      const dMax = Math.max(...dens);
-      const norm = dens.map((d) => (d - dMin) / Math.max(1e-9, dMax - dMin));
-
-      const xs = [0];
-      for (let i = 0; i < n - 1; i++) {
-        const days = Math.max(0.5, stampList[i + 1] - stampList[i]);
-        const nd = (norm[i] + norm[i + 1]) / 2;
-        const y = yearFromStamp(stampList[i]);
-        /* Early decades: high floor + stronger year stretch. Late: denser KDE. */
-        let floor = 300;
-        let yearPow = 0.48;
-        let yearMul = 70;
-        if (y < 1970) {
-          floor = 520;
-          yearPow = 0.64;
-          yearMul = 130;
-        } else if (y < 2000) {
-          floor = 500;
-          yearPow = 0.62;
-          yearMul = 120;
-        } else if (y < 2012) {
-          floor = 440;
-          yearPow = 0.58;
-          yearMul = 100;
-        } else if (y < 2018) {
-          floor = 360;
-          yearPow = 0.5;
-          yearMul = 80;
-        }
-        const gap = Math.max(
-          floor,
-          yearMul * Math.pow(days / 365, yearPow) + 140 + nd * 340
-        );
-        xs.push(xs[i] + gap);
-      }
-      return { xs, contentSpan: xs[n - 1], norm };
-    }
-
-    const density = buildDensityScale(stamps);
-    let contentSpan = density.contentSpan;
-
-    let selectedIndex = events.length - 1;
-    let filterEra = null;
-    let autoPan = !reduceMotion;
-    let paused = false;
-    let drag = null;
-    let animFrame = 0;
-    let lastTs = 0;
-    let settleAnim = null;
-    let fadeTimer = null;
-    let syncLock = false;
-    let edgePad = 0;
-
-    const nodes = [];
-
-    function measureEdgePad() {
-      edgePad = Math.max(1, viewport.clientWidth * 0.5);
-    }
-
-    /** Event-indexed position (handles same-day milestones). */
-    function xAt(i) {
-      return edgePad + density.xs[i];
-    }
-
-    /** Continuous stamp → x for year ticks / scrub math between events. */
-    function xOf(stamp) {
-      const n = stamps.length;
-      if (stamp <= stamps[0]) return xAt(0);
-      if (stamp >= stamps[n - 1]) return xAt(n - 1);
-      let i = 0;
-      while (i < n - 1 && stamps[i + 1] < stamp) i += 1;
-      const t0 = stamps[i];
-      const t1 = stamps[i + 1];
-      const u = t1 === t0 ? 0 : (stamp - t0) / (t1 - t0);
-      return xAt(i) + u * (xAt(i + 1) - xAt(i));
-    }
-
-    function scrollMax() {
-      /* With left/right edgePad = vw/2, max scroll places last event at center. */
-      return Math.max(0, track.scrollWidth - viewport.clientWidth);
-    }
-
-    function layoutTrack() {
-      measureEdgePad();
-      track.style.width = `${edgePad + contentSpan + edgePad}px`;
-      nodes.forEach((btn, i) => {
-        btn.style.left = `${xAt(i)}px`;
-        btn.style.top = trackMeta(trackOf(events[i])).top;
-      });
-      track.querySelectorAll(".axis-vrule").forEach((rule) => {
-        const i = Number(rule.dataset.index);
-        if (Number.isFinite(i)) rule.style.left = `${xAt(i)}px`;
-      });
-      track.querySelectorAll(".axis-era-band").forEach((band) => {
-        const era = band.dataset.era;
-        const idxs = events
-          .map((e, i) => (e.era === era ? i : -1))
-          .filter((i) => i >= 0);
-        if (!idxs.length) return;
-        const x0 = xAt(idxs[0]);
-        const x1 = xAt(idxs[idxs.length - 1]);
-        const bandW = Math.max(56, x1 - x0 + 72);
-        band.style.left = `${x0 - 36}px`;
-        band.style.width = `${bandW}px`;
-      });
-      track.querySelectorAll(".axis-tick, .axis-tick-label").forEach((el) => {
-        const y = el.dataset.year;
-        if (!y) return;
-        el.style.left = `${xOf(dayStamp(`${y}-01-01`))}px`;
-      });
-      if (window.__HUMANITY_STORY__ && storyStrip.el) {
-        window.__HUMANITY_STORY__.layoutStrip(storyStrip.el, (i) => xAt(i));
-      }
-      updateProgress();
-    }
-
-    function applyMotif(evt) {
-      stage.dataset.era = evt ? evt.era : "";
-      stage.dataset.year = evt ? yearOf(evt.date) : "";
-      const tid = evt ? trackOf(evt) : "";
-      stage.dataset.track = tid;
-      const meta = tid ? trackMeta(tid) : null;
-      stage.dataset.trackName = meta ? meta.name : "";
-    }
-
-    function layoutRecipe(evt) {
-      const h = (evt.title || "").length + yearOf(evt.date).charCodeAt(0);
-      const recipes = ["layout-a", "layout-b", "layout-c"];
-      if (evt.impact === "high") {
-        if (/Sora/.test(evt.title)) return "layout-a";
-        if (/AlphaGo|深蓝|AlphaZero/.test(evt.title)) return "layout-b";
-        if (/ChatGPT|Transformer|GPT-6|Gemini 4/.test(evt.title)) return "layout-c";
-        return recipes[h % 3];
-      }
-      return "layout-b";
-    }
-
-    function paintReadout(evt) {
-      if (!evt) return;
-      const y = yearOf(evt.date);
-      const recipe = layoutRecipe(evt);
-      readout.classList.remove("layout-a", "layout-b", "layout-c", "layout-type-left", "layout-card-year");
-      readout.classList.add(recipe);
-      /* Single hero year: watermark playhead for A/C; card year for B only */
-      if (recipe === "layout-b") {
-        readout.classList.add("layout-card-year");
-        stage.classList.add("has-card-year");
-        elYear.textContent = y;
-        if (elPlayheadYear) elPlayheadYear.textContent = y;
-      } else {
-        stage.classList.remove("has-card-year");
-        elYear.textContent = "";
-        if (elPlayheadYear) elPlayheadYear.textContent = y;
-      }
-      const impact = evt.impact === "high" || evt.impact === "low" ? evt.impact : "mid";
-      const impactLabel = { high: "高影响", mid: "中影响", low: "低影响" }[impact];
-      elMeta.textContent = `${formatISO(evt.date)} · ${evt.era} · ${trackMeta(trackOf(evt)).name} · ${impactLabel}`;
-      const eraNowEl = document.getElementById("era-now");
-      if (eraNowEl) eraNowEl.textContent = evt.era || "";
-      elTitle.textContent = evt.title;
-      elBlurb.textContent = evt.blurb || "";
-      elTags.textContent = "";
-      (evt.tags || []).forEach((t) => {
-        const span = document.createElement("span");
-        span.className = "tag";
-        span.textContent = t;
-        elTags.append(span);
-      });
-      /* Active track legend */
-      document.querySelectorAll(".track-legend li").forEach((li, i) => {
-        const tid = trackOf(evt);
-        const map = ["mind", "image", "control"];
-        li.classList.toggle("is-active", map[i] === tid);
-      });
-      document.querySelectorAll(".axis-rail").forEach((rail) => {
-        rail.dataset.active = rail.dataset.track === trackOf(evt) ? "true" : "false";
-      });
-    }
-
-    let readoutReady = false;
-    let syncPaintTimer = null;
-
-    function renderDetail(evt, { soft = false } = {}) {
-      if (!evt) return;
-      applyMotif(evt);
-      if (reduceMotion || !readoutReady || soft) {
-        paintReadout(evt);
-        readout.classList.remove("is-fading");
-        readoutReady = true;
-        return;
-      }
-      readout.classList.add("is-fading");
-      if (fadeTimer) clearTimeout(fadeTimer);
-      fadeTimer = setTimeout(() => {
-        paintReadout(evt);
-        readout.classList.remove("is-fading");
-      }, 160);
-    }
-
-    function setSelected(index, { scroll = true, instant = false, fromSync = false } = {}) {
-      if (index < 0 || index >= events.length) return;
-      if (index === selectedIndex && fromSync) {
-        applyMotif(events[index]);
-        updateProgress();
-        return;
-      }
-      selectedIndex = index;
-      const selTrack = trackOf(events[selectedIndex]);
-      nodes.forEach((btn, i) => {
-        const on = i === selectedIndex;
-        btn.classList.toggle("is-selected", on);
-        btn.setAttribute("aria-current", on ? "true" : "false");
-        const dim = filterEra && events[i].era !== filterEra;
-        btn.classList.toggle("is-dim", !!dim);
-        const same = trackOf(events[i]) === selTrack;
-        const near = Math.abs(i - selectedIndex) <= 2 && same;
-        btn.classList.toggle("is-near-focus", near && !on);
-        btn.classList.toggle("track-active-dim", same && !on && !near);
-      });
-      if (fromSync) {
-        applyMotif(events[selectedIndex]);
-        updateProgress();
-        if (syncPaintTimer) clearTimeout(syncPaintTimer);
-        syncPaintTimer = setTimeout(() => {
-          renderDetail(events[selectedIndex], { soft: false });
-        }, 90);
-      } else {
-        renderDetail(events[selectedIndex]);
-        updateProgress();
-      }
-      if (scroll && !fromSync) scrollToIndex(selectedIndex, instant);
-    }
-
-    function updateProgress() {
-      const x = xAt(selectedIndex);
-      const prog = track.querySelector(".axis-progress");
-      if (prog) prog.style.width = `${x}px`;
-      const cross = track.querySelector(".axis-crosshair");
-      if (cross) cross.style.left = `${x}px`;
-    }
-
-    function scrollToX(targetLeft, instant) {
-      const max = scrollMax();
-      const left = Math.max(0, Math.min(max, targetLeft));
-      if (instant || reduceMotion) {
-        viewport.scrollLeft = left;
-        focusStories();
-        return;
-      }
-      if (settleAnim) cancelAnimationFrame(settleAnim);
-      const from = viewport.scrollLeft;
-      const dist = left - from;
-      if (Math.abs(dist) < 1) return;
-      syncLock = true;
-      const dur = Math.min(1100, 420 + Math.abs(dist) * 0.35);
-      const t0 = performance.now();
-      const step = (now) => {
-        const u = Math.min(1, (now - t0) / dur);
-        viewport.scrollLeft = from + dist * easeOutCubic(u);
-        focusStories();
-        if (u < 1) settleAnim = requestAnimationFrame(step);
-        else {
-          settleAnim = null;
-          syncLock = false;
-          focusStories();
-          syncFromScroll();
-        }
-      };
-      settleAnim = requestAnimationFrame(step);
-    }
-
-    function scrollToIndex(index, instant) {
-      const x = xAt(index);
-      const target = x - viewport.clientWidth * 0.5;
-      scrollToX(target, instant);
-    }
-
-    function scrollToEra(era) {
-      const idxs = events
-        .map((e, i) => (e.era === era ? i : -1))
-        .filter((i) => i >= 0);
-      if (!idxs.length) return;
-      const x0 = xAt(idxs[0]);
-      const x1 = xAt(idxs[idxs.length - 1]);
-      const mid = (x0 + x1) / 2;
-      scrollToX(mid - viewport.clientWidth * 0.5, false); /* era span mid → center */
-      setSelected(idxs[0], { scroll: false });
-    }
-
-    function nearestIndexAtCenter() {
-      const center = viewport.scrollLeft + viewport.clientWidth * 0.5;
-      let best = 0;
-      let bestDist = Infinity;
-      for (let i = 0; i < stamps.length; i++) {
-        const d = Math.abs(xAt(i) - center);
-        if (d < bestDist) {
-          bestDist = d;
-          best = i;
-        }
-      }
-      return best;
-    }
-
-
-    /**
-     * Living map: landmarks pinned in world-x (content space).
-     * screenX = worldX - scrollLeft * factor (factor < 1 = farther / slower).
-     * Soft grid alone is not enough — these are readable map debris.
-     */
-    const LANDMARKS = [
-      {
-        id: "lm-schematic",
-        frac: 0.12,
-        factor: 0.28,
-        layer: 0,
-        top: "14%",
-        kind: "schematic",
-        title: "奠基示意",
-        sub: "1956",
-      },
-      {
-        id: "lm-compass",
-        frac: 0.18,
-        factor: 0.38,
-        layer: 0,
-        top: "66%",
-        kind: "compass",
-        title: "坐标环",
-        sub: "N1",
-      },
-      {
-        /* Mid pair LEFT: exits while scrolling forward */
-        id: "lm-bands",
-        frac: 0.24,
-        factor: 0.50,
-        layer: 1,
-        top: "52%",
-        kind: "bands",
-        title: "光带剖面",
-        sub: "切片",
-      },
-      {
-        /* Mid pair RIGHT: enters on a nearer layer */
-        id: "lm-dossier",
-        frac: 0.46,
-        factor: 0.88,
-        layer: 2,
-        top: "16%",
-        kind: "dossier",
-        title: "档案碎块",
-        sub: "残卷",
-      },
-      {
-        id: "lm-strips",
-        frac: 1.02,
-        factor: 1.0,
-        layer: 2,
-        top: "10%",
-        kind: "strips",
-        title: "终点光幕",
-        sub: "2026",
-      },
-    ];
-
-    let landmarksMounted = false;
-
-    /* Continuous mid-band ground between landmarks (world-x pinned). */
-    /* midFrac≈0.5*factor so chunks land mid-journey with landmarks */
-    const GROUND_CHUNKS = [
-      { id: "fg-a", frac0: 0.30, frac1: 0.40, factor: 0.72, kind: "ribbons" },
-      { id: "fg-b", frac0: 0.36, frac1: 0.46, factor: 0.80, kind: "hatch" },
-      { id: "fg-c", frac0: 0.40, frac1: 0.52, factor: 0.85, kind: "slices" },
-      { id: "fg-d", frac0: 0.55, frac1: 0.68, factor: 0.90, kind: "ribbons" },
-      { id: "fg-e", frac0: 0.78, frac1: 0.92, factor: 0.96, kind: "slices" },
-    ];
-    let groundMounted = false;
-
-    function buildGroundChunk(spec) {
-      const el = document.createElement("div");
-      el.className = `field-ground kind-${spec.kind}`;
-      el.id = spec.id;
-      el.dataset.factor = String(spec.factor);
-      el.dataset.frac0 = String(spec.frac0);
-      el.dataset.frac1 = String(spec.frac1);
-      if (spec.kind === "ribbons") {
-        el.innerHTML = `<span class="fg-rib r0"></span><span class="fg-rib r1"></span><span class="fg-rib r2"></span><span class="fg-rib r3"></span><span class="fg-rib r4"></span>`;
-      } else if (spec.kind === "slices") {
-        el.innerHTML = `<span class="fg-slice s0"></span><i class="fg-gap"></i><span class="fg-slice s1"></span><i class="fg-gap"></i><span class="fg-slice s2"></span><i class="fg-gap"></i><span class="fg-slice s3"></span><i class="fg-gap"></i><span class="fg-slice s4"></span><i class="fg-gap"></i><span class="fg-slice s5"></span>`;
-      } else {
-        el.innerHTML = `<svg class="fg-hatch" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
-          <line x1="0" y1="14" x2="400" y2="14" stroke="currentColor" stroke-width="1.3" opacity="0.55"/>
-          <line x1="0" y1="36" x2="400" y2="36" stroke="currentColor" stroke-width="1.1" opacity="0.4"/>
-          <line x1="0" y1="60" x2="400" y2="60" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
-          <line x1="0" y1="84" x2="400" y2="84" stroke="currentColor" stroke-width="1.1" opacity="0.4"/>
-          <line x1="0" y1="106" x2="400" y2="106" stroke="currentColor" stroke-width="1.3" opacity="0.55"/>
-          <line x1="40" y1="0" x2="70" y2="120" stroke="currentColor" stroke-width="1.1" opacity="0.45"/>
-          <line x1="110" y1="0" x2="140" y2="120" stroke="currentColor" stroke-width="1.1" opacity="0.35"/>
-          <line x1="190" y1="0" x2="220" y2="120" stroke="currentColor" stroke-width="1.3" opacity="0.6"/>
-          <line x1="270" y1="0" x2="300" y2="120" stroke="currentColor" stroke-width="1.1" opacity="0.35"/>
-          <line x1="340" y1="0" x2="370" y2="120" stroke="currentColor" stroke-width="1.1" opacity="0.45"/>
-        </svg>`;
-      }
-      return el;
-    }
-
-    function mountFieldGround() {
-      const host = document.getElementById("field-ground-root");
-      if (!host || groundMounted) return;
-      host.textContent = "";
-      GROUND_CHUNKS.forEach((spec) => host.appendChild(buildGroundChunk(spec)));
-      groundMounted = true;
-    }
-
-
-
-    function landmarkWorldX(frac) {
-      return edgePad + contentSpan * frac;
-    }
-
-    function buildLandmarkEl(spec) {
-      const el = document.createElement("div");
-      el.className = `field-landmark kind-${spec.kind}`;
-      el.id = spec.id;
-      el.dataset.factor = String(spec.factor);
-      el.dataset.frac = String(spec.frac);
-      el.style.top = spec.top;
-      if (spec.kind === "schematic") {
-        el.innerHTML = `
-          <svg viewBox="0 0 160 120" class="lm-svg" aria-hidden="true">
-            <circle cx="70" cy="60" r="42" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
-            <circle cx="70" cy="60" r="26" fill="none" stroke="currentColor" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.4"/>
-            <path d="M70 18 L70 102 M28 60 L112 60" stroke="currentColor" stroke-width="0.7" opacity="0.35"/>
-            <path d="M70 60 L108 32" stroke="currentColor" stroke-width="1.4"/>
-            <text x="118" y="28" fill="currentColor" font-size="11" font-family="Instrument Serif, serif">A</text>
-            <text x="8" y="112" fill="currentColor" font-size="9" opacity="0.7" letter-spacing="0.12em">BLUEPRINT</text>
-          </svg>
-          <p class="lm-title">${spec.title}</p>
-          <p class="lm-sub">${spec.sub}</p>`;
-      } else if (spec.kind === "bands") {
-        el.innerHTML = `
-          <div class="lm-band-stack">
-            <span class="lm-band b0"></span>
-            <span class="lm-band b1"></span>
-            <span class="lm-band b2"></span>
-            <span class="lm-band b3"></span>
-          </div>
-          <p class="lm-title">${spec.title}</p>
-          <p class="lm-sub">${spec.sub}</p>`;
-      } else if (spec.kind === "dossier") {
-        el.innerHTML = `
-          <div class="lm-dossier-card">
-            <span class="lm-brack">[</span>
-            <div class="lm-dossier-body">
-              <span class="lm-key">档案</span>
-              <span class="lm-bars"><i></i><i></i><i></i></span>
-              <span class="lm-pct">36</span>
-            </div>
-            <span class="lm-brack">]</span>
-          </div>
-          <p class="lm-title">${spec.title}</p>
-          <p class="lm-sub">${spec.sub}</p>`;
-      } else if (spec.kind === "compass") {
-        el.innerHTML = `
-          <svg viewBox="0 0 100 100" class="lm-svg lm-compass" aria-hidden="true">
-            <polygon points="50,8 56,44 92,50 56,56 50,92 44,56 8,50 44,44" fill="none" stroke="currentColor" stroke-width="1"/>
-            <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.5"/>
-            <text x="50" y="18" text-anchor="middle" fill="currentColor" font-size="8">N1</text>
-            <text x="86" y="53" fill="currentColor" font-size="8">E</text>
-          </svg>
-          <p class="lm-title">${spec.title}</p>
-          <p class="lm-sub">${spec.sub}</p>`;
-      } else {
-        el.innerHTML = `
-          <div class="lm-strip-curtain">
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-          <p class="lm-title">${spec.title}</p>
-          <p class="lm-sub">${spec.sub}</p>`;
-      }
-      return el;
-    }
-
-    function mountFieldLandmarks() {
-      const host = document.getElementById("field-landmarks-root");
-      if (!host || landmarksMounted) return;
-      host.textContent = "";
-      LANDMARKS.forEach((spec) => {
-        const el = buildLandmarkEl(spec);
-        el.dataset.layer = String(spec.layer);
-        host.appendChild(el);
-      });
-      landmarksMounted = true;
-    }
-
-    function updateFieldParallax() {
-      const field = document.getElementById("field-parallax");
-      if (!field) return;
-      mountFieldLandmarks();
-      mountFieldGround();
-      const max = scrollMax();
-      const p = max > 0 ? viewport.scrollLeft / max : 0;
-      const sl = viewport.scrollLeft;
-      stage.style.setProperty("--field-p", p.toFixed(4));
-      /* Whole-field wash follows the playhead era, not a single node's plate. */
-      const ERA_HUE = {
-        "奠基": 208,
-        "专用智能": 164,
-        "深度学习": 262,
-        "Transformer": 196,
-        "生成爆发": 28,
-        "推理与代理": 46,
-        "2025 浪潮": 14,
-        "2026 临界": 348,
-      };
-      const nearEvt = events[nearestIndexAtCenter()] || null;
-      const hue = ERA_HUE[nearEvt && nearEvt.era] ?? 210;
-      stage.style.setProperty("--era-hue", String(hue));
-      field.dataset.era = nearEvt && nearEvt.era ? nearEvt.era : "";
-      field.dataset.eraBand = String(Math.min(7, Math.floor(p * 8)));
-      stage.dataset.fieldP = (p * 100).toFixed(0);
-      /* Soft atmosphere still drifts; landmarks use discrete world-x below */
-      const l0 = field.querySelector(".field-l0");
-      const l1 = field.querySelector(".field-l1");
-      const l2 = field.querySelector(".field-l2");
-      const driftY = Math.sin(p * Math.PI * 2) * 14;
-      if (l0) {
-        l0.style.transform = `translate3d(${(-sl * 0.08).toFixed(1)}px, ${driftY.toFixed(1)}px, 0)`;
-        l0.style.filter = `hue-rotate(${(hue - 210).toFixed(0)}deg) saturate(${(1.05 + p * 0.55).toFixed(2)})`;
-      }
-      if (l1) l1.style.transform = `translate3d(${(-sl * 0.16).toFixed(1)}px, ${(driftY * -0.6).toFixed(1)}px, 0)`;
-      if (l2) l2.style.transform = `translate3d(${(-sl * 0.24 + p * 80).toFixed(1)}px, 0, 0) scale(${(1.02 + p * 0.06).toFixed(3)})`;
-
-      /* World-x pin in viewport space: screenX = worldX - scrollLeft * factor */
-      const vw = viewport.clientWidth || 1;
-      const atEnd = max > 0 && sl >= max - 1.5;
-      stage.classList.toggle("is-at-end", atEnd);
-      LANDMARKS.forEach((spec) => {
-        const node = document.getElementById(spec.id);
-        if (!node) return;
-        let worldX = landmarkWorldX(spec.frac);
-        let screenX = worldX - sl * spec.factor;
-        /* Terminus: pin light curtain flush to right edge */
-        if (spec.id === "lm-strips" && atEnd) {
-          const w = node.offsetWidth || vw * 0.3;
-          screenX = vw - w - 2;
-        }
-        node.style.transform = `translate3d(${screenX.toFixed(1)}px, 0, 0)`;
-        const visible = screenX > -280 && screenX < vw + 80;
-        node.classList.toggle("is-in-view", visible);
-        const mid = screenX + (node.offsetWidth || 120) * 0.5;
-        node.classList.toggle("is-near", Math.abs(mid - vw * 0.5) < vw * 0.34);
-        node.classList.toggle("is-exiting-left", visible && screenX < vw * 0.18);
-        node.classList.toggle("is-entering-right", visible && screenX + (node.offsetWidth || 0) > vw * 0.78);
-        /* Soften schematic/compass when under left readout */
-        if (spec.id === "lm-schematic" || spec.id === "lm-compass") {
-          const underReadout = screenX < vw * 0.38;
-          node.classList.toggle("is-soft", underReadout || !visible);
-        }
-      });
-
-      GROUND_CHUNKS.forEach((spec) => {
-        const node = document.getElementById(spec.id);
-        if (!node) return;
-        /* Display width capped to viewport so hatch lines / slice columns stay countable */
-        const midFrac = (spec.frac0 + spec.frac1) * 0.5;
-        const midWorld = landmarkWorldX(midFrac);
-        let widthFrac = 0.62;
-        if (spec.kind === "slices") widthFrac = 0.72;
-        else if (spec.kind === "hatch") widthFrac = 0.68;
-        else if (spec.kind === "ribbons") widthFrac = 0.7;
-        const width = Math.max(280, vw * widthFrac);
-        const screen0 = midWorld - sl * spec.factor - width * 0.5;
-        node.style.transform = `translate3d(${screen0.toFixed(1)}px, 0, 0)`;
-        node.style.width = `${width.toFixed(1)}px`;
-        const visible = screen0 + width > -40 && screen0 < vw + 40;
-        node.classList.toggle("is-in-view", visible);
-      });
-    }
-
-    function focusStories() {
-      const centerX = viewport.scrollLeft + viewport.clientWidth * 0.5;
-      const near = nearestIndexAtCenter();
-      if (elPlayheadYear && events[near]) {
-        elPlayheadYear.textContent = yearOf(events[near].date);
-      }
-      if (window.__HUMANITY_STORY__ && storyStrip.el) {
-        window.__HUMANITY_STORY__.focusStrip(
-          storyStrip.el,
-          (i) => xAt(i),
-          centerX,
-          reduceMotion
-        );
-      }
-      updateFieldParallax();
-    }
-
-    function syncFromScroll() {
-      focusStories();
-      updateFieldParallax();
-      if (syncLock || drag) return;
-      const idx = nearestIndexAtCenter();
-      if (idx !== selectedIndex) {
-        setSelected(idx, { scroll: false, fromSync: true });
-      } else {
-        applyMotif(events[idx]);
-        updateProgress();
-      }
-    }
-
-    function buildTrack() {
-      landmarksMounted = false;
-      groundMounted = false;
-      track.textContent = "";
-      measureEdgePad();
-      track.style.width = `${edgePad + contentSpan + edgePad}px`;
-      nodes.length = 0;
-
-      const strip = document.createElement("div");
-      strip.id = "story-strip";
-      strip.className = "story-strip";
-      track.append(strip);
-      storyStrip.el = strip;
-      if (window.__HUMANITY_STORY__) {
-        window.__HUMANITY_STORY__.mountStrip(strip, events, (i) => xAt(i), trackOf);
-      }
-
-      /* Three interlocking rails + shared vertical rules at each event. */
-      TRACKS.forEach((tr) => {
-        const rail = document.createElement("div");
-        rail.className = "axis-rail";
-        rail.dataset.track = tr.id;
-        rail.style.top = tr.top;
-        rail.setAttribute("aria-hidden", "true");
-        track.append(rail);
-      });
-      events.forEach((evt, i) => {
-        const rule = document.createElement("div");
-        rule.className = "axis-vrule";
-        rule.style.left = `${xAt(i)}px`;
-        rule.dataset.index = String(i);
-        rule.setAttribute("aria-hidden", "true");
-        track.append(rule);
-      });
-
-      const progress = document.createElement("div");
-      progress.className = "axis-progress";
-      progress.setAttribute("aria-hidden", "true");
-      track.append(progress);
-
-      const crosshair = document.createElement("div");
-      crosshair.className = "axis-crosshair";
-      crosshair.setAttribute("aria-hidden", "true");
-      track.append(crosshair);
-
-      const yStart = Number(yearOf(events[0].date));
-      const yEnd = Number(yearOf(events[events.length - 1].date));
-      uniqueEras(events).forEach((era) => {
-        const idxs = events
-          .map((e, i) => (e.era === era ? i : -1))
-          .filter((i) => i >= 0);
-        if (!idxs.length) return;
-        const x0 = xAt(idxs[0]);
-        const x1 = xAt(idxs[idxs.length - 1]);
-        const bandW = Math.max(56, x1 - x0 + 72);
-        const band = document.createElement("div");
-        band.className = "axis-era-band";
-        band.dataset.era = era;
-        band.style.left = `${x0 - 36}px`;
-        band.style.width = `${bandW}px`;
-        // Hide in-band names when the band is too narrow to hold them without colliding.
-        // Era chips above (and the active readout) still carry the full label.
-        const minForLabel = Math.max(200, era.length * 20 + 32);
-        if (bandW >= minForLabel) {
-          const lab = document.createElement("span");
-          lab.className = "axis-era-band-label";
-          lab.textContent = era;
-          band.append(lab);
-        } else {
-          band.classList.add("is-compact");
-          const mark = document.createElement("span");
-          mark.className = "axis-era-band-mark";
-          mark.setAttribute("aria-hidden", "true");
-          mark.title = era;
-          band.append(mark);
-        }
-        track.append(band);
-      });
-
-            const yearSet = new Set();
-      for (let y = yStart; y <= yEnd; y++) {
-        const isDecade = y % 10 === 0;
-        const isFive = y % 5 === 0;
-        const late = y >= 2015;
-        if (!(isDecade || isFive || late)) continue;
-        if (yearSet.has(y)) continue;
-        yearSet.add(y);
-        const tick = document.createElement("div");
-        tick.className = "axis-tick" + (isDecade ? " is-decade" : late && !isFive ? " is-year" : "");
-        tick.style.left = `${xOf(dayStamp(`${y}-01-01`))}px`;
-        tick.setAttribute("aria-hidden", "true");
-        const lab = document.createElement("span");
-        lab.className = "axis-tick-label" + (isDecade ? " is-decade" : "");
-        lab.dataset.year = String(y);
-        lab.textContent = String(y);
-        lab.style.left = tick.style.left;
-        track.append(tick, lab);
-      }
-
-      events.forEach((evt, i) => {
-        const tid = trackOf(evt);
-        const meta = trackMeta(tid);
-        const btn = document.createElement("button");
-        btn.type = "button";
-        const impact = evt.impact === "high" || evt.impact === "low" ? evt.impact : "mid";
-        btn.className = `axis-node track-${tid} impact-${impact}`;
-        btn.style.left = `${xAt(i)}px`;
-        btn.style.top = meta.top;
-        btn.dataset.index = String(i);
-        btn.dataset.track = tid;
-        btn.dataset.impact = impact;
-        btn.setAttribute(
-          "aria-label",
-          `${yearOf(evt.date)} ${evt.title}，${meta.name}，${evt.era}`
-        );
-        btn.setAttribute("aria-current", "false");
-
-        const ring = document.createElement("span");
-        ring.className = "axis-node-ring";
-        ring.setAttribute("aria-hidden", "true");
-
-        const mark = document.createElement("span");
-        mark.className = "axis-node-mark";
-        mark.setAttribute("aria-hidden", "true");
-
-        const label = document.createElement("span");
-        label.className = "axis-node-label is-above";
-        label.innerHTML = `<span class="axis-node-year">${escapeHtml(
-          yearOf(evt.date)
-        )}</span><span class="axis-node-title">${escapeHtml(evt.title)}</span>`;
-
-        btn.append(ring, mark, label);
-
-        btn.addEventListener("click", () => {
-          pauseAuto(2200);
-          setSelected(i);
-        });
-        btn.addEventListener("focus", () => {
-          pauseAuto(2400);
-          setSelected(i, { scroll: true });
-        });
-
-        track.append(btn);
-        nodes.push(btn);
-      });
-    }
-
-    function applyFilter(era) {
-      filterEra = era;
-      track.querySelectorAll(".axis-era-band").forEach((band) => {
-        band.classList.toggle("is-active", !!era && band.dataset.era === era);
-      });
-      nodes.forEach((btn, i) => {
-        const dim = era && events[i].era !== era;
-        btn.classList.toggle("is-dim", !!dim);
-      });
-      if (era) {
-        pauseAuto(3500);
-        scrollToEra(era);
-      } else {
-        nodes.forEach((btn) => btn.classList.remove("is-dim"));
-        setSelected(selectedIndex, { scroll: true });
-      }
-      if (hint) {
-        hint.textContent = era
-          ? `已定位「${era}」区间 · 拖拽 / ← → 继续浏览`
-          : "三轨时间轴 · 拖拽/滚轮横移 · ← → 选点 · 悬停暂停";
-      }
-    }
-
-    function pauseAuto(ms) {
-      paused = true;
-      stage.classList.add("is-paused");
-      paintPlayHint();
-      if (pauseAuto._t) clearTimeout(pauseAuto._t);
-      if (ms) {
-        pauseAuto._t = setTimeout(() => {
-          if (!drag && document.activeElement !== viewport) {
-            paused = false;
-            stage.classList.remove("is-paused");
-            paintPlayHint();
-          }
-        }, ms);
-      }
-    }
-
-    function resumeAutoSoon() {
-      if (pauseAuto._t) clearTimeout(pauseAuto._t);
-      pauseAuto._t = setTimeout(() => {
-        if (!drag) {
-          paused = false;
-          stage.classList.remove("is-paused");
-          paintPlayHint();
-        }
-      }, 1600);
-    }
-
-    function onPointerDown(e) {
-      if (e.button !== 0) return;
-      if (e.target.closest(".axis-node")) return;
-      drag = {
-        x: e.clientX,
-        scroll: viewport.scrollLeft,
-      };
-      viewport.classList.add("is-dragging");
-      pauseAuto(0);
-      try {
-        viewport.setPointerCapture(e.pointerId);
-      } catch (_) {
-        /* ignore */
-      }
-    }
-
-    function onPointerMove(e) {
-      if (!drag) return;
-      viewport.scrollLeft = drag.scroll - (e.clientX - drag.x);
-      focusStories();
-      updateFieldParallax();
-      syncFromScroll();
-    }
-
-    function onPointerUp() {
-      if (!drag) return;
-      drag = null;
-      viewport.classList.remove("is-dragging");
-      resumeAutoSoon();
-      syncFromScroll();
-    }
-
-    function onWheel(e) {
-      const absX = Math.abs(e.deltaX);
-      const absY = Math.abs(e.deltaY);
-      /* Vertical intent → let chapter-scroller move (timeline page can scroll up/down). */
-      if (!e.shiftKey && absY >= absX && absY > 0.5) {
-        const sc = document.getElementById("chapter-scroller");
-        if (sc) {
-          e.preventDefault();
-          sc.scrollTop += e.deltaY;
-        }
-        return;
-      }
-      const dominant = e.shiftKey ? e.deltaY : (absX > absY ? e.deltaX : e.deltaY);
-      if (Math.abs(dominant) < 0.5) return;
-      e.preventDefault();
-      pauseAuto(1800);
-      viewport.scrollLeft = Math.max(0, Math.min(scrollMax(), viewport.scrollLeft + dominant));
-      focusStories();
-      syncFromScroll();
-      updateFieldParallax();
-    }
-
-    function onKey(e) {
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const tag = e.target.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-      if (!viewport.contains(e.target) && e.target !== viewport) {
-        if (!stage.contains(document.activeElement) && document.activeElement !== viewport)
-          return;
-      }
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+    window.addEventListener("keydown", (e) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.target instanceof Element && e.target.closest("input, textarea")) return;
+      if (scene === 2 && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
         e.preventDefault();
-        pauseAuto(2400);
-        setSelected(Math.min(events.length - 1, selectedIndex + 1));
-        nodes[selectedIndex]?.focus({ preventScroll: true });
-      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        DM.move(e.key === "ArrowDown" ? 1 : -1);
+        return;
+      }
+      if (e.key === "ArrowDown" || e.key === "PageDown") {
         e.preventDefault();
-        pauseAuto(2400);
-        setSelected(Math.max(0, selectedIndex - 1));
-        nodes[selectedIndex]?.focus({ preventScroll: true });
+        go(scene + 1);
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+        e.preventDefault();
+        go(scene - 1);
       } else if (e.key === "Home") {
-        e.preventDefault();
-        setSelected(0);
+        go(0);
       } else if (e.key === "End") {
+        go(SCENES.length - 1);
+      } else if (scene === 1 && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
         e.preventDefault();
-        setSelected(events.length - 1);
+        TL.step(e.key === "ArrowRight" ? 1 : -1);
+      } else if (scene === 1 && e.key === " ") {
+        e.preventDefault();
+        TL.toggle();
+      }
+    });
+
+    let tx = null;
+    let ty = null;
+    let touchScrub = false;
+    window.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches[0];
+        tx = t.clientX;
+        ty = t.clientY;
+        const hit = e.target instanceof Element ? e.target.closest("#tl-hit, #axis, .tl-ctrl, #hud-nav, #theme, .dm-list, .dd-leaves, .lg-bars, .lg-legend, a, button") : null;
+        touchScrub = !!hit;
+      },
+      { passive: true }
+    );
+    window.addEventListener("touchend", (e) => {
+      if (ty == null) return;
+      const t = e.changedTouches[0];
+      const dy = ty - t.clientY;
+      const dx = (tx ?? t.clientX) - t.clientX;
+      ty = null;
+      tx = null;
+      if (touchScrub) return;
+      if (Math.abs(dy) > 72 && Math.abs(dy) > Math.abs(dx) * 1.35) go(scene + (dy > 0 ? 1 : -1));
+    });
+  }
+
+  /* ==========================================================
+     00 总览
+     ========================================================== */
+
+  const COVER = (() => {
+    const CELLS = 50;
+    let timers = [];
+
+    function render() {
+      const { data, events, domains, leaves, agg } = M;
+      document.title = data.title;
+      $("#site-subtitle").textContent = data.subtitle || "";
+      $("#score-disclaimer").textContent = data.scoreDisclaimer || `血条为编辑估算，非测量值。基准日 ${data.updated}。`;
+      $("#hud-date").textContent = fmtDate(data.updated);
+      $("#hud-date").dateTime = data.updated;
+      $("#hud-rev").textContent = "REV." + data.updated.replace(/-/g, "");
+      $("#cover-y1").textContent = data.updated.slice(0, 4);
+      $("#stat-domains").textContent = pad(domains.length);
+      $("#stat-leaves").textContent = pad(leaves.length);
+      $("#stat-events").textContent = pad(events.length);
+      $("#stat-crit").textContent = pad(leaves.filter((l) => l.remaining <= CRIT).length);
+      const low = [...leaves].sort((a, b) => a.remaining - b.remaining)[0];
+      if (low) $("#stat-lowest").innerHTML = `${esc(low.name)}<em>${low.remaining}%</em>`;
+      $("#hp").setAttribute("aria-label", `人类事务剩余 ${agg}%`);
+
+      const cells = $("#hp-cells");
+      cells.innerHTML = "<i></i>".repeat(CELLS);
+
+      const ticks = $("#dial-ticks");
+      let svg = "";
+      for (let k = 0; k < 120; k++) {
+        const a = (k / 120) * Math.PI * 2;
+        const major = k % 10 === 0;
+        const r0 = major ? 292 : 302;
+        const r1 = 318;
+        const x0 = 400 + Math.cos(a) * r0;
+        const y0 = 400 + Math.sin(a) * r0;
+        const x1 = 400 + Math.cos(a) * r1;
+        const y1 = 400 + Math.sin(a) * r1;
+        svg += `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}"${major ? ' class="is-major"' : ""}/>`;
+      }
+      ticks.innerHTML = svg;
+
+      const latest = events.slice(-14).reverse();
+      const items = latest
+        .map((e) => `<span><time>${fmtDate(e.date)}</time><b>${esc(e.title)}</b>${esc(e.era)}</span>`)
+        .join("");
+      $("#ticker-run").innerHTML = items + items;
+
+      $("#cover-domains").innerHTML = domains
+        .map(
+          (d) => `<button type="button" data-go="2" data-dm="${d.no - 1}" class="${d.avg <= CRIT ? "is-crit" : ""}" title="${esc(d.name)} ${d.avg}%">
+            <span class="cd-name"><b>${pad(d.no)}</b>${esc(d.name)}</span>
+            <span class="cd-val">${d.avg}<small>%</small></span>
+            <i style="--v:${d.avg}"></i>
+          </button>`
+        )
+        .join("");
+    }
+
+    function intro() {
+      timers.forEach(clearTimeout);
+      timers = [];
+      const cells = [...$("#hp-cells").children];
+      const keep = Math.round(M.agg / (100 / CELLS));
+      const num = $("#agg-num");
+      if (reduce) {
+        cells.forEach((c, i) => c.classList.toggle("is-out", i >= keep));
+        num.textContent = String(M.agg);
+        return;
+      }
+      cells.forEach((c) => c.classList.remove("is-out", "is-hit"));
+      num.textContent = "100";
+      const start = 1100;
+      const per = 34;
+      const drain = CELLS - keep;
+      for (let k = 0; k < drain; k++) {
+        const c = cells[CELLS - 1 - k];
+        timers.push(setTimeout(() => c.classList.add("is-hit"), start + k * per));
+        timers.push(
+          setTimeout(() => {
+            c.classList.remove("is-hit");
+            c.classList.add("is-out");
+          }, start + k * per + 260)
+        );
+      }
+      timers.push(setTimeout(() => countTo(num, 100, M.agg, drain * per + 260), start));
+    }
+
+    return { render, intro };
+  })();
+
+  /* ==========================================================
+     01 时间轴：拖动驱动的图形叙事
+     唯一状态是浮点位置 pos（单位：事件序号）。时间轨平移、推演曲线、
+     机器领地、每个事件的图形分镜（展开 / 漂移 / 收起）、文字擦除、
+     年份里程表全部是 pos 的函数——拖到哪里，画面就停在哪一帧。
+     ========================================================== */
+
+  const TL = (() => {
+    const S = 180;
+    const HEAD_X = 960;
+    const ART_X = 740;
+    const ART_Y = 150;
+    const DWELL = 3600;
+    const AXIS_W = 1680;
+    const COL_W = 600;
+
+    let n = 0;
+    const RX = [];
+    let xs = [];
+    let xMin = 0;
+    let xMax = 0;
+    let items = [];
+    let leafCurve = [];
+
+    let pos = -0.9;
+    let vel = 0;
+    let target = 0;
+    let lastDir = 0;
+    let intent = !reduce;
+    let suspend = false;
+    let playing = intent;
+    let dragging = false;
+    let lastInput = 0;
+    let settledAt = 0;
+    let edgeAt = 0;
+    let raf = 0;
+    let lastT = 0;
+    let slotK = -2;
+    let nearK = -1;
+    let rowsA = [];
+    let rowsB = [];
+    let evEls = [];
+    let clipW = -1;
+    const cache = new Map();
+
+    const el = {
+      bg: $(".tl-bg"),
+      year: $("#tl-year"),
+      zone: $("#zone"),
+      zoneH: $("#zone-h"),
+      zoneM: $("#zone-m"),
+      art: $("#art"),
+      hit: $("#tl-hit"),
+      slotA: $("#slot-a"),
+      slotB: $("#slot-b"),
+      scan: $("#slot-scan"),
+      world: $("#rail-world"),
+      ero: $("#erosion"),
+      years: $("#rail-years"),
+      railPh: $("#rail-phases"),
+      events: $("#rail-events"),
+      rhVal: $("#rh-val"),
+      rhH: $("#rh-h"),
+      rhDate: $("#rh-date"),
+      phases: $("#axis-phases"),
+      body: $("#axis-body"),
+      ticks: $("#axis-ticks"),
+      axYears: $("#axis-years"),
+      progress: $("#axis-progress"),
+      head: $("#playhead"),
+      play: $("#ac-play"),
+      timer: $("#ac-timer"),
+      scene: $("#timeline"),
+    };
+    let xAtTime = (t) => t;
+
+    const smooth = (x) => {
+      const v = clamp(x, 0, 1);
+      return v * v * (3 - 2 * v);
+    };
+
+    function set(elm, prop, val) {
+      let c = cache.get(elm);
+      if (!c) cache.set(elm, (c = {}));
+      if (c[prop] === val) return;
+      c[prop] = val;
+      if (prop[0] === "-") elm.style.setProperty(prop, val);
+      else elm.style[prop] = val;
+    }
+
+    const railX = (p) => {
+      if (p <= 0) return RX[0] + p * S;
+      if (p >= n - 1) return RX[n - 1] + (p - n + 1) * S;
+      const k = Math.floor(p);
+      return RX[k] + (RX[k + 1] - RX[k]) * (p - k);
+    };
+
+    /* ---------- 人类剩余推演（示意） ---------- */
+
+    function human(p) {
+      if (!leafCurve.length) return 100;
+      let s = 0;
+      for (const c of leafCurve) {
+        if (c.j >= 0) s += c.rem + (100 - c.rem) * (1 - smooth((p - (c.j - 0.6)) / 0.6));
+        else s += 100 - (100 - c.rem) * clamp((p - c.a) / (c.b - c.a), 0, 1);
+      }
+      return s / leafCurve.length;
+    }
+
+    const curveY = (h) => 10 + ((100 - h) * 90) / 70;
+
+    /* ---------- 图形分镜 ---------- */
+
+    const R = (x, y, cls, html, o) => ({ x, y, cls, html: html ?? "", ...o });
+
+    function scenes() {
+      const v = [];
+      const add = (at, list, until) => v.push({ at, until, items: list });
+
+      const tubes = [];
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 8; c++) {
+          const k = r * 8 + c;
+          tubes.push(R(900 + c * 64, 290 + r * 56, `v-dot${(k * 7) % 5 === 0 ? " is-lit" : ""}`, "", { w: 30, h: 30, style: `--k:${k}`, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.006, od: c * 0.012, dr: 40 }));
+        }
+      add("ENIAC 公开亮相", [
+        ...tubes,
+        R(900, 486, "v-cap", "ENIAC<em>ELECTRONIC NUMERICAL INTEGRATOR AND COMPUTER</em>", { c: "l", tc: "l", d: 0.1 }),
+        R(900, 528, "v-mono", "<b>17,468</b> VACUUM TUBES · <b>5,000</b> ADD / SEC", { c: "l", tc: "l", d: 0.16 }),
+        R(1460, 290, "v-hatch", "", { w: 300, h: 168, c: "b", tc: "t", d: 0.05, dr: 90 }),
+        R(1460, 470, "v-disp", "30 TONS", { style: "font-size:64px", f: { y: 30, o: 0 }, d: 0.12, dr: 90 }),
+      ]);
+
+      add("图灵《计算机器与智能》", [
+        R(880, 230, "v-glyph", "“", { style: "font-size:260px", f: { y: -60, o: 0 }, t: { y: 40, o: 0 }, dr: 30 }),
+        R(1640, 270, "v-vert v-cn", "机器能思考吗？", { style: "font-size:64px", c: "t", tc: "b", d: 0.08, dr: 120 }),
+        R(900, 420, "v-out", "CAN MACHINES<br />THINK?", { style: "font-size:84px", c: "l", tc: "l", d: 0.04, dr: 70 }),
+        R(904, 600, "v-mono", "A. M. TURING · <b>MIND</b> VOL. LIX · THE IMITATION GAME", { c: "l", tc: "l", d: 0.14 }),
+      ]);
+
+      const ten = Array.from({ length: 10 }, (_, k) =>
+        R(1290 + (k % 5) * 56, 300 + Math.floor(k / 5) * 56, `v-sq${k === 4 ? " is-acc" : ""}`, "", { w: 40, h: 40, f: { y: -80, r: 90, o: 0 }, t: { y: 60, o: 0 }, d: k * 0.015, od: k * 0.01, dr: 60 })
+      );
+      add("达特茅斯人工智能夏季研讨班", [
+        R(880, 236, "v-out", "AI", { style: "font-size:330px", f: { s: 1.5, o: 0 }, t: { s: 0.8, o: 0 }, dr: 50 }),
+        ...ten,
+        R(1290, 430, "v-cap", "1956 · 夏<em>THE TERM IS COINED</em>", { c: "l", tc: "l", d: 0.12 }),
+        R(1290, 470, "v-mono", "<b>10</b> 位学者 · <b>2</b> 个月 · 让机器使用语言", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("感知机 Perceptron", [
+        R(900, 280, "", `<svg viewBox="0 0 560 250"><path class="ln" pathLength="1" d="M0 20 L320 125 M0 90 L320 125 M0 160 L320 125 M0 230 L320 125"/><circle class="ln thick" pathLength="1" cx="360" cy="125" r="40"/><path class="ln acc" pathLength="1" d="M400 125 L560 125"/></svg>`, { w: 560, h: 250, draw: true, c: "l", tc: "r", dr: 50 }),
+        ...[20, 90, 160, 230].map((y, k) => R(890, 270 + y, "v-dot is-ink", "", { w: 20, h: 20, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.03, dr: 50 })),
+        R(1500, 370, "v-disp", "Σ w·x &gt; 0", { style: "font-size:64px", f: { x: 60, o: 0 }, d: 0.14, dr: 110 }),
+        R(904, 570, "v-mono", "MARK I · <b>400</b> PHOTOCELLS · 「一台会学习的机器」", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      add("ELIZA", [
+        R(900, 280, "v-term", "", { w: 780, h: 240, c: "l", tc: "l", dr: 40 }),
+        R(932, 330, "v-tline is-me", "&gt; 我最近总是很难过。", { c: "l", tc: "l", d: 0.1, dr: 40 }),
+        R(932, 384, "v-tline", "ELIZA: 你为什么觉得自己很难过？", { c: "l", tc: "l", d: 0.17, dr: 40 }),
+        R(932, 438, "v-tline is-me", "&gt; ……也许是因为机器。", { c: "l", tc: "l", d: 0.24, dr: 40 }),
+        R(904, 548, "v-mono", "DOCTOR SCRIPT · 人第一次向机器倾诉", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("反向传播登上 Nature", [
+        ...[0, 1, 2, 3, 4].map((k) => R(1560 - k * 150, 260, "v-disp", "←", { style: "font-size:120px", f: { x: 90, o: 0 }, t: { x: -90, o: 0 }, d: k * 0.04, od: k * 0.02, dr: 60 + k * 14 })),
+        R(900, 410, "v-out", "∂L / ∂w", { style: "font-size:132px", c: "r", tc: "l", d: 0.1, dr: 50 }),
+        R(904, 580, "v-mono", "RUMELHART · HINTON · WILLIAMS · <b>NATURE 323</b>", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("LeCun 卷积网络识别邮编", [
+        ..."07733".split("").map((d, k) => R(900 + k * 118, 290, "v-digit", d, { w: 100, h: 124, f: { y: -50, r: -10, o: 0 }, t: { y: 50, r: 8, o: 0 }, d: k * 0.04, od: k * 0.02, dr: 50 + k * 8 })),
+        R(900, 448, "v-cap", "LeNet<em>BELL LABS · ZIP CODE READER</em>", { c: "l", tc: "l", d: 0.12 }),
+        R(904, 492, "v-mono", "信封上的手写数字，第一次交给了卷积", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const board = [];
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+          board.push(R(900 + c * 36, 262 + r * 36, (r + c) % 2 ? "v-tile-d" : "v-tile-l", "", { w: 36, h: 36, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: (r + c) * 0.012, od: (14 - r - c) * 0.008, dr: 40 }));
+      add("深蓝击败卡斯帕罗夫", [
+        ...board,
+        R(1250, 236, "v-glyph", "♚\uFE0E", { style: "transform-origin:30% 90%", f: { y: -80, o: 0 }, t: { o: 0 }, mid: { p: [0.02, 0.36], r: -84, y: 40 }, d: 0.1, od: 0.22, dr: 30 }),
+        R(1500, 300, "v-disp", "3½", { style: "font-size:150px", f: { x: 80, o: 0 }, d: 0.12, dr: 80 }),
+        R(1500, 440, "v-disp v-dim", "2½", { style: "font-size:96px", f: { x: 80, o: 0 }, d: 0.16, dr: 80 }),
+        R(904, 580, "v-mono", "DEEP BLUE <b>3½</b> / KASPAROV <b>2½</b> · 机器第一次在人类的棋盘上胜出", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("LSTM 长短期记忆", [
+        R(880, 300, "", `<svg viewBox="0 0 900 140"><path class="ln thick" pathLength="1" d="M0 40 L900 40"/><path class="ln" pathLength="1" d="M0 110 L180 110 L220 40 M300 110 L420 110 L460 40 M540 110 L660 110 L700 40"/><circle class="ln red" pathLength="1" cx="220" cy="40" r="22"/><circle class="ln red" pathLength="1" cx="460" cy="40" r="22"/><circle class="ln red" pathLength="1" cx="700" cy="40" r="22"/></svg>`, { w: 900, h: 140, draw: true, c: "l", tc: "r", dr: 70 }),
+        ...["FORGET", "INPUT", "OUTPUT"].map((g, k) => R(1074 + k * 240, 264, "v-mono", `<b>${g}</b> GATE`, { f: { y: -20, o: 0 }, d: 0.1 + k * 0.04, dr: 70 })),
+        R(880, 470, "v-out", "MEMORY", { style: "font-size:120px", c: "l", tc: "l", d: 0.08, dr: 40 }),
+      ]);
+
+      const net = [];
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 14; c++) {
+          const k = r * 14 + c;
+          const h = ((k * 37) % 11) / 11;
+          net.push(R(900 + c * 48, 286 + r * 48, h > 0.62 ? "v-tile-d" : h > 0.3 ? "v-gen" : "v-tile-l", "", { w: 42, h: 42, style: `--gx1:${20 + h * 60}%;--ga:${h * 180}deg`, f: { s: 0.2, o: 0 }, t: { s: 0.2, o: 0 }, d: h * 0.2, od: (c / 14) * 0.16, dr: 50 }));
+        }
+      add("ImageNet 数据集发布", [
+        ...net,
+        R(900, 492, "v-disp", "14,197,122", { style: "font-size:84px", c: "l", tc: "l", d: 0.12 }),
+        R(1340, 520, "v-mono", "LABELED IMAGES · <b>21,841</b> 类", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const wave = (x, y, cnt, pitch, w, amp, seed) =>
+        Array.from({ length: cnt }, (_, k) => {
+          const h = Math.max(6, Math.round(amp * Math.abs(Math.sin(k * 0.55 + seed) * Math.sin(k * 0.13 + seed * 2))));
+          return R(x + k * pitch, y - h / 2, "v-wave", "", { w, h, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: (k / cnt) * 0.2, od: (k / cnt) * 0.1, dr: 50 });
+        });
+      add("Siri 随 iPhone 4S 上线", [
+        R(900, 276, "v-bubble", "嘿 Siri，明天会下雨吗？", { c: "l", tc: "l", dr: 40 }),
+        ...wave(900, 430, 40, 22, 10, 120, 1.3),
+        R(904, 540, "v-mono", "2011.10.04 · iPhone 4S · 语音助手进入口袋", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      add("AlexNet 横扫 ImageNet", [
+        ...[220, 184, 150, 118, 88, 60].map((s, k) =>
+          R(920 + k * 108, 300 + (220 - s) / 2, "", `<i class="v-plane${k === 5 ? " is-acc" : ""}" style="display:block;width:100%;height:100%;transform:skewY(-16deg)"></i>`, { w: s * 0.62, h: s, f: { x: -k * 108, o: 0 }, t: { x: k * 60, o: 0 }, d: 0.02, od: k * 0.02, dr: 30 + k * 16 })
+        ),
+        R(1480, 290, "v-disp", "15.3%", { style: "font-size:120px", f: { y: 40, o: 0 }, d: 0.14, dr: 90 }),
+        R(1484, 410, "v-mono", "TOP-5 ERROR · 第二名 <b>26.2%</b>", { c: "l", tc: "l", d: 0.2, dr: 90 }),
+        R(924, 580, "v-mono", "<b>2 ×</b> GTX 580 · 深度学习从这里开始", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("Word2Vec 词向量", [
+        R(880, 296, "v-disp", "KING − MAN + WOMAN ≈ <span style='color:var(--red)'>QUEEN</span>", { style: "font-size:66px", c: "l", tc: "l", dr: 50 }),
+        R(900, 392, "", `<svg viewBox="0 0 640 190"><path class="ln" pathLength="1" d="M20 170 L260 30"/><path class="ln" pathLength="1" d="M360 170 L600 30"/><path class="ln red" pathLength="1" d="M20 170 L360 170 M260 30 L600 30"/></svg>`, { w: 640, h: 190, draw: true, d: 0.08, dr: 70 }),
+        ...[["MAN", 900, 572], ["KING", 1150, 386], ["WOMAN", 1240, 572], ["QUEEN", 1490, 386]].map(([w, x, y], k) => R(x, y, "v-mono", `<b>${w}</b>`, { f: { y: 10, o: 0 }, d: 0.12 + k * 0.02, dr: 70 })),
+      ]);
+
+      add("生成对抗网络 GAN", [
+        R(920, 300, "v-ink v-disp", "G", { w: 150, h: 150, style: "display:grid;place-items:center;font-size:110px", f: { x: -120, o: 0 }, t: { x: -120, o: 0 }, dr: 40 }),
+        R(1430, 300, "v-accbox v-disp", "D", { w: 150, h: 150, style: "display:grid;place-items:center;font-size:110px", f: { x: 120, o: 0 }, t: { x: 120, o: 0 }, dr: 40 }),
+        R(1090, 290, "", `<svg viewBox="0 0 320 170"><path class="ln thick" pathLength="1" d="M0 60 C 100 0, 220 0, 320 60"/><path class="ln red" pathLength="1" d="M320 110 C 220 170, 100 170, 0 110"/></svg>`, { w: 320, h: 170, draw: true, d: 0.1, dr: 40 }),
+        R(924, 476, "v-cap", "生成器<em>FORGER</em>", { c: "l", tc: "l", d: 0.14, dr: 40 }),
+        R(1434, 476, "v-cap", "判别器<em>DETECTIVE</em>", { c: "l", tc: "l", d: 0.16, dr: 40 }),
+        R(924, 560, "v-mono", "两个网络互相欺骗，直到真假难辨", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("ResNet 残差网络", [
+        R(900, 260, "v-disp", "x + F(x)", { style: "font-size:140px", c: "l", tc: "l", dr: 60 }),
+        R(900, 420, "", `<svg viewBox="0 0 860 120"><path class="ln" pathLength="1" d="M0 100 L860 100"/><path class="ln red" pathLength="1" d="M40 100 C 40 10, 240 10, 240 100 M240 100 C 240 10, 440 10, 440 100 M440 100 C 440 10, 640 10, 640 100 M640 100 C 640 10, 840 10, 840 100"/></svg>`, { w: 860, h: 120, draw: true, d: 0.06, dr: 80 }),
+        ...[0, 1, 2, 3, 4].map((k) => R(924 + k * 200, 506, "v-sq", "", { w: 32, h: 28, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: 0.08 + k * 0.03, dr: 80 })),
+        R(904, 580, "v-mono", "<b>152</b> LAYERS · TOP-5 <b>3.57%</b> · 低于人类基准 5.1%", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const go = [];
+      const STONES = [[2, 2, 0], [6, 2, 1], [2, 6, 1], [6, 6, 0], [4, 4, 0], [3, 5, 1], [5, 3, 1], [4, 2, 0], [2, 4, 1], [5, 6, 0], [6, 4, 1], [3, 3, 0]];
+      STONES.forEach(([c, r, w], k) => go.push(R(900 + c * 36 - 15, 270 + r * 36 - 15, `v-stone${w ? " is-w" : ""}`, "", { w: 30, h: 30, f: { s: 2, o: 0 }, t: { s: 0, o: 0 }, d: 0.06 + k * 0.012, od: k * 0.01, dr: 40 })));
+      go.push(R(900 + 7 * 36 - 15, 270 + 1 * 36 - 15, "v-stone is-37", "", { w: 30, h: 30, f: { s: 3, o: 0 }, t: { s: 0, o: 0 }, d: 0.24, dr: 40 }));
+      add("AlphaGo 击败李世石", [
+        R(900, 270, "", `<svg viewBox="0 0 288 288"><path class="ln" pathLength="1" d="${Array.from({ length: 9 }, (_, i) => `M0 ${i * 36} L288 ${i * 36} M${i * 36} 0 L${i * 36} 288`).join(" ")}"/></svg>`, { w: 288, h: 288, draw: true, dr: 40 }),
+        ...go,
+        R(1290, 296, "v-disp", "MOVE 37", { style: "font-size:110px", c: "l", tc: "l", d: 0.12, dr: 80 }),
+        R(1290, 400, "v-disp", "4 : 1", { style: "font-size:160px", f: { y: 40, o: 0 }, d: 0.16, dr: 80 }),
+        R(904, 590, "v-mono", "AlphaGo vs 李世石 · 首尔 · 「那一手不是人类会下的棋」", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("WaveNet 生成语音", [
+        R(890, 250, "v-out", "SPEECH", { style: "font-size:150px", c: "l", tc: "l", dr: 40 }),
+        ...wave(900, 480, 72, 12, 6, 110, 2.1),
+        R(904, 570, "v-mono", "<b>16,000</b> SAMPLES / SEC · 逐点生成的人声", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      const toks = ["Attention", "is", "all", "you", "need"];
+      const tx = [880, 1094, 1170, 1270, 1388];
+      add("Transformer", [
+        R(870, 236, "v-out", "ATTENTION", { style: "font-size:170px", f: { s: 1.2, o: 0 }, t: { x: -200, o: 0 }, dr: 60 }),
+        R(900, 400, "", `<svg viewBox="0 0 600 80"><path class="ln red" pathLength="1" d="M90 80 C 120 0, 230 0, 250 80 M90 80 C 140 -30, 330 -30, 350 80 M90 80 C 150 -60, 450 -60, 470 80 M290 80 C 330 20, 540 20, 580 80"/></svg>`, { w: 600, h: 80, draw: true, d: 0.1, dr: 50 }),
+        ...toks.map((w, k) => R(tx[k], 484, "v-token", w, { f: { y: 30, o: 0 }, t: { y: -30, o: 0 }, d: 0.06 + k * 0.03, od: k * 0.02, dr: 50 })),
+        R(884, 580, "v-mono", "VASWANI ET AL. · 2017 · <b>8 × P100</b> · 3.5 天", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      const P = [["GPT-1", 117e6, "117M"], ["GPT-2", 1.5e9, "1.5B"], ["GPT-3 / OpenAI API", 175e9, "175B"]];
+      add(
+        "GPT-1",
+        [
+          R(880, 286, "v-cap", "参数量<em>PARAMETERS · LINEAR SCALE</em>", { c: "l", tc: "l" }),
+          ...P.flatMap(([at, v, lab], k) => [
+            R(880, 320 + k * 64, "v-mono", `<b>${at.split(" ")[0]}</b>`, { at, c: "l", tc: "l", d: 0.05 }),
+            R(990, 318 + k * 64, `v-bar${k === 2 ? " is-acc" : ""}`, "", { at, w: Math.max(3, (v / 175e9) * 800), h: 24, c: "l", tc: "l", d: 0.1 }),
+            R(1000 + Math.max(3, (v / 175e9) * 800) + 10, 318 + k * 64, "v-mono", lab, { at, f: { x: -20, o: 0 }, d: 0.16, style: k === 2 ? "display:none" : "" }),
+            R(1280, 500, "v-disp", lab, { at, u: at, style: "font-size:120px", f: { y: 50, o: 0 }, t: { y: -50, o: 0 }, d: 0.12, od: -0.05, dr: 60 }),
+          ]),
+        ],
+        "GPT-3 / OpenAI API"
+      );
+
+      add("GitHub Copilot 技术预览", [
+        R(900, 290, "v-code", "def is_human(task):", { c: "l", tc: "l", dr: 40 }),
+        R(900, 330, "v-code", "    <i># TODO: 交给机器来写</i>", { c: "l", tc: "l", d: 0.08, dr: 40 }),
+        R(900, 370, "v-code", "    return <b>False</b>", { c: "l", tc: "l", d: 0.16, dr: 40 }),
+        R(900, 440, "v-accbox v-mono", "<b>TAB ↹</b> 接受建议", { style: "padding:8px 14px", f: { y: 20, o: 0 }, d: 0.2, dr: 40 }),
+        R(904, 560, "v-mono", "由 Codex 驱动 · 代码开始自动补全自己", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      const helix = (ph) => {
+        let d = "";
+        for (let i = 0; i <= 60; i++) d += `${i ? "L" : "M"}${(i * 14).toFixed(0)} ${(90 + 70 * Math.sin(i * 0.32 + ph)).toFixed(1)} `;
+        return d;
+      };
+      const rungs = Array.from({ length: 20 }, (_, i) => {
+        const x = i * 42;
+        const a = 90 + 70 * Math.sin((x / 14) * 0.32);
+        const b = 90 + 70 * Math.sin((x / 14) * 0.32 + Math.PI);
+        return `M${x} ${a.toFixed(1)} L${x} ${b.toFixed(1)}`;
+      }).join(" ");
+      add("AlphaFold 2 论文发表", [
+        R(900, 270, "", `<svg viewBox="0 0 840 180"><path class="ln" pathLength="1" d="${rungs}"/><path class="ln thick" pathLength="1" d="${helix(0)}"/><path class="ln red" pathLength="1" d="${helix(Math.PI)}"/></svg>`, { w: 840, h: 180, draw: true, c: "l", tc: "r", dr: 60 }),
+        R(900, 476, "v-disp", "GDT 92.4", { style: "font-size:96px", c: "l", tc: "l", d: 0.12 }),
+        R(1300, 500, "v-mono", "CASP14 · 蛋白质结构 · <b>50 年</b>难题", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("Midjourney 开放测试", [
+        R(900, 262, "v-mono", "/imagine <b>a city after the last human job</b> --v 3", { c: "l", tc: "l" }),
+        ...Array.from({ length: 10 }, (_, k) => {
+          const c = k % 5;
+          const r = Math.floor(k / 5);
+          const h = ((k * 53) % 17) / 17;
+          return R(900 + c * 150, 304 + r * 146, "v-gen", "", { w: 136, h: 136, style: `--gx1:${20 + h * 60}%;--gy1:${70 - h * 40}%;--gx2:${80 - h * 50}%;--ga:${h * 180}deg`, f: { s: 0, r: -30 + h * 60, o: 0 }, t: { s: 0.6, o: 0 }, d: 0.04 + h * 0.16, od: c * 0.02, dr: 40 + r * 30 });
+        }),
+      ]);
+
+      add("ChatGPT", [
+        R(1250, 276, "v-bubble", "帮我写一封辞职信。", { f: { x: 60, o: 0 }, t: { y: -40, o: 0 }, dr: 50 }),
+        R(900, 340, "v-bubble is-ai", "当然。以下是一封得体的辞职信……", { f: { x: -60, o: 0 }, t: { y: -40, o: 0 }, d: 0.08, dr: 50 }),
+        R(1190, 404, "v-bubble", "……顺便帮我找份新工作。", { f: { x: 60, o: 0 }, t: { y: -40, o: 0 }, d: 0.16, dr: 50 }),
+        R(900, 468, "v-disp", "100M", { style: "font-size:120px", c: "l", tc: "l", d: 0.14, dr: 80 }),
+        R(1180, 520, "v-mono", "USERS IN <b>2</b> MONTHS · 史上增长最快的应用", { c: "l", tc: "l", d: 0.2, dr: 80 }),
+      ]);
+
+      const EX = [["律师资格考试", 90], ["SAT 数学", 89], ["GRE 语文", 99], ["生物奥赛", 99]];
+      add("GPT-4", [
+        R(900, 292, "v-cap", "考试成绩 · 人类考生百分位<em>PERCENTILE</em>", { c: "l", tc: "l" }),
+        ...EX.flatMap(([lab, v], k) => [
+          R(900, 350 + k * 62, "v-mono", `<b>${lab}</b>`, { c: "l", tc: "l", d: 0.04 + k * 0.03 }),
+          R(1080, 348 + k * 62, "v-hatch", "", { w: 600, h: 26, c: "l", tc: "l", d: 0.04 + k * 0.03 }),
+          R(1080, 348 + k * 62, "v-bar is-acc", "", { w: v * 6, h: 26, c: "l", tc: "l", d: 0.1 + k * 0.03 }),
+          R(1700, 342 + k * 62, "v-disp", String(v), { style: "font-size:40px", f: { x: 30, o: 0 }, d: 0.16 + k * 0.02 }),
+        ]),
+      ]);
+
+      add("Sora 技术预告", [
+        R(760, 300, "v-film", `<div style="display:flex;gap:14px;padding:30px 14px">${Array.from({ length: 9 }, (_, k) => `<i class="v-frame" style="display:block;flex:none;width:186px;height:136px;filter:hue-rotate(${k * 12}deg)"></i>`).join("")}</div>`, { w: 1800, h: 196, c: "l", tc: "l", dr: 420 }),
+        R(900, 530, "v-cap", "一行文字 → 60 秒视频<em>TEXT TO VIDEO</em>", { c: "l", tc: "l", d: 0.14 }),
+      ]);
+
+      add("o1-preview", [
+        R(900, 250, "v-cn", "先想，再答。", { style: "font-size:84px", c: "l", tc: "l", dr: 40 }),
+        R(910, 410, "", `<svg viewBox="0 0 780 20"><path class="ln" pathLength="1" d="M0 10 L780 10"/></svg>`, { w: 780, h: 20, draw: true, d: 0.04, dr: 60 }),
+        ...Array.from({ length: 12 }, (_, k) => R(900 + k * 70, 410, `v-dot${k === 11 ? " is-lit" : ""}`, "", { w: 20, h: 20, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.016, od: k * 0.01, dr: 60 })),
+        R(904, 460, "v-mono", "THINKING… <b>37s</b> · 推理链长度成为新的算力", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("DeepSeek-R1", [
+        R(880, 270, "v-out", "OPEN<br />WEIGHTS", { style: "font-size:150px", c: "l", tc: "l", dr: 60 }),
+        R(1500, 296, "v-ink v-disp", "MIT", { style: "padding:10px 22px;font-size:60px", f: { r: -30, s: 2, o: 0 }, mid: { p: [0, 0.01], r: -8 }, d: 0.2, dr: 90 }),
+        R(904, 560, "v-mono", "推理模型权重公开 · 训练成本据称 <b>$5.6M</b>", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const agents = [];
+      for (let r = 0; r < 5; r++)
+        for (let c = 0; c < 7; c++) {
+          const k = r * 7 + c;
+          agents.push(R(900 + c * 44, 290 + r * 44, "v-sq is-off", "", { w: 34, h: 34, f: { o: 0 }, t: { o: 0 }, dr: 40 }));
+          agents.push(R(900 + c * 44, 290 + r * 44, `v-sq${k % 9 === 4 ? " is-acc" : ""}`, "", { w: 34, h: 34, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: 0.05 + (k / 35) * 0.2, od: (k / 35) * 0.1, dr: 40 }));
+        }
+      add("Claude Opus 4 / Sonnet 4", [
+        ...agents,
+        R(1260, 260, "v-disp", "7h", { style: "font-size:200px", f: { y: 40, o: 0 }, d: 0.12, dr: 80 }),
+        R(1264, 470, "v-cap", "连续自主工作<em>AGENTIC CODING</em>", { c: "l", tc: "l", d: 0.18, dr: 80 }),
+      ]);
+
+      add("AlphaZero", [
+        ...["围棋", "将棋", "国际象棋"].map((lab, k) =>
+          R(900 + k * 250, 280, "v-ink v-disp", lab, {
+            w: 220,
+            h: 150,
+            style: "display:grid;place-items:center;font-size:42px;font-family:var(--f-sans);font-weight:900",
+            f: { y: -40 - k * 20, r: -8 + k * 8, o: 0 },
+            t: { y: 30, o: 0 },
+            d: k * 0.05,
+            dr: 40 + k * 20,
+          })
+        ),
+        R(900, 470, "v-out", "ONE NET", { style: "font-size:120px", c: "l", tc: "l", d: 0.12, dr: 50 }),
+        R(904, 590, "v-mono", "从零自对弈 · 围棋 / 国际象棋 / 将棋", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("BERT", [
+        R(900, 300, "v-token", "the", { f: { x: -30, o: 0 }, d: 0.02, dr: 30 }),
+        R(1040, 300, "v-token", "[MASK]", { style: "background:var(--y)", f: { s: 1.4, o: 0 }, d: 0.08, dr: 20 }),
+        R(1280, 300, "v-token", "sat", { f: { x: 30, o: 0 }, d: 0.14, dr: 30 }),
+        R(900, 400, "", `<svg viewBox="0 0 520 80"><path class="ln red" pathLength="1" d="M40 70 C 80 0, 200 0, 250 40 M460 70 C 420 0, 300 0, 250 40"/></svg>`, { w: 520, h: 80, draw: true, d: 0.1, dr: 40 }),
+        R(900, 510, "v-out", "BOTH WAYS", { style: "font-size:110px", c: "l", tc: "l", d: 0.12 }),
+        R(904, 620, "v-mono", "双向掩码预训练 · 多项理解基准被刷新", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("Stable Diffusion 公开发布", [
+        ...Array.from({ length: 12 }, (_, k) => {
+          const c = k % 6;
+          const r = Math.floor(k / 6);
+          const h = ((k * 47) % 13) / 13;
+          return R(900 + c * 92, 280 + r * 92, "v-gen", "", {
+            w: 80,
+            h: 80,
+            style: `--gx1:${15 + h * 70}%;--gy1:${20 + h * 50}%;--ga:${h * 160}deg`,
+            f: { s: 0.2, o: 0 },
+            t: { s: 0.4, o: 0 },
+            d: h * 0.18,
+            dr: 30,
+          });
+        }),
+        R(1480, 290, "v-disp", "OPEN", { style: "font-size:92px", f: { x: 40, o: 0 }, d: 0.1, dr: 70 }),
+        R(1484, 390, "v-mono", "LATENT · 消费级硬件可跑", { c: "l", tc: "l", d: 0.16, dr: 70 }),
+      ]);
+
+      add("LLaMA", [
+        R(880, 270, "v-out", "LLAMA", { style: "font-size:180px", c: "l", tc: "l", dr: 40 }),
+        ...[0, 1, 2, 3].map((k) =>
+          R(900 + k * 36, 470, "v-sq", "", { w: 28, h: 120 - k * 16, f: { y: 40, o: 0 }, t: { y: -20, o: 0 }, d: 0.08 + k * 0.04, dr: 20 })
+        ),
+        R(1100, 490, "v-cap", "研究权重<em>OPEN-WEIGHT RACE</em>", { c: "l", tc: "l", d: 0.14 }),
+        R(904, 600, "v-mono", "开源基座竞赛从这里拉开", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("GPT-6 Astra", [
+        R(870, 230, "v-out", "AGI?", { style: "font-size:340px", f: { s: 1.6, o: 0 }, t: { s: 0.9, o: 0 }, dr: 50 }),
+        R(904, 580, "v-mono", "门槛被再次移动 · 没有人能说清它跨过了没有", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("Claude Opus 5.5", [
+        R(900, 280, "v-cap", "运行成本<em>VS OPUS 5</em>", { c: "l", tc: "l" }),
+        R(900, 360, "v-mono", "<b>OPUS 5</b>", { c: "l", tc: "l", d: 0.04 }),
+        R(1100, 352, "v-bar", "", { w: 640, h: 28, c: "l", tc: "l", d: 0.08 }),
+        R(900, 430, "v-mono", "<b>5.5</b>", { c: "l", tc: "l", d: 0.1 }),
+        R(1100, 422, "v-bar is-acc", "", { w: 384, h: 28, c: "l", tc: "l", d: 0.16 }),
+        R(1520, 410, "v-disp", "−40%", { style: "font-size:96px", f: { x: 40, o: 0 }, d: 0.18, dr: 40 }),
+        R(904, 520, "v-mono", "长程智能体编码与知识工作 · 成本约为前代的六成", { c: "l", tc: "l", d: 0.22 }),
+      ]);
+
+      add("GPT-6.1 Sol", [
+        R(900, 286, "v-cap", "标准 API 价格<em>VS GPT-6 ASTRA</em>", { c: "l", tc: "l" }),
+        R(900, 370, "v-hatch", "", { w: 700, h: 36, c: "l", tc: "l" }),
+        R(900, 370, "v-bar", "", { w: 700, h: 36, c: "l", tc: "l", d: 0.06 }),
+        R(900, 418, "v-mono", "ASTRA", { c: "l", tc: "l", d: 0.04 }),
+        R(900, 470, "v-bar is-acc", "", { w: 140, h: 36, c: "l", tc: "l", d: 0.14 }),
+        R(900, 518, "v-mono", "SOL · 约 <b>1/5</b>", { c: "l", tc: "l", d: 0.16 }),
+        R(1640, 360, "v-disp", "⅕", { style: "font-size:140px", f: { y: 30, o: 0 }, d: 0.12, dr: 40 }),
+      ]);
+
+      add("Gemini 4 Argon", [
+        R(980, 270, "v-hatch", "", { w: 280, h: 280, d: 0.04, dr: 20 }),
+        R(1020, 300, "v-ink", "", { w: 200, h: 220, style: "clip-path:polygon(50% 0,100% 28%,100% 70%,50% 100%,0 70%,0 28%)", d: 0.1, dr: 10 }),
+        R(1360, 290, "v-cn", "防御向", { style: "font-size:72px", c: "l", tc: "l", d: 0.08 }),
+        R(1360, 380, "v-disp", "LIMITED", { style: "font-size:84px", f: { x: 50, o: 0 }, d: 0.14, dr: 40 }),
+        R(1364, 480, "v-mono", "长程软件工程 · 法务金融 · 有限放量", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      const last = M.events[M.events.length - 1];
+      const rev = fmtDate(M.data.updated);
+      add(last.title, [
+        R(900, 268, "v-cn", "人类事务剩余", { style: "font-size:48px", c: "l", d: 0.02 }),
+        R(890, 320, "v-disp v-acc", `${M.agg}%`, { style: "font-size:220px", f: { y: 50, o: 0 }, d: 0.08, dr: 24 }),
+        R(1380, 360, "v-cap", `${esc(last.title)}<em>${fmtDate(last.date)}</em>`, { c: "l", tc: "l", d: 0.12 }),
+        R(1380, 430, "v-mono", `截至 <b>${rev}</b> · 每天核对一次`, { c: "l", d: 0.18 }),
+        R(1380, 468, "v-mono", "计数还在继续。", { c: "l", d: 0.24 }),
+      ]);
+
+      return v;
+    }
+
+    function headWord(title) {
+      const m = title.match(/^[A-Za-z0-9][A-Za-z0-9 .·\-\/]*[A-Za-z0-9.]/);
+      return m ? m[0].trim() : "";
+    }
+
+    function build() {
+      const ev = M.events;
+      const find = (t) => ev.findIndex((e) => e.title === t);
+      const out = [];
+      const covered = new Set();
+      const push = (it, ai, ui) => {
+        const iai = it.at !== undefined ? (typeof it.at === "number" ? it.at : find(it.at)) : ai;
+        const iui = it.u !== undefined ? find(it.u) : ui;
+        const clip = it.c || it.tc;
+        out.push({
+          ...it,
+          f: it.f || (it.c ? {} : { x: 60, o: 0 }),
+          t: it.t || (it.tc ? {} : { x: -60, o: 0 }),
+          clip,
+          anchor: it.anchor ?? iai,
+          inA: it.inA ?? iai - 0.75 + (it.d || 0),
+          inW: it.inW ?? 0.55,
+          outA: it.outA ?? iui + 0.15 + (it.od || 0),
+          outW: it.outW ?? 0.4,
+          dr: it.dr ?? 50,
+        });
+      };
+
+      scenes().forEach((sc) => {
+        const ai = find(sc.at);
+        if (ai < 0) return;
+        const ui = sc.until ? find(sc.until) : ai;
+        for (let i = ai; i <= ui; i++) covered.add(i);
+        sc.items.forEach((it) => push(it, ai, ui));
+      });
+
+      ev.forEach((e, i) => {
+        if (!covered.has(i)) {
+          const w = headWord(e.title);
+          const cjk = !w;
+          const label = cjk ? e.title : w;
+          const fs = cjk ? Math.min(84, 860 / label.length) : Math.min(170, 900 / (label.length * 0.47));
+          push(R(904, 290, "v-mono", `No.<b>${pad(i + 1, 3)}</b> · ${fmtDate(e.date)} · ${esc(e.era)} · IMPACT <b>${(e.impact || "mid").toUpperCase()}</b>`, { c: "l", tc: "l", dr: 30 }), i, i);
+          push(R(896, 320, cjk ? "v-cn" : "v-out", esc(label), { style: `font-size:${fs.toFixed(0)}px`, c: "l", tc: "l", d: 0.04, dr: 90 }), i, i);
+          push(R(904, 336 + fs * (cjk ? 1.1 : 0.88), "v-rule", "", { w: 420, h: 6, c: "l", tc: "l", d: 0.12, dr: 60 }), i, i);
+        }
+        if (e.leaves.length) {
+          const chips = e.leaves
+            .slice(0, 4)
+            .map((l) => `<span><b>${esc(l.name)}</b><em>${l.remaining}%</em></span>`)
+            .join("");
+          const more = e.leaves.length > 4 ? `<span class="is-more">+${e.leaves.length - 4}</span>` : "";
+          push(R(800, 608, "v-chips", `<i>让渡 →</i>${chips}${more}`, { f: { x: -180, o: 0 }, t: { x: 280, o: 0 }, d: 0.2, od: -0.1, dr: 20 }), i, i);
+        }
+      });
+
+      M.phases.forEach((p, k) => {
+        const win = { inA: p.start - 0.9, inW: 0.6, outA: p.end + 0.2, outW: 0.6, anchor: (p.start + p.end) / 2 };
+        push(R(792, 190, "v-plate", `<b>${pad(p.no)}</b><span>${esc(p.name)}</span><em>${p.y0} — ${p.y1}</em>`, { ...win, c: "l", tc: "l", dr: 0 }), p.start, p.end);
+        push(R(1190, 186, "v-word", ERA_EN[p.name] || p.name, { ...win, f: { x: 160, o: 0 }, t: { x: -160, o: 0 }, dr: 36 }), p.start, p.end);
+      });
+
+      el.art.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      out.forEach((it) => {
+        const d = document.createElement("div");
+        d.className = `v ${it.cls || ""}`.trim();
+        d.style.cssText = `left:${it.x - ART_X}px;top:${it.y - ART_Y}px;${it.w ? `width:${it.w}px;` : ""}${it.h ? `height:${it.h}px;` : ""}${it.style || ""}`;
+        d.innerHTML = it.html;
+        it.el = d;
+        frag.appendChild(d);
+      });
+      el.art.appendChild(frag);
+      items = out;
+    }
+
+    function renderArt(p) {
+      for (const it of items) {
+        const e = it.el;
+        if (p <= it.inA || p >= it.outA + it.outW) {
+          set(e, "visibility", "hidden");
+          continue;
+        }
+        const ein = smooth((p - it.inA) / it.inW);
+        const eout = smooth((p - it.outA) / it.outW);
+        const qi = 1 - ein;
+        const f = it.f;
+        const t = it.t;
+        const m = it.mid;
+        const em = m ? smooth((p - it.anchor - m.p[0]) / (m.p[1] - m.p[0])) : 0;
+        const x = (f.x || 0) * qi + (t.x || 0) * eout - (p - it.anchor) * it.dr + (m ? (m.x || 0) * em : 0);
+        const y = (f.y || 0) * qi + (t.y || 0) * eout + (m ? (m.y || 0) * em : 0);
+        const r = (f.r || 0) * qi + (t.r || 0) * eout + (m ? (m.r || 0) * em : 0);
+        const s = 1 + ((f.s ?? 1) - 1) * qi + ((t.s ?? 1) - 1) * eout + (m ? ((m.s ?? 1) - 1) * em : 0);
+        let o = 1;
+        if (f.o !== undefined) o *= f.o + (1 - f.o) * ein;
+        if (t.o !== undefined) o *= 1 + (t.o - 1) * eout;
+        set(e, "visibility", o > 0.004 ? "visible" : "hidden");
+        set(e, "opacity", o.toFixed(3));
+        set(e, "transform", `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${Math.max(0, s).toFixed(3)})`);
+        if (it.clip) {
+          const q = [0, 0, 0, 0];
+          const side = { t: 0, r: 1, b: 2, l: 3 };
+          if (it.c) q[(side[it.c] + 2) % 4] = qi;
+          if (it.tc) q[side[it.tc]] = Math.max(q[side[it.tc]], eout);
+          set(e, "clipPath", `inset(${q.map((v) => `calc(${v.toFixed(3)} * (100% + 8px) - 4px)`).join(" ")})`);
+        }
+        if (it.draw) set(e, "--dr", (ein * (1 - eout)).toFixed(3));
       }
     }
 
-    function timelineInView() {
-      const scroller = document.getElementById("chapter-scroller");
-      const chapter = document.getElementById("chapter-timeline");
-      if (!scroller || !chapter) return true;
-      return scroller.scrollTop >= chapter.offsetTop - 12;
+    /* ---------- 布局 ---------- */
+
+    function layout() {
+      const ev = M.events;
+      n = ev.length;
+
+      let x = 0;
+      ev.forEach((e, i) => {
+        if (i > 0) {
+          const years = Math.max(0, (e.t - ev[i - 1].t) / (365.25 * 864e5));
+          x += 208 + 72 * Math.log2(1 + years);
+          if (e.phase !== ev[i - 1].phase) x += 96;
+        }
+        RX[i] = x;
+      });
+      xAtTime = (t) => {
+        if (t <= ev[0].t) return RX[0] - ((ev[0].t - t) / (365.25 * 864e5)) * 40;
+        if (t >= ev[n - 1].t) return RX[n - 1] + ((t - ev[n - 1].t) / (365.25 * 864e5)) * 400;
+        let k = 0;
+        while (k < n - 2 && ev[k + 1].t <= t) k++;
+        const a = ev[k].t;
+        const b = ev[k + 1].t;
+        return RX[k] + (RX[k + 1] - RX[k]) * (b > a ? (t - a) / (b - a) : 0);
+      };
+      xMin = RX[0] - 1400;
+      xMax = RX[n - 1] + 1400;
+
+      const cg = Math.max(0, ev.findIndex((e) => e.title === "ChatGPT"));
+      leafCurve = M.leaves.map((l) => ({
+        rem: l.remaining,
+        j: l.hits.length ? Math.min(...l.hits.map((h) => ev.indexOf(h))) : -1,
+        a: cg,
+        b: n - 1,
+      }));
+
+      const y0 = Number(ev[0].date.slice(0, 4));
+      const y1 = Number(ev[n - 1].date.slice(0, 4)) + 1;
+      let yh = "";
+      let lastLab = -Infinity;
+      for (let y = y0 - 4; y <= y1; y++) {
+        const yx = xAtTime(Date.UTC(y, 0, 1));
+        const dec = y % 10 === 0;
+        const lab = yx - lastLab >= 46 && (dec || yx - lastLab >= 90 || y >= 2010);
+        if (lab) lastLab = yx;
+        yh += `<span class="${dec ? "is-dec" : ""}" style="left:${yx.toFixed(1)}px">${lab ? `<b>${y}</b>` : ""}</span>`;
+      }
+      el.years.innerHTML = yh;
+
+      el.railPh.innerHTML = M.phases
+        .map((p, k) => {
+          const a = k === 0 ? xMin : (RX[p.start - 1] + RX[p.start]) / 2 + 40;
+          const b = k + 1 < M.phases.length ? (RX[p.end] + RX[p.end + 1]) / 2 + 40 : xMax;
+          return `<span style="left:${a.toFixed(0)}px;width:${(b - a).toFixed(0)}px"><em>PHASE ${pad(p.no)}</em>${esc(p.name)}</span>`;
+        })
+        .join("");
+
+      el.events.innerHTML = ev
+        .map(
+          (e, i) =>
+            `<div class="rv-ev" data-i="${i}" data-impact="${e.impact || "mid"}" style="left:${RX[i]}px;--stem:${i % 2 ? 46 : 18}px"><span><time>${fmtDate(e.date)}</time><strong>${esc(e.title)}</strong></span></div>`
+        )
+        .join("");
+      evEls = [...el.events.querySelectorAll(".rv-ev")];
+
+      let line = "";
+      let area = `M${xMin} 0`;
+      for (let p = -1 - 1400 / S; p <= n - 1 + 1400 / S; p += 0.05) {
+        const px = railX(p);
+        const py = curveY(human(clamp(p, -1, n - 1)));
+        line += `${line ? "L" : "M"}${px.toFixed(1)} ${py.toFixed(2)} `;
+        area += ` L${px.toFixed(1)} ${py.toFixed(2)}`;
+      }
+      area += ` L${xMax} 0 Z`;
+      el.ero.setAttribute("width", String(xMax - xMin));
+      el.ero.setAttribute("height", "100");
+      el.ero.setAttribute("viewBox", `${xMin} 0 ${xMax - xMin} 100`);
+      el.ero.style.left = `${xMin}px`;
+      el.ero.innerHTML = `<defs>
+          <pattern id="ero-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="8" class="ero-hatch-line" /></pattern>
+          <clipPath id="ero-clip"><rect id="ero-rect" x="${xMin}" y="-10" width="0" height="120" /></clipPath>
+        </defs>
+        <path class="ero-line is-future" d="${line}" />
+        <g clip-path="url(#ero-clip)"><path class="ero-area" d="${area}" /><path class="ero-line" d="${line}" /></g>`;
+      el.eroRect = el.ero.querySelector("#ero-rect");
+
+      build();
+      layoutAxis();
+
+      let html = "";
+      for (let k = 0; k < 4; k++) {
+        let col = "";
+        for (let v = 0; v <= 10; v++) col += `<span>${v % 10}</span>`;
+        html += `<span class="dg"><span class="dg-col">${col}</span></span>`;
+      }
+      el.year.innerHTML = html;
     }
 
-    function paintPlayHint() {
-      if (!hint) return;
-      if (reduceMotion) {
-        hint.textContent = "已关闭自动漫游 · 拖拽或滚轮横向浏览 · ← → 选点";
-        return;
-      }
-      if (!autoPan) {
-        hint.textContent = "拖拽/滚轮横移 · ← → 选点";
-        return;
-      }
-      if (paused) {
-        hint.textContent = "已暂停 · 移开后继续横移 · ← → 选点";
-        return;
-      }
-      hint.textContent = "自动横移播放中 · 悬停暂停 · 至右端停止";
+    function layoutAxis() {
+      const ev = M.events;
+      const span = (RX[n - 1] - RX[0]) || 1;
+      const frac = (x) => clamp((x - RX[0]) / span, 0, 1);
+      xs = RX.map(frac);
+      const xAt = (t) => frac(xAtTime(t));
+      const y0 = Number(ev[0].date.slice(0, 4));
+      const y1 = Number(ev[n - 1].date.slice(0, 4));
+      const want = [];
+      for (let y = Math.ceil(y0 / 10) * 10; y <= y1; y += 10) want.push(y);
+      for (let y = 2012; y <= y1; y++) want.push(y);
+      let lastX = -1;
+      el.axYears.innerHTML = [...new Set(want)]
+        .sort((a, b) => a - b)
+        .map((y) => {
+          const x = xAt(Date.UTC(y, 0, 1));
+          if (lastX >= 0 && (x - lastX) * AXIS_W < 48) return "";
+          lastX = x;
+          return `<span style="left:${(x * 100).toFixed(3)}%">${y}</span>`;
+        })
+        .join("");
+
+      const Hh = { high: 18, mid: 12, low: 7 };
+      el.ticks.innerHTML = ev
+        .map((e, i) => `<span class="tk" data-impact="${e.impact || "mid"}" style="left:${(xs[i] * 100).toFixed(3)}%;--h:${Hh[e.impact] || 12}px"></span>`)
+        .join("");
+
+      el.phases.innerHTML = M.phases
+        .map((p, k) => {
+          const a = k === 0 ? 0 : (xs[p.start - 1] + xs[p.start]) / 2;
+          const b = k + 1 < M.phases.length ? (xs[p.end] + xs[p.end + 1]) / 2 : 1;
+          const wide = (b - a) * AXIS_W > 96;
+          return `<button type="button" class="ph" data-k="${k}" style="left:${(a * 100).toFixed(3)}%;width:${((b - a) * 100).toFixed(3)}%" title="${esc(p.name)} ${p.y0}—${p.y1}"><em>${pad(p.no)}</em>${wide ? esc(p.name) : ""}</button>`;
+        })
+        .join("");
+      el.body.setAttribute("aria-valuemax", String(n));
     }
 
-    function tick(ts) {
-      animFrame = requestAnimationFrame(tick);
-      /* Stay parked on page 1 so the playhead is still at the left edge when page 2 opens. */
-      if (!autoPan || paused || reduceMotion || drag || !timelineInView()) {
-        lastTs = ts;
+    function invXs(f) {
+      if (f <= xs[0]) return 0;
+      if (f >= xs[n - 1]) return n - 1;
+      let k = 0;
+      while (k < n - 2 && xs[k + 1] < f) k++;
+      return k + (f - xs[k]) / (xs[k + 1] - xs[k] || 1);
+    }
+
+    /* ---------- 文字槽位 ---------- */
+
+    function titleSize(s) {
+      let u = 0;
+      for (const ch of s) u += ch === " " ? 0.24 : isCJK(ch) ? 0.92 : /[A-Z0-9]/.test(ch) ? 0.5 : 0.42;
+      const one = (COL_W - 4) / u;
+      if (one >= 58) return Math.min(one, 96);
+      return clamp(((COL_W - 4) * 1.85) / u, 34, 56);
+    }
+
+    function titleHTML(s) {
+      return [...s].map((c) => (isCJK(c) ? `<span class="cjk">${esc(c)}</span>` : esc(c))).join("");
+    }
+
+    function fill(slot, i) {
+      if (i < 0 || i >= n) {
+        slot.innerHTML = "";
+        return [];
+      }
+      const e = M.events[i];
+      const p = M.phases[e.phase];
+      const lvl = { low: 1, mid: 2, high: 3 }[e.impact] || 2;
+      const rows = e.leaves;
+      const MAX = 3;
+      const rep = rows.length
+        ? rows
+            .slice(0, MAX)
+            .map(
+              (l) =>
+                `<div class="sl-row"><span>${esc(l.name)}<small>${esc(l.domain.name)}</small></span>${bar(l.remaining)}<b class="${l.remaining <= CRIT ? "is-crit" : ""}">${l.remaining}</b></div>`
+            )
+            .join("") + (rows.length > MAX ? `<p class="sl-more">+ ${rows.length - MAX} 项</p>` : "")
+        : `<p class="sl-empty">未直接记入领域让渡，是其后 ${n - 1 - i} 个节点的前置。</p>`;
+
+      slot.innerHTML = `
+        <div class="sl-meta" data-r="0">
+          <span class="sl-era">${esc(e.era)}</span>
+          <span class="sl-phase">PHASE ${pad(p.no)}-${pad(i - p.start + 1)} · No.${pad(i + 1, 3)}</span>
+          <span class="sl-date">${fmtDate(e.date)}</span>
+        </div>
+        <h3 class="sl-title" data-r="1" style="--fs:${titleSize(e.title).toFixed(1)}px">${titleHTML(e.title)}</h3>
+        <div class="sl-rule" data-r="2"></div>
+        <p class="sl-blurb" data-r="3">${esc(e.blurb || "")}</p>
+        <div class="sl-foot" data-r="4">
+          ${(e.tags || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
+          <span class="sl-imp" data-level="${e.impact || "mid"}">${[1, 2, 3].map((v) => `<i class="${v <= lvl ? "is-on" : ""}"></i>`).join("")}<b>${(e.impact || "mid").toUpperCase()}</b></span>
+        </div>
+        <div class="sl-rep" data-r="5">
+          <p class="sl-rep-h">让渡记录<span>TRANSFERRED</span><b>${pad(rows.length)}</b></p>
+          ${rep}
+        </div>`;
+      return [...slot.querySelectorAll("[data-r]")];
+    }
+
+    /* ---------- 每帧渲染 ---------- */
+
+    function yearFloat(ms) {
+      const d = new Date(ms);
+      const y = d.getUTCFullYear();
+      const a = Date.UTC(y, 0, 1);
+      const b = Date.UTC(y + 1, 0, 1);
+      return y + (ms - a) / (b - a);
+    }
+
+    function odometer(yf) {
+      const cols = el.year.querySelectorAll(".dg-col");
+      const digits = [yf % 10];
+      let carry = Math.max(0, digits[0] - 9);
+      for (let k = 1; k < 4; k++) {
+        const base = Math.floor(yf / Math.pow(10, k)) % 10;
+        digits[k] = base + carry;
+        if (base !== 9) carry = 0;
+      }
+      for (let k = 0; k < 4; k++) {
+        const col = cols[3 - k];
+        if (col) set(col, "transform", `translateY(${(-digits[k]).toFixed(4)}em)`);
+      }
+    }
+
+    function render(p) {
+      const k = n > 1 ? clamp(Math.floor(p), -1, n - 2) : 0;
+      const t = n > 1 ? clamp(p - k, 0, 1) : 0;
+      const rx = railX(p);
+
+      set(el.world, "transform", `translate3d(${(HEAD_X - rx).toFixed(2)}px,0,0)`);
+      set(el.bg, "--gx", `${(-(rx * 0.3) % 120).toFixed(1)}px`);
+      set(el.bg, "--bx", `${(-rx % 1000).toFixed(1)}px`);
+      const cw = Math.round(rx - xMin);
+      if (cw !== clipW && el.eroRect) {
+        clipW = cw;
+        el.eroRect.setAttribute("width", String(Math.max(0, cw)));
+      }
+
+      const h = human(p);
+      const hr = Math.round(h);
+      set(el.zone, "--m", ((100 - h) / 100).toFixed(4));
+      if (el.zoneH.textContent !== String(hr)) {
+        el.zoneH.textContent = String(hr);
+        el.zoneM.textContent = String(100 - hr);
+        el.rhH.textContent = String(hr);
+      }
+      set(el.rhVal, "transform", `translate3d(0,${clamp(curveY(h) - 46, 0, 60).toFixed(1)}px,0)`);
+
+      evEls.forEach((nd, i) => set(nd, "--f", smooth(1 - Math.abs(p - i) * 1.4).toFixed(3)));
+
+      const ka = clamp(k, 0, n - 1);
+      const kb = clamp(k + 1, 0, n - 1);
+      const ms = p < 0 ? M.events[0].t : M.events[ka].t + (M.events[kb].t - M.events[ka].t) * t;
+      odometer(yearFloat(ms));
+      const dd = new Date(ms);
+      const ds = `${dd.getUTCFullYear()}.${pad(dd.getUTCMonth() + 1)}`;
+      if (el.rhDate.textContent !== ds) el.rhDate.textContent = ds;
+
+      if (slotK !== k) {
+        slotK = k;
+        rowsA = fill(el.slotA, k);
+        rowsB = fill(el.slotB, k + 1);
+      }
+      rowsA.forEach((r, j) => set(r, "--e", (1 - smooth((t - 0.08 - j * 0.04) / 0.32)).toFixed(3)));
+      rowsB.forEach((r, j) => set(r, "--e", smooth((t - 0.42 - j * 0.04) / 0.32).toFixed(3)));
+      set(el.scan, "transform", `translate3d(${((0.02 + 0.96 * t) * COL_W).toFixed(1)}px,0,0)`);
+      set(el.scan, "opacity", Math.sin(Math.PI * t).toFixed(3));
+
+      renderArt(p);
+
+      const fx = p < 0 ? 0 : xs[ka] + (xs[kb] - xs[ka]) * t;
+      set(el.head, "transform", `translate3d(${(fx * AXIS_W).toFixed(2)}px,0,0)`);
+      set(el.progress, "transform", `scaleX(${fx.toFixed(4)})`);
+
+      const near = clamp(Math.round(p), 0, n - 1);
+      if (near !== nearK) {
+        nearK = near;
+        const e = M.events[near];
+        el.ticks.querySelectorAll(".tk").forEach((tk, i) => {
+          tk.classList.toggle("is-past", i < near);
+          tk.classList.toggle("is-on", i === near);
+        });
+        el.phases.querySelectorAll(".ph").forEach((b, i) => b.classList.toggle("is-on", i === e.phase));
+        const wash = ERA_WASH[e.era] || "#d9d4c8";
+        set(el.bg, "--wash", wash);
+        el.body.setAttribute("aria-valuenow", String(near + 1));
+        el.body.setAttribute("aria-valuetext", `${e.date} ${e.title}`);
+      }
+    }
+
+    /* ---------- 物理 / 循环 ---------- */
+
+    function snap() {
+      const f = target - Math.floor(target);
+      if (f < 1e-6) return;
+      if (lastDir > 0) target = f > 0.12 ? Math.ceil(target) : Math.floor(target);
+      else if (lastDir < 0) target = f < 0.88 ? Math.floor(target) : Math.ceil(target);
+      else target = Math.round(target);
+      target = clamp(target, 0, n - 1);
+    }
+
+    function frame(now) {
+      const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000));
+      lastT = now;
+
+      if (!dragging && now - lastInput > 260) snap();
+
+      const w = dragging ? 26 : pos < 0 ? 3.2 : 5.4;
+      const zeta = dragging ? 1 : 0.74;
+      const acc = w * w * (target - pos) - 2 * zeta * w * vel;
+      vel += acc * dt;
+      pos += vel * dt;
+      if (Math.abs(target - pos) < 1e-4 && Math.abs(vel) < 1e-3) {
+        pos = target;
+        vel = 0;
+      }
+      pos = clamp(pos, -1, n - 1);
+
+      const settled = !dragging && pos === target && Number.isInteger(target);
+      if (settled && !settledAt) settledAt = now;
+      if (!settled) settledAt = 0;
+      if (playing && settled) {
+        const pr = (now - settledAt) / DWELL;
+        set(el.timer, "transform", `scaleX(${clamp(pr, 0, 1).toFixed(3)})`);
+        if (pr >= 1) {
+          if (target < n - 1) {
+            target += 1;
+            lastDir = 1;
+          } else {
+            setPlaying(false);
+          }
+        }
+      } else if (!playing) {
+        set(el.timer, "transform", "scaleX(0)");
+      }
+
+      render(pos);
+      raf = requestAnimationFrame(frame);
+    }
+
+    function paintPlay() {
+      const showPause = intent;
+      el.play.innerHTML = showPause ? '<span class="i-pause"></span>' : '<span class="i-play"></span>';
+      el.play.classList.toggle("is-hold", intent && suspend);
+      el.play.setAttribute("aria-label", intent ? (suspend ? "悬停已暂停，移开继续" : "暂停自动回放") : "开始自动回放");
+    }
+
+    function setPlaying(v) {
+      intent = v;
+      playing = intent && !suspend;
+      if (!playing) settledAt = 0;
+      paintPlay();
+    }
+
+    function setSuspend(v) {
+      if (suspend === v) return;
+      suspend = v;
+      playing = intent && !suspend;
+      if (suspend) settledAt = 0;
+      paintPlay();
+    }
+
+    function toggle() {
+      if (intent) {
+        setPlaying(false);
         return;
       }
-      const dt = lastTs ? Math.min(0.05, (ts - lastTs) / 1000) : 0;
-      lastTs = ts;
-      const max = scrollMax();
-      if (max <= 0) return;
-      const speed = max / 220;
-      let next = viewport.scrollLeft + speed * dt;
-      if (next >= max - 0.5) {
-        viewport.scrollLeft = max;
-        autoPan = false; /* stop at right end — no hard loop jump */
-        stage.classList.add("is-at-end");
-        paintPlayHint();
-        focusStories();
-        syncFromScroll();
-        return;
+      if (Math.round(target) >= n - 1) {
+        target = 0;
+        lastDir = -1;
       }
-      viewport.scrollLeft = next;
-      focusStories();
-      syncFromScroll();
-      updateFieldParallax();
+      setPlaying(true);
+      settledAt = 0;
+    }
+
+    function step(d) {
+      setPlaying(false);
+      lastDir = d;
+      target = clamp(Math.round(target) + d, 0, n - 1);
+    }
+
+    function goTo(i) {
+      setPlaying(false);
+      lastDir = 0;
+      target = clamp(i, 0, n - 1);
+    }
+
+    function wheel(e) {
+      const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      const d = raw * (e.deltaMode === 1 ? 33 : 1);
+      if (Math.abs(d) < 1) return true;
+      const pushing = (d > 0 && target >= n - 1) || (d < 0 && target <= 0);
+      if (pushing) {
+        const now = performance.now();
+        if (!edgeAt) edgeAt = now;
+        return now - edgeAt < 420;
+      }
+      edgeAt = 0;
+      setPlaying(false);
+      lastDir = Math.sign(d);
+      lastInput = performance.now();
+      target = clamp(target + d * 0.0032, 0, n - 1);
+      return true;
     }
 
     function bind() {
-      viewport.addEventListener("pointerdown", onPointerDown);
-      viewport.addEventListener("pointermove", onPointerMove);
-      viewport.addEventListener("pointerup", onPointerUp);
-      viewport.addEventListener("pointercancel", onPointerUp);
-      viewport.addEventListener("wheel", onWheel, { passive: false });
-      viewport.addEventListener("scroll", () => {
-        if (!drag && !syncLock) syncFromScroll();
-      }, { passive: true });
-      viewport.addEventListener("mouseenter", () => pauseAuto(0));
-      viewport.addEventListener("mouseleave", () => {
-        if (!drag) resumeAutoSoon();
+      paintPlay();
+      el.scene.addEventListener("pointerenter", () => setSuspend(true));
+      el.scene.addEventListener("pointerleave", () => setSuspend(false));
+      $("#ac-prev").addEventListener("click", () => step(-1));
+      $("#ac-next").addEventListener("click", () => step(1));
+      el.play.addEventListener("click", toggle);
+
+      el.phases.addEventListener("click", (ev) => {
+        const b = ev.target.closest(".ph");
+        if (b) goTo(M.phases[Number(b.dataset.k)].start);
       });
-      viewport.addEventListener("focusin", () => pauseAuto(0));
-      viewport.addEventListener("focusout", () => resumeAutoSoon());
-      document.addEventListener("keydown", onKey);
-      if (!reduceMotion) {
-        animFrame = requestAnimationFrame(tick);
-        paintPlayHint();
-      } else if (hint) {
-        hint.textContent = "已关闭自动漫游 · 拖拽或滚轮横向浏览 · ← → 选点";
-      }
-    }
 
-    buildTrack();
-    focusStories();
-    bind();
-    window.addEventListener("resize", () => {
-      const idx = selectedIndex;
-      layoutTrack();
-      setSelected(idx, { scroll: true, instant: true });
-    });
-    if (reduceMotion) {
-      autoPan = false;
-      setSelected(events.length - 1, { scroll: true, instant: true });
-    } else {
-      /* Start at the left edge. Jumping to the terminus first used to trip the
-         end-stop and disable autoPan before the rewind frame could run. */
-      autoPan = true;
-      paused = false;
-      stage.classList.remove("is-paused", "is-at-end");
-      setSelected(0, { scroll: true, instant: true });
-      viewport.scrollLeft = 0;
-      paintPlayHint();
-    }
-    updateFieldParallax();
+      const scale = () => Number(stage.style.getPropertyValue("--s")) || 1;
 
-    return {
-      applyFilter,
-      destroy() {
-        cancelAnimationFrame(animFrame);
-        if (settleAnim) cancelAnimationFrame(settleAnim);
-        if (fadeTimer) clearTimeout(fadeTimer);
-      },
-    };
-  }
-
-  function renderFilters(eras, onChange) {
-    const box = $("#era-filters");
-    box.textContent = "";
-    let active = "全部";
-
-    const all = ["全部", ...eras];
-    all.forEach((era) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "era-chip";
-      chip.textContent = era;
-      chip.dataset.era = era;
-      chip.title = era;
-      chip.setAttribute("aria-pressed", era === active ? "true" : "false");
-      chip.addEventListener("click", () => {
-        active = era;
-        [...box.children].forEach((c) =>
-          c.setAttribute("aria-pressed", c.dataset.era === active ? "true" : "false")
-        );
-        onChange(active === "全部" ? null : active);
+      let lastX = 0;
+      let downX = 0;
+      let lastMoveT = 0;
+      let v = 0;
+      el.hit.addEventListener("pointerdown", (ev) => {
+        dragging = true;
+        setPlaying(false);
+        el.hit.setPointerCapture(ev.pointerId);
+        el.hit.classList.add("is-drag");
+        lastX = downX = ev.clientX;
+        lastMoveT = performance.now();
+        v = 0;
+        target = pos;
+        vel = 0;
       });
-      box.append(chip);
-    });
-  }
-
-  function loadScriptData() {
-    return new Promise((resolve, reject) => {
-      if (window.__HUMANITY_DATA__) {
-        resolve(window.__HUMANITY_DATA__);
-        return;
-      }
-      const s = document.createElement("script");
-      s.src = new URL("data.js", document.baseURI || window.location.href).href;
-      s.onload = () => {
-        if (window.__HUMANITY_DATA__) resolve(window.__HUMANITY_DATA__);
-        else reject(new Error("data.js 未导出 __HUMANITY_DATA__"));
-      };
-      s.onerror = () => reject(new Error("无法加载 data.js"));
-      document.head.appendChild(s);
-    });
-  }
-
-  async function loadData() {
-    try {
-      const res = await fetch(DATA_URL, { cache: "no-store" });
-      if (res.ok) return res.json();
-    } catch (_) {
-      /* file:// or offline — fall through */
-    }
-    return loadScriptData();
-  }
-
-
-  /** Continuous vertical blend + true ring→rail morph. */
-  function bindChapterBlend() {
-    const scroller = $("#chapter-scroller");
-    const dossier = $("#chapter-dossier");
-    const timeline = $("#chapter-timeline");
-    const morph = document.getElementById("morph-layer");
-    const arc = document.getElementById("morph-arc");
-    const rail = document.getElementById("morph-rail");
-    const ticks = document.getElementById("morph-ticks");
-    const gy0 = document.getElementById("morph-y0");
-    const gy1 = document.getElementById("morph-y1");
-    const gpct = document.getElementById("morph-pct");
-    const eraNow = document.getElementById("era-now");
-    if (!scroller || !dossier || !timeline) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    function polar(cx, cy, r, deg) {
-      const a = ((deg - 90) * Math.PI) / 180;
-      return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-    }
-
-    /** Arc path from startDeg to endDeg (CSS-like, 0=top). */
-    function arcPath(cx, cy, r, a0, a1) {
-      const large = Math.abs(a1 - a0) > 180 ? 1 : 0;
-      const [x0, y0] = polar(cx, cy, r, a0);
-      const [x1, y1] = polar(cx, cy, r, a1);
-      const sweep = a1 >= a0 ? 1 : 0;
-      return `M ${x0} ${y0} A ${r} ${r} 0 ${large} ${sweep} ${x1} ${y1}`;
-    }
-
-    function lerp(a, b, t) { return a + (b - a) * t; }
-
-    function updateMorph(e) {
-      if (!morph || !arc || !rail) return;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      morph.setAttribute("viewBox", `0 0 ${w} ${h}`);
-      morph.classList.toggle("is-active", e > 0.04 && e < 0.92);
-
-      /* Source: gauge ring area (left-ish on page1). Target: middle rail across stage. */
-      const sx = w * 0.18;
-      const sy = h * 0.58;
-      const sr = Math.min(72, w * 0.055);
-      const tx0 = w * 0.08;
-      const tx1 = w * 0.92;
-      const ty = h * 0.52;
-
-      /* e: 0 ring intact → 0.5 half-open + rail stub → 1 full rail, ring gone */
-      const open = Math.min(1, e / 0.55);
-      const flatten = Math.max(0, (e - 0.25) / 0.55);
-      const railT = Math.max(0, (e - 0.2) / 0.65);
-
-      /* Incomplete arc: start at -90+gap, sweep shrinks then endpoints drift to horizontal */
-      const gap = lerp(20, 140, open); /* missing segment grows */
-      const a0 = -180 + gap * 0.5;
-      const a1 = 180 - gap * 0.5;
-      const cx = lerp(sx, (tx0 + tx1) / 2, flatten * 0.35);
-      const cy = lerp(sy, ty, flatten);
-      const rr = lerp(sr, lerp(sr, 8, flatten), open);
-      /* When flattening hard, morph arc into nearly-horizontal curve then hand off to rail */
-      if (flatten < 0.85) {
-        arc.setAttribute("d", arcPath(cx, cy, Math.max(8, rr), a0, a1));
-        arc.setAttribute("opacity", String(1 - flatten * 0.85));
-        arc.setAttribute("stroke-width", String(lerp(2.6, 1.4, flatten)));
-      } else {
-        arc.setAttribute("d", `M ${lerp(cx - rr, tx0, (flatten - 0.85) / 0.15)} ${ty} L ${lerp(cx + rr, tx1 * 0.4, (flatten - 0.85) / 0.15)} ${ty}`);
-        arc.setAttribute("opacity", String(Math.max(0, 1 - (flatten - 0.85) / 0.15)));
-      }
-
-      const railLen = (tx1 - tx0) * railT;
-      rail.setAttribute("x1", String(tx0));
-      rail.setAttribute("y1", String(ty));
-      rail.setAttribute("x2", String(tx0 + railLen));
-      rail.setAttribute("y2", String(ty));
-      rail.setAttribute("opacity", String(Math.min(1, railT * 1.2) * (e < 0.9 ? 1 : 1 - (e - 0.9) / 0.1)));
-
-      /* Year glyphs scatter → tick positions */
-      if (gy0 && gy1) {
-        const scatter = Math.max(0, (e - 0.15) / 0.5);
-        gy0.setAttribute("x", String(lerp(sx - 90, tx0 + 40, scatter)));
-        gy0.setAttribute("y", String(lerp(sy - 10, ty - 18, scatter)));
-        gy0.setAttribute("opacity", String(Math.max(0, 0.55 - scatter * 0.35) * (e < 0.75 ? 1 : Math.max(0, 1 - (e - 0.75) / 0.2))));
-        gy0.setAttribute("font-size", String(lerp(42, 14, scatter)));
-        gy1.setAttribute("x", String(lerp(sx + 110, tx1 - 40, scatter)));
-        gy1.setAttribute("y", String(lerp(sy - 10, ty - 18, scatter)));
-        gy1.setAttribute("opacity", String(Math.max(0, 0.5 - scatter * 0.3) * (e < 0.75 ? 1 : Math.max(0, 1 - (e - 0.75) / 0.2))));
-        gy1.setAttribute("font-size", String(lerp(42, 14, scatter)));
-      }
-      if (gpct) {
-        gpct.setAttribute("x", String(cx));
-        gpct.setAttribute("y", String(cy + 8));
-        gpct.setAttribute("opacity", String(Math.max(0, 0.4 * (1 - open * 1.2))));
-      }
-
-      if (ticks) {
-        ticks.textContent = "";
-        const nTicks = Math.floor(lerp(0, 9, Math.max(0, (e - 0.35) / 0.45)));
-        for (let i = 0; i < nTicks; i++) {
-          const u = (i + 1) / (nTicks + 1);
-          const x = tx0 + (tx0 + railLen - tx0) * u;
-          if (x > tx0 + railLen) break;
-          const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          ln.setAttribute("x1", String(x));
-          ln.setAttribute("x2", String(x));
-          ln.setAttribute("y1", String(ty - 7));
-          ln.setAttribute("y2", String(ty + 7));
-          ln.setAttribute("stroke", "rgba(245,225,26,0.55)");
-          ln.setAttribute("stroke-width", "1.2");
-          ticks.appendChild(ln);
+      el.hit.addEventListener("pointermove", (ev) => {
+        if (!dragging) return;
+        const now = performance.now();
+        const dx = (ev.clientX - lastX) / scale();
+        lastX = ev.clientX;
+        const k = clamp(Math.floor(target), 0, n - 2);
+        const sp = RX[k + 1] - RX[k] || S;
+        const dp = -dx / sp;
+        target = clamp(target + dp, -0.4, n - 1);
+        const dtm = Math.max(1, now - lastMoveT);
+        v = v * 0.6 + (dp / dtm) * 1000 * 0.4;
+        lastMoveT = now;
+      });
+      const up = (ev) => {
+        if (!dragging) return;
+        dragging = false;
+        el.hit.classList.remove("is-drag");
+        if (Math.abs(ev.clientX - downX) < 6) {
+          const r = el.hit.getBoundingClientRect();
+          const sy = (ev.clientY - r.top) / scale() + 180;
+          if (sy >= 700) {
+            const wx = (ev.clientX - r.left) / scale() - HEAD_X + railX(pos);
+            let best = Math.round(pos);
+            let bd = Infinity;
+            RX.forEach((x, i) => {
+              const dd = Math.abs(wx - x - 60);
+              if (dd < bd) {
+                bd = dd;
+                best = i;
+              }
+            });
+            goTo(best);
+          }
+          return;
         }
-      }
-    }
+        if (performance.now() - lastMoveT > 120) v = 0;
+        lastDir = Math.sign(v);
+        target = clamp(target + clamp(v * 0.22, -3, 3), 0, n - 1);
+        lastInput = 0;
+      };
+      el.hit.addEventListener("pointerup", up);
+      el.hit.addEventListener("pointercancel", up);
 
-    function update() {
-      const sh = scroller.clientHeight;
-      const dH = dossier.offsetHeight;
-      const start = Math.max(40, dH - sh * 0.92);
-      const end = Math.max(start + 120, dH + sh * 0.08);
-      const y = scroller.scrollTop;
-      let t = (y - start) / (end - start);
-      t = Math.max(0, Math.min(1, t));
-      const e = t * t * (3 - 2 * t);
-      scroller.style.setProperty("--blend", e.toFixed(4));
-      let zone = "early";
-      if (e >= 0.18 && e < 0.68) zone = "mid";
-      else if (e >= 0.68) zone = "late";
-      scroller.dataset.blendZone = zone;
-
-      if (!reduce) updateMorph(e);
-      else if (morph) morph.classList.remove("is-active");
-
-      /* Fade dossier chrome without page-slide seam */
-      if (reduce) {
-        dossier.style.transform = "";
-        dossier.style.opacity = "";
-        dossier.style.filter = "";
-        return;
-      }
-      const lift = e * -28;
-      dossier.style.transform = e > 0.05 ? `translate3d(0, ${lift.toFixed(1)}px, 0)` : "";
-      dossier.style.opacity = String(Math.max(0, 1 - e * 1.35));
-      dossier.style.filter = "";
-      dossier.style.pointerEvents = e > 0.45 ? "none" : "";
-      timeline.style.opacity = String(Math.min(1, Math.max(0, (e - 0.55) / 0.35)));
-    }
-
-    scroller.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    update();
-    return { update };
-  }
-
-
-  function bindThemeSwitcher() {
-    const root = document.body;
-    const saved = localStorage.getItem("humanity-theme");
-    const themes = ["dark", "paper", "signal"];
-    let cur = themes.includes(saved) ? saved : "dark";
-    function apply(t) {
-      cur = t;
-      root.setAttribute("data-theme", t);
-      localStorage.setItem("humanity-theme", t);
-      document.querySelectorAll(".theme-btn").forEach((b) => {
-        b.setAttribute("aria-pressed", b.dataset.theme === t ? "true" : "false");
+      let axisDrag = false;
+      const axisTo = (ev) => {
+        const r = el.body.getBoundingClientRect();
+        target = invXs(clamp((ev.clientX - r.left) / r.width, 0, 1));
+      };
+      el.body.addEventListener("pointerdown", (ev) => {
+        axisDrag = true;
+        dragging = true;
+        setPlaying(false);
+        el.body.setPointerCapture(ev.pointerId);
+        axisTo(ev);
       });
+      el.body.addEventListener("pointermove", (ev) => axisDrag && axisTo(ev));
+      const axisUp = () => {
+        if (!axisDrag) return;
+        axisDrag = false;
+        dragging = false;
+        lastDir = 0;
+        lastInput = 0;
+      };
+      el.body.addEventListener("pointerup", axisUp);
+      el.body.addEventListener("pointercancel", axisUp);
     }
-    apply(cur);
-    document.querySelectorAll(".theme-btn").forEach((b) => {
-      b.addEventListener("click", () => apply(b.dataset.theme));
-    });
-  }
 
-  async function main() {
-    const data = await loadData();
+    function enter() {
+      lastT = performance.now();
+      settledAt = 0;
+      edgeAt = 0;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(frame);
+    }
 
-    const leaves = allLeaves(data.domains || []);
-    const aggregate = leaves.length
-      ? Math.round(
-          leaves.reduce((a, c) => a + Number(c.remaining || 0), 0) / leaves.length
+    function leave() {
+      cancelAnimationFrame(raf);
+      setSuspend(false);
+    }
+
+    return { layout, bind, enter, leave, step, toggle, wheel, setPlaying };
+  })();
+
+  /* ==========================================================
+     02 领域血条
+     ========================================================== */
+
+  const DM = (() => {
+    let cur = -1;
+    let hoverT = null;
+    let pending = null;
+
+    function render() {
+      $("#dm-list").innerHTML = M.domains
+        .map(
+          (d, i) => `<li class="dm-row" role="treeitem" aria-expanded="false" data-i="${i}" style="--i:${i}" tabindex="0">
+            <span class="dm-no">${pad(d.no)}</span>
+            <span class="dm-name">${esc(d.name)}<em>${esc(d.id.toUpperCase())}</em><small class="dm-meta">${pad(d.children.length)} 叶</small><i class="dm-caret" aria-hidden="true"></i></span>
+            <span class="dm-val${d.avg <= CRIT ? " is-crit" : ""}">${d.avg}<small>%</small></span>
+            ${bar(d.avg)}
+          </li>`
         )
-      : 0;
+        .join("");
 
-    renderHero(data, aggregate);
-    renderDomains(data.domains || []);
-    renderDossierStats(data.domains || []);
+      const list = $("#dm-list");
+      list.addEventListener("click", (e) => {
+        const r = e.target.closest(".dm-row");
+        if (r) select(Number(r.dataset.i));
+      });
+      list.addEventListener("mouseover", (e) => {
+        const r = e.target.closest(".dm-row");
+        if (!r) return;
+        clearTimeout(hoverT);
+        hoverT = setTimeout(() => select(Number(r.dataset.i)), 90);
+      });
+      list.addEventListener("keydown", (e) => {
+        const r = e.target.closest(".dm-row");
+        if (r && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          e.stopPropagation();
+          select(Number(r.dataset.i));
+        }
+      });
 
-    const events = data.events || [];
-    const eras = uniqueEras(events);
-    const axis = createAxisController(events);
-    renderFilters(eras, (era) => axis.applyFilter(era));
-    bindChapterBlend();
-    bindThemeSwitcher();
-
-    const cue = document.querySelector(".chapter-cue");
-    if (cue) {
-      cue.addEventListener("click", (ev) => {
-        const target = document.querySelector(cue.getAttribute("href"));
-        const scroller = document.getElementById("chapter-scroller");
-        if (!target || !scroller) return;
-        ev.preventDefault();
-        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        /* Land on the morning section head, not past it into the sticky stage. */
-        scroller.scrollTo({
-          top: target.offsetTop,
-          behavior: reduceMotion ? "auto" : "smooth",
-        });
+      $("#dd-leaves").addEventListener("click", (e) => {
+        const leaf = e.target.closest(".dd-leaf");
+        if (!leaf) return;
+        const open = leaf.classList.toggle("is-open");
+        leaf.querySelector(".dd-leaf-btn")?.setAttribute("aria-expanded", String(open));
       });
     }
-  }
 
-  main().catch((err) => {
-    console.error(err);
-    const t = $("#site-subtitle");
-    if (t) {
-      t.textContent =
-        "数据文件加载失败。请用本地服务器打开，或确认 data.json 与本页同目录。";
-      t.style.color = "#c45c26";
+    function select(i, force) {
+      if (i === cur && !force) return;
+      const prevAvg = cur >= 0 ? M.domains[cur].avg : 0;
+      cur = i;
+      const d = M.domains[i];
+      document.querySelectorAll(".dm-row").forEach((r, k) => {
+        const on = k === i;
+        r.classList.toggle("is-on", on);
+        r.setAttribute("aria-selected", String(on));
+        r.setAttribute("aria-expanded", String(on));
+      });
+      $("#dd-code").textContent = `DOMAIN ${pad(d.no)} / ${d.id.toUpperCase()}`;
+      $("#dd-name").textContent = d.name;
+      $("#dd-note").textContent = d.note || "";
+      const num = $("#dd-num");
+      num.parentElement.classList.toggle("is-crit", d.avg <= CRIT);
+      countTo(num, prevAvg, d.avg, 600);
+
+      const kids = d.children.map((c) => ({ ...c, remaining: Number(c.remaining || 0) }));
+      const sorted = [...kids].sort((a, b) => a.remaining - b.remaining);
+      const crit = kids.filter((c) => c.remaining <= CRIT).length;
+      const lo = sorted[0];
+      const hi = sorted[sorted.length - 1];
+      $("#dd-sum").innerHTML = `
+        <div>观察项<b>${pad(kids.length)}</b></div>
+        <div>临界<b style="color:var(--red)">${pad(crit)}</b></div>
+        <div>最低<b>${lo ? lo.remaining : "—"}</b><span>${lo ? esc(lo.name) : ""}</span></div>
+        <div>最高<b>${hi ? hi.remaining : "—"}</b><span>${hi ? esc(hi.name) : ""}</span></div>`;
+
+      $("#dd-leaves").innerHTML = kids
+        .map(
+          (c, k) => `<li class="dd-leaf" style="--i:${k}">
+            <button type="button" class="dd-leaf-btn" aria-expanded="false">
+              <span class="dd-leaf-top">
+                <span class="dd-leaf-name">${esc(c.name)}</span>
+                <span class="dd-leaf-by">← ${esc(c.movedBy || "—")}</span>
+                <span class="dd-leaf-val${c.remaining <= CRIT ? " is-crit" : ""}">${c.remaining}</span>
+              </span>
+              ${bar(c.remaining, k)}
+            </button>
+            <p class="dd-leaf-note">${esc(c.note || "")}</p>
+          </li>`
+        )
+        .join("");
     }
-  });
+
+    function arm(i) {
+      pending = i;
+    }
+
+    function move(d) {
+      if (!M.domains.length) return;
+      const i = cur < 0 ? 0 : clamp(cur + d, 0, M.domains.length - 1);
+      select(i, true);
+      const row = document.querySelector(`.dm-row[data-i="${i}"]`);
+      if (row) {
+        row.focus({ preventScroll: true });
+        row.scrollIntoView({ block: "nearest" });
+      }
+    }
+
+    function enter() {
+      const i = pending == null ? (cur < 0 ? 0 : cur) : pending;
+      pending = null;
+      select(clamp(i, 0, Math.max(0, M.domains.length - 1)), true);
+    }
+
+    return { render, enter, arm, move };
+  })();
+
+  /* ==========================================================
+     03 出局名单
+     ========================================================== */
+
+  const LG = (() => {
+    function render() {
+      const sorted = [...M.leaves].sort((a, b) => a.remaining - b.remaining || a.domain.no - b.domain.no);
+      const first = sorted[0];
+      if (first) {
+        $("#lg-first").textContent = first.name;
+        $("#lg-first-v").textContent = first.remaining;
+        $("#lg-first-d").textContent = `${first.domain.name} · ${first.movedBy || ""}`;
+      }
+      const crit = sorted.filter((l) => l.remaining <= CRIT).length;
+      $("#lg-hint").textContent = `全部 ${sorted.length} 项观察 · 按人类剩余升序 · 红色 = 临界 ≤${CRIT}%（${crit} 项）`;
+      $("#lg-chart").style.setProperty("--m", String(M.agg));
+      $("#lg-mean").innerHTML = `<b>均值 ${M.agg}%</b>`;
+
+      $("#lg-legend").innerHTML = M.domains
+        .map((d) => `<span data-d="${d.no}"><b>${pad(d.no)}</b>${esc(d.name)}</span>`)
+        .join("");
+
+      $("#lg-bars").innerHTML = sorted
+        .map(
+          (l, i) => `<div class="lg-bar${l.remaining <= CRIT ? " is-crit" : ""}" data-i="${i}" data-d="${l.domain.no}" style="--v:${l.remaining};--i:${i}">
+            <span class="lb-v">${l.remaining}</span>
+            <span class="lb-fill"></span>
+            <span class="lb-code">${pad(l.domain.no)}</span>
+            <span class="lb-name">${esc(l.name)}</span>
+          </div>`
+        )
+        .join("");
+
+      const chart = $("#lg-chart");
+      const tip = $("#lg-tip");
+      const bars = $("#lg-bars");
+      bars.addEventListener("mousemove", (e) => {
+        const b = e.target.closest(".lg-bar");
+        if (!b) {
+          tip.classList.remove("is-on");
+          return;
+        }
+        const l = sorted[Number(b.dataset.i)];
+        tip.innerHTML = `<div class="lt-top"><span class="lt-name">${esc(l.name)}</span><span class="lt-v${l.remaining <= CRIT ? " is-crit" : ""}">${l.remaining}%</span></div>
+          <p class="lt-d">${pad(l.domain.no)} · ${esc(l.domain.name)}</p>
+          <p class="lt-note">${esc(l.note || "")}</p>
+          <p class="lt-by">← ${esc(l.movedBy || "—")}</p>`;
+        const cs = chart.getBoundingClientRect();
+        const bs = b.getBoundingClientRect();
+        const k = cs.width / 1680;
+        const bx = (bs.left - cs.left + bs.width / 2) / k;
+        const left = clamp(bx - 180, 0, 1680 - 360);
+        tip.style.left = left + "px";
+        const top = 590 - 196 - (l.remaining * 380) / 100 - 200;
+        tip.style.top = Math.max(-150, top) + "px";
+        tip.classList.add("is-on");
+      });
+      bars.addEventListener("mouseleave", () => tip.classList.remove("is-on"));
+
+      const legend = $("#lg-legend");
+      legend.addEventListener("mouseover", (e) => {
+        const s = e.target.closest("span[data-d]");
+        if (!s) return;
+        bars.classList.add("is-dim");
+        bars.querySelectorAll(".lg-bar").forEach((b) => b.classList.toggle("is-hl", b.dataset.d === s.dataset.d));
+      });
+      legend.addEventListener("mouseleave", () => {
+        bars.classList.remove("is-dim");
+        bars.querySelectorAll(".lg-bar").forEach((b) => b.classList.remove("is-hl"));
+      });
+    }
+
+    return { render };
+  })();
+
+  /* ==========================================================
+     启动
+     ========================================================== */
+
+  load()
+    .then((data) => {
+      M = model(data);
+      COVER.render();
+      TL.layout();
+      TL.bind();
+      DM.render();
+      LG.render();
+
+      hooks.enter[0] = () => COVER.intro();
+      hooks.enter[1] = () => TL.enter();
+      hooks.leave[1] = () => TL.leave();
+      hooks.enter[2] = () => DM.enter();
+
+      bindNav();
+      bindTheme();
+      const start = Math.max(0, SCENES.indexOf(location.hash.slice(1)));
+      swap(start);
+    })
+    .catch((err) => {
+      console.error(err);
+      $("#site-subtitle").textContent = "数据加载失败：" + err.message;
+      swap(0);
+    });
 })();
