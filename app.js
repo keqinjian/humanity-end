@@ -474,8 +474,6 @@
     const HEAD_X = 960;
     const ART_X = 740;
     const ART_Y = 150;
-    /* 自动回放：早期约 0.36 事件/秒，越往后越快，末段约 1.1。再乘 playEase，经过事件时略慢。 */
-    const CARD_SLOTS = 5;
     const AXIS_W = 1680;
     const COL_W = 600;
 
@@ -497,8 +495,10 @@
     let edgeAt = 0;
     let raf = 0;
     let lastT = 0;
+    let slotK = -2;
     let nearK = -1;
-    let cardSlots = [];
+    let rowsA = [];
+    let rowsB = [];
     let evEls = [];
     let tickEls = [];
     let phaseEls = [];
@@ -947,7 +947,7 @@
       const find = (t) => ev.findIndex((e) => e.title === t);
       const out = [];
       const covered = new Set();
-      const push = (it, ai, ui, trail) => {
+      const push = (it, ai, ui, rail) => {
         const iai = it.at !== undefined ? (typeof it.at === "number" ? it.at : find(it.at)) : ai;
         const iui = it.u !== undefined ? find(it.u) : ui;
         const clip = it.c || it.tc;
@@ -962,7 +962,7 @@
           outA: it.outA ?? iui + 0.15 + (it.od || 0),
           outW: it.outW ?? 0.4,
           dr: it.dr ?? 50,
-          trail: trail !== false,
+          rail: rail !== false,
         });
       };
 
@@ -1014,58 +1014,69 @@
       items = out;
     }
 
+    /* 事件分镜锁在时间轨上：播放头前进时，画面与刻度左移同一像素。阶段铭牌仍原地淡入淡出。 */
+
     function renderArt(p) {
-      const trail = reduce ? 1.2 : 3.05;
+      const rx = railX(p);
       for (const it of items) {
         const e = it.el;
-        const past = p - it.outA;
-        const held = it.trail && past > 0;
-        if (p <= it.inA || (it.trail ? past >= trail : p >= it.outA + it.outW)) {
+        if (!it.rail) {
+          if (p <= it.inA || p >= it.outA + it.outW) {
+            set(e, "visibility", "hidden");
+            continue;
+          }
+          paintPiece(it, p, 0, 1);
+          continue;
+        }
+        const age = p - it.anchor;
+        const weight = Math.abs(age) >= 1.08 ? 0 : 1 - smooth(clamp(Math.abs(age) / 1.02, 0, 1));
+        if (weight <= 0) {
           set(e, "visibility", "hidden");
           continue;
         }
-        const pEval = held ? it.outA : p;
-        const ein = smooth((pEval - it.inA) / it.inW);
-        const eout = held ? 0 : smooth((p - it.outA) / it.outW);
-        const qi = 1 - ein;
-        const f = it.f;
-        const t = it.t;
-        const m = it.mid;
-        const em = m ? smooth((pEval - it.anchor - m.p[0]) / (m.p[1] - m.p[0])) : 0;
-        let x = (f.x || 0) * qi + (t.x || 0) * eout - (pEval - it.anchor) * it.dr + (m ? (m.x || 0) * em : 0);
-        let y = (f.y || 0) * qi + (t.y || 0) * eout + (m ? (m.y || 0) * em : 0);
-        const r = (f.r || 0) * qi + (t.r || 0) * eout + (m ? (m.r || 0) * em : 0);
-        let s = 1 + ((f.s ?? 1) - 1) * qi + ((t.s ?? 1) - 1) * eout + (m ? ((m.s ?? 1) - 1) * em : 0);
-        let o = 1;
-        if (f.o !== undefined) o *= f.o + (1 - f.o) * ein;
-        if (t.o !== undefined) o *= 1 + (t.o - 1) * eout;
-        if (held) {
-          const dep = smooth(past / trail);
-          const fall = smooth(clamp(past / (reduce ? 0.45 : 0.7), 0, 1));
-          x += (reduce ? -10 : -34) * dep;
-          y += (reduce ? -8 : -46) * dep;
-          s *= 1 - (reduce ? 0.18 : 0.42) * dep;
-          o *= Math.min(1, (1 - fall) * 0.88 + (1 - dep) * 0.3);
-          set(e, "zIndex", String(-2 - Math.round(past * 2)));
-        } else if (it.trail) {
-          set(e, "zIndex", "auto");
-        }
-        if (o <= 0.012) {
-          set(e, "visibility", "hidden");
-          continue;
-        }
-        set(e, "visibility", "visible");
-        set(e, "opacity", o.toFixed(3));
-        set(e, "transform", `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${Math.max(0, s).toFixed(3)})`);
-        if (it.clip) {
-          const q = [0, 0, 0, 0];
-          const side = { t: 0, r: 1, b: 2, l: 3 };
-          if (it.c) q[(side[it.c] + 2) % 4] = qi;
-          if (it.tc) q[side[it.tc]] = Math.max(q[side[it.tc]], eout);
-          set(e, "clipPath", `inset(${q.map((v) => `calc(${v.toFixed(3)} * (100% + 8px) - 4px)`).join(" ")})`);
-        }
-        if (it.draw) set(e, "--dr", (ein * (1 - eout)).toFixed(3));
+        paintPiece(it, p, railX(it.anchor) - rx, weight);
       }
+    }
+
+    function paintPiece(it, p, railDx, weight) {
+      const e = it.el;
+      const riding = it.rail;
+      const ein = smooth((p - it.inA) / it.inW);
+      const eout = riding ? 0 : smooth((p - it.outA) / it.outW);
+      const qi = 1 - ein;
+      const f = it.f;
+      const t = it.t;
+      const m = it.mid;
+      const em = m ? smooth((p - it.anchor - m.p[0]) / (m.p[1] - m.p[0])) : 0;
+      let x = (f.x || 0) * qi + (t.x || 0) * eout + (m ? (m.x || 0) * em : 0) + railDx;
+      if (!riding) x -= (p - it.anchor) * it.dr;
+      const y = (f.y || 0) * qi + (t.y || 0) * eout + (m ? (m.y || 0) * em : 0);
+      const r = (f.r || 0) * qi + (t.r || 0) * eout + (m ? (m.r || 0) * em : 0);
+      const s = 1 + ((f.s ?? 1) - 1) * qi + ((t.s ?? 1) - 1) * eout + (m ? ((m.s ?? 1) - 1) * em : 0);
+      let o = 1;
+      if (f.o !== undefined) o *= f.o + (1 - f.o) * ein;
+      if (t.o !== undefined) o *= 1 + (t.o - 1) * eout;
+      if (riding) {
+        const stageX = it.x + x;
+        const maskL = smooth(clamp((stageX - 800) / 180, 0, 1));
+        const maskR = 1 - smooth(clamp((stageX - 1760) / 180, 0, 1));
+        o *= weight * maskL * maskR;
+        if (o <= 0.012 || stageX < 620 || stageX > 2080) {
+          set(e, "visibility", "hidden");
+          return;
+        }
+      }
+      set(e, "visibility", o > 0.004 ? "visible" : "hidden");
+      set(e, "opacity", o.toFixed(3));
+      set(e, "transform", `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${Math.max(0, s).toFixed(3)})`);
+      if (it.clip) {
+        const q = [0, 0, 0, 0];
+        const side = { t: 0, r: 1, b: 2, l: 3 };
+        if (it.c) q[(side[it.c] + 2) % 4] = qi;
+        if (it.tc) q[side[it.tc]] = Math.max(q[side[it.tc]], eout);
+        set(e, "clipPath", `inset(${q.map((v) => `calc(${v.toFixed(3)} * (100% + 8px) - 4px)`).join(" ")})`);
+      }
+      if (it.draw) set(e, "--dr", (ein * (1 - eout)).toFixed(3));
     }
 
     /* ---------- 布局 ---------- */
@@ -1173,7 +1184,6 @@
         html += `<span class="dg"><span class="dg-col">${col}</span></span>`;
       }
       el.year.innerHTML = html;
-      ensureCardSlots();
     }
 
     function layoutAxis() {
@@ -1337,8 +1347,15 @@
       const ds = `${dd.getUTCFullYear()}.${pad(dd.getUTCMonth() + 1)}`;
       if (el.rhDate.textContent !== ds) el.rhDate.textContent = ds;
 
-      renderCards(p);
-      set(el.scan, "opacity", "0");
+      if (slotK !== k) {
+        slotK = k;
+        rowsA = fill(el.slotA, k);
+        rowsB = fill(el.slotB, k + 1);
+      }
+      rowsA.forEach((r, j) => set(r, "--e", (1 - smooth((t - 0.08 - j * 0.04) / 0.32)).toFixed(3)));
+      rowsB.forEach((r, j) => set(r, "--e", smooth((t - 0.42 - j * 0.04) / 0.32).toFixed(3)));
+      set(el.scan, "transform", `translate3d(${((0.02 + 0.96 * t) * COL_W).toFixed(1)}px,0,0)`);
+      set(el.scan, "opacity", Math.sin(Math.PI * t).toFixed(3));
 
       renderArt(p);
 
@@ -1355,86 +1372,6 @@
         el.body.setAttribute("aria-valuenow", String(near + 1));
         el.body.setAttribute("aria-valuetext", `${e.date} ${e.title}`);
       }
-    }
-
-    /* 刚经过的事件缩进背景：分镜变小、变淡、视差变慢；卡片甩到栏外，当前标题保持可读。 */
-
-    function cardTrail() {
-      return reduce ? 1.25 : 3.15;
-    }
-
-    function cardPose(age) {
-      const trail = cardTrail();
-      if (age < -1.05 || age > trail) return null;
-      // 下一条在上一条离开文字栏之后才铺满，两条高对比标题不叠在同一块字上。
-      const inn = smooth(clamp((age + 0.78) / 0.18, 0, 1));
-      const thrown = smooth(clamp((age - 0.1) / 0.14, 0, 1));
-      const dep = smooth(clamp((age - 0.1) / Math.max(0.45, trail - 0.1), 0, 1));
-      const x = thrown * (reduce ? 70 : 640) + dep * (reduce ? 6 : 22);
-      const y = -thrown * (reduce ? 3 : 12) - dep * (reduce ? 6 : 28);
-      const s = 1 - thrown * (reduce ? 0.05 : 0.16) - dep * (reduce ? 0.08 : 0.3);
-      const o = inn * (1 - thrown * 0.68) * (1 - dep * 0.92);
-      if (o < 0.028) return null;
-      return {
-        x,
-        y,
-        s,
-        o,
-        blur: reduce || thrown < 0.9 ? 0 : (thrown - 0.9) * 8 + dep * 2,
-        z: age < 0.12 ? 40 : 18 - Math.round(age * 3),
-      };
-    }
-
-    function ensureCardSlots() {
-      if (cardSlots.length) return;
-      const col = $("#col");
-      const scan = el.scan;
-      col.querySelectorAll(".slot").forEach((node) => {
-        node.classList.remove("is-out", "is-in");
-        cardSlots.push({ el: node, idx: -1 });
-      });
-      while (cardSlots.length < CARD_SLOTS) {
-        const d = document.createElement("div");
-        d.className = "slot";
-        col.insertBefore(d, scan);
-        cardSlots.push({ el: d, idx: -1 });
-      }
-    }
-
-    function renderCards(p) {
-      if (!cardSlots.length || !n) return;
-      const need = [];
-      const lo = Math.max(0, Math.floor(p) - 3);
-      const hi = Math.min(n - 1, Math.ceil(p));
-      for (let i = lo; i <= hi; i++) {
-        const pose = cardPose(p - i);
-        if (pose) need.push({ i, pose });
-      }
-      const used = new Set();
-      for (const item of need) {
-        let slot = cardSlots.find((s) => s.idx === item.i && !used.has(s));
-        if (!slot) slot = cardSlots.find((s) => !used.has(s) && !need.some((q) => q.i === s.idx));
-        if (!slot) slot = cardSlots.find((s) => !used.has(s));
-        if (!slot) break;
-        used.add(slot);
-        if (slot.idx !== item.i) {
-          fill(slot.el, item.i);
-          slot.idx = item.i;
-        }
-        const pose = item.pose;
-        set(slot.el, "visibility", "visible");
-        set(slot.el, "opacity", pose.o.toFixed(3));
-        set(slot.el, "zIndex", String(pose.z));
-        set(slot.el, "transformOrigin", "0 0");
-        set(slot.el, "transform", `translate3d(${pose.x.toFixed(1)}px,${pose.y.toFixed(1)}px,0) scale(${pose.s.toFixed(3)})`);
-        set(slot.el, "filter", pose.blur > 0.15 ? `blur(${pose.blur.toFixed(2)}px)` : "none");
-      }
-      cardSlots.forEach((slot) => {
-        if (used.has(slot) || slot.idx === -1) return;
-        slot.idx = -1;
-        set(slot.el, "visibility", "hidden");
-        set(slot.el, "filter", "none");
-      });
     }
 
     /* 刻度、阶段和时代色是 pos 的连续函数：整数上与原先的选中态一致，半路交叉淡化。 */
