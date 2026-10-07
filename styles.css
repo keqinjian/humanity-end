@@ -1823,7 +1823,7 @@ a {
   transform: scaleX(0);
 }
 
-/* 左栏：事件文字（两槽连续擦除） */
+/* 左栏：当前事件全文；刚经过的几条缩到栏外，叠在后面 */
 
 .col {
   position: absolute;
@@ -1838,6 +1838,7 @@ a {
 .slot {
   position: absolute;
   inset: 0;
+  transform-origin: 0 0;
 }
 
 .slot [data-r] {
