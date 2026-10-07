@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-01",
+  "updated": "2026-10-07",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -687,6 +687,17 @@
       "impact": "high"
     },
     {
+      "date": "2026-09-22",
+      "title": "Claude Opus 5.5",
+      "blurb": "Anthropic Claude 5.5 家族首发：长程智能体编码与知识工作接近 Claude Fable 5.1 水平，运行成本比 Opus 5 低约四成。",
+      "era": "2026 临界",
+      "tags": [
+        "旗舰",
+        "编码"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2026-09-28",
       "title": "Claude Sonnet 5.5",
       "blurb": "Anthropic Claude 5.5 家族第二款模型，更快更便宜，擅长日常任务、修 bug 与文档幻灯片。",
@@ -719,6 +730,18 @@
         "安全"
       ],
       "impact": "high"
+    },
+    {
+      "date": "2026-10-06",
+      "title": "Mistral Large 4",
+      "blurb": "Mistral 公开预览 1T 参数（49B 激活）原生多模态开放权重模型，主打编码、网络安全与法务金融，权重计划月底放出。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "编码",
+        "安全"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
