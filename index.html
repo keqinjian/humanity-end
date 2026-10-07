@@ -107,56 +107,70 @@
         </div>
       </section>
 
-      <!-- ===== 01 时间轴：一条连续关卡地图，镜头由 pos 推动 ===== -->
+      <!-- ===== 01 时间轴：拖动驱动的图形叙事 ===== -->
       <section class="scene scene-timeline" data-scene="1" id="timeline" aria-label="时间轴">
-        <div class="era-stack" id="tl-eras" aria-hidden="true"></div>
-        <div class="wipe-rings" id="tl-rings" aria-hidden="true"></div>
-        <div class="map-decades" id="tl-decades" aria-hidden="true"></div>
-        <div class="map-mid" id="tl-mid">
-          <svg class="map-svg" id="tl-svg" aria-hidden="true"></svg>
-          <div class="map-nodes" id="tl-nodes"></div>
-          <div class="walker" id="tl-walker" aria-hidden="true">
-            <i class="wk-shadow"></i>
-            <i class="wk-head"></i>
-            <i class="wk-body"></i>
-            <i class="wk-leg a"></i>
-            <i class="wk-leg b"></i>
-          </div>
+        <div class="tl-bg" aria-hidden="true"></div>
+        <div class="tl-year" id="tl-year" aria-hidden="true"></div>
+        <div class="zone" id="zone" aria-hidden="true">
+          <div class="zone-fill"></div>
+          <div class="zone-edge"><b>人类 <span id="zone-h">100</span>%</b><em>机器 <span id="zone-m">0</span>%</em></div>
         </div>
-        <div class="map-fg" id="tl-fg" aria-hidden="true"></div>
-        <div class="focus-hair" aria-hidden="true">
-          <i class="fh-v"></i>
-          <i class="fh-h"></i>
-          <span class="fh-read" id="tl-x">X 0 · Y 0.00</span>
-        </div>
-        <div class="map-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="art" id="art" aria-hidden="true"></div>
 
-        <div class="tl-plate rv" style="--d:.08s">
-          <p class="tl-kicker"><b>01</b><span>时间轴</span><em>MAP</em></p>
-          <p class="tl-year" id="tl-year">1946</p>
-          <p class="tl-sub"><time id="tl-date">02.14</time><span id="tl-idx">EV-01</span></p>
-          <p class="tl-era" id="tl-era">奠基</p>
-          <p class="tl-human"><span>人类剩余</span><b id="tl-human">100</b><small>%</small><em>示意</em></p>
+        <div class="tl-head rv" style="--d:.1s">
+          <span class="sec-no">01</span>
+          <span class="sec-t">时间轴<em>TIMELINE</em></span>
+          <span class="sec-hint">左右拖动 · 滚轮 · ← → 连续回放</span>
         </div>
 
-        <div class="tl-ctrl rv" style="--d:.16s">
-          <button type="button" class="ac-btn" id="ac-prev" aria-label="上一个事件">◂</button>
+        <div class="tl-ctrl rv" style="--d:.2s">
+          <button type="button" class="ac-btn" id="ac-prev" aria-label="上一个">◂</button>
           <button type="button" class="ac-btn ac-play" id="ac-play" aria-label="暂停自动回放"><span class="i-pause"></span></button>
-          <button type="button" class="ac-btn" id="ac-next" aria-label="下一个事件">▸</button>
-          <span class="ac-timer" aria-hidden="true"><i id="ac-timer"></i></span>
-          <span class="ac-count" id="tl-count">01/00</span>
+          <button type="button" class="ac-btn" id="ac-next" aria-label="下一个">▸</button>
+          <span class="ac-timer"><i id="ac-timer"></i></span>
         </div>
 
-        <div class="tl-scrub rv" id="tl-scrub" style="--d:.2s" tabindex="0" role="slider" aria-label="时间轴进度" aria-valuemin="1" aria-valuenow="1" aria-valuemax="1">
-          <div class="scrub-track" id="tl-track">
-            <i class="scrub-fill" id="tl-fill"></i>
-            <div class="scrub-ticks" id="tl-ticks"></div>
-            <i class="scrub-head" id="tl-head"></i>
+        <article class="col" id="col" aria-live="polite">
+          <div class="slot is-out" id="slot-a"></div>
+          <div class="slot is-in" id="slot-b"></div>
+          <i class="slot-scan" id="slot-scan" aria-hidden="true"></i>
+        </article>
+
+        <div class="rail" id="rail" aria-hidden="true">
+          <div class="rail-world" id="rail-world">
+            <svg class="erosion" id="erosion" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="ero-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <rect width="2" height="8" class="ero-hatch-line" />
+                </pattern>
+              </defs>
+              <path class="ero-area" id="ero-area" />
+              <path class="ero-line" id="ero-line" />
+            </svg>
+            <div class="rail-years" id="rail-years"></div>
+            <div class="rail-base"></div>
+            <div class="rail-phases" id="rail-phases"></div>
+            <div class="rail-events" id="rail-events"></div>
           </div>
-          <div class="scrub-years" id="tl-syears"></div>
+          <div class="rail-head" id="rail-head">
+            <i class="rh-line"></i>
+            <span class="rh-val" id="rh-val"><em>HUMAN</em><b id="rh-h">100</b>%</span>
+            <span class="rh-date" id="rh-date">1946.02</span>
+          </div>
+          <p class="rail-note">人类剩余 · 按让渡记录推演（示意）</p>
         </div>
-
         <div class="tl-hit" id="tl-hit" aria-hidden="true"></div>
+
+        <div class="axis" id="axis">
+          <div class="axis-phases" id="axis-phases"></div>
+          <div class="axis-body" id="axis-body" tabindex="0" role="slider" aria-label="时间轴进度" aria-valuemin="1" aria-valuenow="1">
+            <div class="axis-base" aria-hidden="true"></div>
+            <div class="axis-progress" id="axis-progress" aria-hidden="true"></div>
+            <div class="axis-ticks" id="axis-ticks"></div>
+            <div class="axis-years" id="axis-years" aria-hidden="true"></div>
+            <div class="playhead" id="playhead" aria-hidden="true"><i></i></div>
+          </div>
+        </div>
       </section>
 
       <!-- ===== 02 领域血条 ===== -->

@@ -7,7 +7,7 @@
   const SCENES = ["cover", "timeline", "domains", "ledger"];
   const HINTS = [
     "滚轮 / ↑ ↓ 切换章节 · T 切换配色",
-    "拖动平移 · 滚轮 · ← → 逐事件 · 空格暂停 · 悬停暂停 · 滚到两端换章",
+    "拖动 / 滚轮连续推进 · ← → 逐事件 · 空格暂停 · 悬停暂停 · 滚到两端换章",
     "↑ ↓ 切换领域 · 点击叶节点展开注释 · PageUp / PageDown 换章",
     "悬停柱体查看详情 · 悬停图例按领域筛选 · ↑ ↓ 换章",
   ];
@@ -21,6 +21,17 @@
     推理与代理: "REASONING",
     "2025 浪潮": "SURGE",
     "2026 临界": "THRESHOLD",
+  };
+
+  const ERA_WASH = {
+    奠基: "#c4b49a",
+    专用智能: "#e0b2a2",
+    深度学习: "#b7c6e6",
+    Transformer: "#ead56a",
+    生成爆发: "#e7b4c4",
+    推理与代理: "#a9d8cb",
+    "2025 浪潮": "#efc15a",
+    "2026 临界": "#ee8d7c",
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -42,6 +53,7 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const fmtDate = (iso) => iso.replace(/-/g, ".");
   const toTime = (iso) => Date.parse(iso + "T00:00:00Z");
+  const isCJK = (ch) => /[\u3000-\u9fff\uff00-\uffef]/.test(ch);
 
   function esc(str) {
     return String(str)
@@ -341,7 +353,7 @@
         const t = e.touches[0];
         tx = t.clientX;
         ty = t.clientY;
-        const hit = e.target instanceof Element ? e.target.closest("#tl-hit, #tl-scrub, .tl-ctrl, #hud-nav, #theme, .dm-list, .dd-leaves, .lg-bars, .lg-legend, a, button") : null;
+        const hit = e.target instanceof Element ? e.target.closest("#tl-hit, #axis, .tl-ctrl, #hud-nav, #theme, .dm-list, .dd-leaves, .lg-bars, .lg-legend, a, button") : null;
         touchScrub = !!hit;
       },
       { passive: true }
@@ -451,738 +463,949 @@
   })();
 
   /* ==========================================================
-     01 时间轴：一条连续的关卡地图
-     唯一状态是浮点 pos（事件序号）。镜头、轴线描边、支线展开、
-     节点弹出、时代圆窗都是 pos 的函数——往回拖，展开会收回。
+     01 时间轴：拖动驱动的图形叙事
+     唯一状态是浮点位置 pos（单位：事件序号）。时间轨平移、推演曲线、
+     机器领地、每个事件的图形分镜（展开 / 漂移 / 收起）、文字擦除、
+     年份里程表全部是 pos 的函数——拖到哪里，画面就停在哪一帧。
      ========================================================== */
 
   const TL = (() => {
-    const AXIS_Y = 568;
-    const FOCUS_X = 700;
-    const CARD_W = 320;
-    const CARD_H = 172;
-    const DIAG = 118;
-    const SCRUB_W = 1360;
-    const LEAD = 460;
+    const S = 180;
+    const HEAD_X = 960;
+    const ART_X = 740;
+    const ART_Y = 150;
+    const DWELL = 3600;
+    const AXIS_W = 1680;
+    const COL_W = 600;
 
     let n = 0;
-    let ev = [];
-    let RX = [];
-    let nodes = [];
-    let segs = [];
-    let tickEls = [];
+    const RX = [];
+    let xs = [];
+    let xMin = 0;
+    let xMax = 0;
+    let items = [];
     let leafCurve = [];
-    let axisPath = null;
-    let axisInk = null;
-    let axisLen = 1;
-    let axisX0 = 0;
 
-    let pos = -0.28;
+    let pos = -0.9;
     let vel = 0;
     let target = 0;
+    let lastDir = 0;
     let intent = !reduce;
     let suspend = false;
     let playing = intent;
     let dragging = false;
+    let lastInput = 0;
+    let settledAt = 0;
+    let edgeAt = 0;
     let raf = 0;
     let lastT = 0;
-    let edgeAt = 0;
+    let slotK = -2;
     let nearK = -1;
-    let wasGo = false;
-    let hudYear = "";
-    let hudDate = "";
-    let hudHuman = "";
-    let hudX = "";
+    let rowsA = [];
+    let rowsB = [];
+    let evEls = [];
+    let clipW = -1;
+    const cache = new Map();
 
     const el = {
-      scene: $("#timeline"),
-      eras: $("#tl-eras"),
-      rings: $("#tl-rings"),
-      decades: $("#tl-decades"),
-      mid: $("#tl-mid"),
-      svg: $("#tl-svg"),
-      nodes: $("#tl-nodes"),
-      walker: $("#tl-walker"),
-      fg: $("#tl-fg"),
-      xread: $("#tl-x"),
+      bg: $(".tl-bg"),
       year: $("#tl-year"),
-      date: $("#tl-date"),
-      idx: $("#tl-idx"),
-      era: $("#tl-era"),
-      human: $("#tl-human"),
-      count: $("#tl-count"),
+      zone: $("#zone"),
+      zoneH: $("#zone-h"),
+      zoneM: $("#zone-m"),
+      art: $("#art"),
+      hit: $("#tl-hit"),
+      slotA: $("#slot-a"),
+      slotB: $("#slot-b"),
+      scan: $("#slot-scan"),
+      world: $("#rail-world"),
+      ero: $("#erosion"),
+      years: $("#rail-years"),
+      railPh: $("#rail-phases"),
+      events: $("#rail-events"),
+      rhVal: $("#rh-val"),
+      rhH: $("#rh-h"),
+      rhDate: $("#rh-date"),
+      phases: $("#axis-phases"),
+      body: $("#axis-body"),
+      ticks: $("#axis-ticks"),
+      axYears: $("#axis-years"),
+      progress: $("#axis-progress"),
+      head: $("#playhead"),
       play: $("#ac-play"),
       timer: $("#ac-timer"),
-      scrub: $("#tl-scrub"),
-      fill: $("#tl-fill"),
-      ticks: $("#tl-ticks"),
-      syears: $("#tl-syears"),
-      head: $("#tl-head"),
-      hit: $("#tl-hit"),
+      scene: $("#timeline"),
     };
-
-    const cache = new WeakMap();
-    function set(elm, prop, val) {
-      if (!elm) return;
-      let c = cache.get(elm);
-      if (!c) cache.set(elm, (c = new Map()));
-      if (c.get(prop) === val) return;
-      c.set(prop, val);
-      elm.style[prop] = val;
-    }
+    let xAtTime = (t) => t;
 
     const smooth = (x) => {
       const v = clamp(x, 0, 1);
       return v * v * (3 - 2 * v);
     };
 
-    /* 回弹弹出：等价于末端超过 1 的 ease-out，倒放时沿同一条曲线收回 */
-    function pop(t) {
-      if (t <= 0) return 0;
-      if (t >= 1) return 1;
-      const c1 = 1.70158;
-      const c3 = c1 + 1;
-      return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2;
+    function set(elm, prop, val) {
+      let c = cache.get(elm);
+      if (!c) cache.set(elm, (c = {}));
+      if (c[prop] === val) return;
+      c[prop] = val;
+      if (prop[0] === "-") elm.style.setProperty(prop, val);
+      else elm.style[prop] = val;
     }
 
-    const band = (u, a, b) => smooth((u - a) / (b - a));
-
-    function xAt(p) {
-      if (n <= 1) return RX[0] || 0;
-      if (p <= 0) return RX[0] + p * (RX[1] - RX[0]);
-      if (p >= n - 1) return RX[n - 1] + (p - (n - 1)) * (RX[n - 1] - RX[n - 2]);
+    const railX = (p) => {
+      if (p <= 0) return RX[0] + p * S;
+      if (p >= n - 1) return RX[n - 1] + (p - n + 1) * S;
       const k = Math.floor(p);
       return RX[k] + (RX[k + 1] - RX[k]) * (p - k);
-    }
+    };
 
-    function invX(x) {
-      if (n <= 1) return 0;
-      const g0 = RX[1] - RX[0] || 1;
-      const g1 = RX[n - 1] - RX[n - 2] || 1;
-      if (x <= RX[0]) return (x - RX[0]) / g0;
-      if (x >= RX[n - 1]) return n - 1 + (x - RX[n - 1]) / g1;
-      let lo = 0;
-      let hi = n - 1;
-      while (hi - lo > 1) {
-        const m = (lo + hi) >> 1;
-        if (RX[m] <= x) lo = m;
-        else hi = m;
-      }
-      return lo + (x - RX[lo]) / (RX[hi] - RX[lo] || 1);
-    }
-
-    function gapAt(p) {
-      if (n <= 1) return 300;
-      if (p <= 0) return RX[1] - RX[0] || 300;
-      if (p >= n - 1) return RX[n - 1] - RX[n - 2] || 300;
-      const k = Math.floor(p);
-      return RX[k + 1] - RX[k] || 300;
-    }
-
-    function timeAt(p) {
-      if (n <= 1 || p <= 0) return ev[0].t;
-      if (p >= n - 1) return ev[n - 1].t;
-      const k = Math.floor(p);
-      return ev[k].t + (ev[k + 1].t - ev[k].t) * (p - k);
-    }
-
-    function xAtTime(t) {
-      if (n <= 1 || t <= ev[0].t) return RX[0] || 0;
-      if (t >= ev[n - 1].t) return RX[n - 1];
-      let k = 0;
-      while (k < n - 2 && ev[k + 1].t <= t) k++;
-      const a = ev[k].t;
-      const b = ev[k + 1].t;
-      return RX[k] + (RX[k + 1] - RX[k]) * (b > a ? (t - a) / (b - a) : 0);
-    }
+    /* ---------- 人类剩余推演（示意） ---------- */
 
     function human(p) {
       if (!leafCurve.length) return 100;
       let s = 0;
       for (const c of leafCurve) {
         if (c.j >= 0) s += c.rem + (100 - c.rem) * (1 - smooth((p - (c.j - 0.6)) / 0.6));
-        else s += 100 - (100 - c.rem) * clamp((p - c.a) / (c.b - c.a || 1), 0, 1);
+        else s += 100 - (100 - c.rem) * clamp((p - c.a) / (c.b - c.a), 0, 1);
       }
       return s / leafCurve.length;
     }
 
-    /* 节点之间加速，靠近高影响力事件减速，不吸附成整页 */
-    function cruise(cam) {
-      if (n <= 1) return 0;
-      const i = clamp(Math.round(Math.max(pos, 0)), 0, n - 1);
-      let nearest = 1e9;
-      for (let k = Math.max(0, i - 6); k <= Math.min(n - 1, i + 6); k++) {
-        if (nodes[k].impact !== "high") continue;
-        nearest = Math.min(nearest, Math.abs(cam - nodes[k].x));
-      }
-      let m;
-      if (nearest < 170) {
-        const t = nearest / 170;
-        m = 0.3 + 0.7 * t * t;
-      } else if (nearest > 560) m = 1.5;
-      else {
-        const t = (nearest - 170) / (560 - 170);
-        m = 1 + 0.5 * t * t;
-      }
-      if (cam < nodes[0].x + 90) m = Math.min(m, 0.55);
-      const endD = nodes[n - 1].x - cam;
-      if (endD < 300) m = Math.min(m, 0.22 + 0.78 * clamp(endD / 300, 0, 1));
-      return 176 * m;
-    }
+    const curveY = (h) => 10 + ((100 - h) * 90) / 70;
 
-    function cardBox(x, side, L, ang) {
-      let endX;
-      let endY;
-      if (ang === 90) {
-        endX = x;
-        endY = side === "up" ? AXIS_Y - L : AXIS_Y + L;
-      } else {
-        endX = x + DIAG;
-        endY = side === "up" ? AXIS_Y - DIAG : AXIS_Y + DIAG;
-      }
-      return {
-        endX,
-        endY,
-        cardX: endX - 22,
-        cardY: side === "up" ? endY - CARD_H : endY,
-        side,
-        L,
-        ang,
-      };
-    }
+    /* ---------- 图形分镜 ---------- */
 
-    function hits(a, b) {
-      const pad = 14;
-      return !(
-        a.cardX + CARD_W + pad < b.cardX ||
-        b.cardX + CARD_W + pad < a.cardX ||
-        a.cardY + CARD_H + pad < b.cardY ||
-        b.cardY + CARD_H + pad < a.cardY
+    const R = (x, y, cls, html, o) => ({ x, y, cls, html: html ?? "", ...o });
+
+    function scenes() {
+      const v = [];
+      const add = (at, list, until) => v.push({ at, until, items: list });
+
+      const tubes = [];
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 8; c++) {
+          const k = r * 8 + c;
+          tubes.push(R(900 + c * 64, 290 + r * 56, `v-dot${(k * 7) % 5 === 0 ? " is-lit" : ""}`, "", { w: 30, h: 30, style: `--k:${k}`, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.006, od: c * 0.012, dr: 40 }));
+        }
+      add("ENIAC 公开亮相", [
+        ...tubes,
+        R(900, 486, "v-cap", "ENIAC<em>ELECTRONIC NUMERICAL INTEGRATOR AND COMPUTER</em>", { c: "l", tc: "l", d: 0.1 }),
+        R(900, 528, "v-mono", "<b>17,468</b> VACUUM TUBES · <b>5,000</b> ADD / SEC", { c: "l", tc: "l", d: 0.16 }),
+        R(1460, 290, "v-hatch", "", { w: 300, h: 168, c: "b", tc: "t", d: 0.05, dr: 90 }),
+        R(1460, 470, "v-disp", "30 TONS", { style: "font-size:64px", f: { y: 30, o: 0 }, d: 0.12, dr: 90 }),
+      ]);
+
+      add("图灵《计算机器与智能》", [
+        R(880, 230, "v-glyph", "“", { style: "font-size:260px", f: { y: -60, o: 0 }, t: { y: 40, o: 0 }, dr: 30 }),
+        R(1640, 270, "v-vert v-cn", "机器能思考吗？", { style: "font-size:64px", c: "t", tc: "b", d: 0.08, dr: 120 }),
+        R(900, 420, "v-out", "CAN MACHINES<br />THINK?", { style: "font-size:84px", c: "l", tc: "l", d: 0.04, dr: 70 }),
+        R(904, 600, "v-mono", "A. M. TURING · <b>MIND</b> VOL. LIX · THE IMITATION GAME", { c: "l", tc: "l", d: 0.14 }),
+      ]);
+
+      const ten = Array.from({ length: 10 }, (_, k) =>
+        R(1290 + (k % 5) * 56, 300 + Math.floor(k / 5) * 56, `v-sq${k === 4 ? " is-acc" : ""}`, "", { w: 40, h: 40, f: { y: -80, r: 90, o: 0 }, t: { y: 60, o: 0 }, d: k * 0.015, od: k * 0.01, dr: 60 })
       );
+      add("达特茅斯人工智能夏季研讨班", [
+        R(880, 236, "v-out", "AI", { style: "font-size:330px", f: { s: 1.5, o: 0 }, t: { s: 0.8, o: 0 }, dr: 50 }),
+        ...ten,
+        R(1290, 430, "v-cap", "1956 · 夏<em>THE TERM IS COINED</em>", { c: "l", tc: "l", d: 0.12 }),
+        R(1290, 470, "v-mono", "<b>10</b> 位学者 · <b>2</b> 个月 · 让机器使用语言", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("感知机 Perceptron", [
+        R(900, 280, "", `<svg viewBox="0 0 560 250"><path class="ln" pathLength="1" d="M0 20 L320 125 M0 90 L320 125 M0 160 L320 125 M0 230 L320 125"/><circle class="ln thick" pathLength="1" cx="360" cy="125" r="40"/><path class="ln acc" pathLength="1" d="M400 125 L560 125"/></svg>`, { w: 560, h: 250, draw: true, c: "l", tc: "r", dr: 50 }),
+        ...[20, 90, 160, 230].map((y, k) => R(890, 270 + y, "v-dot is-ink", "", { w: 20, h: 20, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.03, dr: 50 })),
+        R(1500, 370, "v-disp", "Σ w·x &gt; 0", { style: "font-size:64px", f: { x: 60, o: 0 }, d: 0.14, dr: 110 }),
+        R(904, 570, "v-mono", "MARK I · <b>400</b> PHOTOCELLS · 「一台会学习的机器」", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      add("ELIZA", [
+        R(900, 280, "v-term", "", { w: 780, h: 240, c: "l", tc: "l", dr: 40 }),
+        R(932, 330, "v-tline is-me", "&gt; 我最近总是很难过。", { c: "l", tc: "l", d: 0.1, dr: 40 }),
+        R(932, 384, "v-tline", "ELIZA: 你为什么觉得自己很难过？", { c: "l", tc: "l", d: 0.17, dr: 40 }),
+        R(932, 438, "v-tline is-me", "&gt; ……也许是因为机器。", { c: "l", tc: "l", d: 0.24, dr: 40 }),
+        R(904, 548, "v-mono", "DOCTOR SCRIPT · 人第一次向机器倾诉", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("反向传播登上 Nature", [
+        ...[0, 1, 2, 3, 4].map((k) => R(1560 - k * 150, 260, "v-disp", "←", { style: "font-size:120px", f: { x: 90, o: 0 }, t: { x: -90, o: 0 }, d: k * 0.04, od: k * 0.02, dr: 60 + k * 14 })),
+        R(900, 410, "v-out", "∂L / ∂w", { style: "font-size:132px", c: "r", tc: "l", d: 0.1, dr: 50 }),
+        R(904, 580, "v-mono", "RUMELHART · HINTON · WILLIAMS · <b>NATURE 323</b>", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("LeCun 卷积网络识别邮编", [
+        ..."07733".split("").map((d, k) => R(900 + k * 118, 290, "v-digit", d, { w: 100, h: 124, f: { y: -50, r: -10, o: 0 }, t: { y: 50, r: 8, o: 0 }, d: k * 0.04, od: k * 0.02, dr: 50 + k * 8 })),
+        R(900, 448, "v-cap", "LeNet<em>BELL LABS · ZIP CODE READER</em>", { c: "l", tc: "l", d: 0.12 }),
+        R(904, 492, "v-mono", "信封上的手写数字，第一次交给了卷积", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const board = [];
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+          board.push(R(900 + c * 36, 262 + r * 36, (r + c) % 2 ? "v-tile-d" : "v-tile-l", "", { w: 36, h: 36, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: (r + c) * 0.012, od: (14 - r - c) * 0.008, dr: 40 }));
+      add("深蓝击败卡斯帕罗夫", [
+        ...board,
+        R(1250, 236, "v-glyph", "♚\uFE0E", { style: "transform-origin:30% 90%", f: { y: -80, o: 0 }, t: { o: 0 }, mid: { p: [0.02, 0.36], r: -84, y: 40 }, d: 0.1, od: 0.22, dr: 30 }),
+        R(1500, 300, "v-disp", "3½", { style: "font-size:150px", f: { x: 80, o: 0 }, d: 0.12, dr: 80 }),
+        R(1500, 440, "v-disp v-dim", "2½", { style: "font-size:96px", f: { x: 80, o: 0 }, d: 0.16, dr: 80 }),
+        R(904, 580, "v-mono", "DEEP BLUE <b>3½</b> / KASPAROV <b>2½</b> · 机器第一次在人类的棋盘上胜出", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("LSTM 长短期记忆", [
+        R(880, 300, "", `<svg viewBox="0 0 900 140"><path class="ln thick" pathLength="1" d="M0 40 L900 40"/><path class="ln" pathLength="1" d="M0 110 L180 110 L220 40 M300 110 L420 110 L460 40 M540 110 L660 110 L700 40"/><circle class="ln red" pathLength="1" cx="220" cy="40" r="22"/><circle class="ln red" pathLength="1" cx="460" cy="40" r="22"/><circle class="ln red" pathLength="1" cx="700" cy="40" r="22"/></svg>`, { w: 900, h: 140, draw: true, c: "l", tc: "r", dr: 70 }),
+        ...["FORGET", "INPUT", "OUTPUT"].map((g, k) => R(1074 + k * 240, 264, "v-mono", `<b>${g}</b> GATE`, { f: { y: -20, o: 0 }, d: 0.1 + k * 0.04, dr: 70 })),
+        R(880, 470, "v-out", "MEMORY", { style: "font-size:120px", c: "l", tc: "l", d: 0.08, dr: 40 }),
+      ]);
+
+      const net = [];
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 14; c++) {
+          const k = r * 14 + c;
+          const h = ((k * 37) % 11) / 11;
+          net.push(R(900 + c * 48, 286 + r * 48, h > 0.62 ? "v-tile-d" : h > 0.3 ? "v-gen" : "v-tile-l", "", { w: 42, h: 42, style: `--gx1:${20 + h * 60}%;--ga:${h * 180}deg`, f: { s: 0.2, o: 0 }, t: { s: 0.2, o: 0 }, d: h * 0.2, od: (c / 14) * 0.16, dr: 50 }));
+        }
+      add("ImageNet 数据集发布", [
+        ...net,
+        R(900, 492, "v-disp", "14,197,122", { style: "font-size:84px", c: "l", tc: "l", d: 0.12 }),
+        R(1340, 520, "v-mono", "LABELED IMAGES · <b>21,841</b> 类", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const wave = (x, y, cnt, pitch, w, amp, seed) =>
+        Array.from({ length: cnt }, (_, k) => {
+          const h = Math.max(6, Math.round(amp * Math.abs(Math.sin(k * 0.55 + seed) * Math.sin(k * 0.13 + seed * 2))));
+          return R(x + k * pitch, y - h / 2, "v-wave", "", { w, h, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: (k / cnt) * 0.2, od: (k / cnt) * 0.1, dr: 50 });
+        });
+      add("Siri 随 iPhone 4S 上线", [
+        R(900, 276, "v-bubble", "嘿 Siri，明天会下雨吗？", { c: "l", tc: "l", dr: 40 }),
+        ...wave(900, 430, 40, 22, 10, 120, 1.3),
+        R(904, 540, "v-mono", "2011.10.04 · iPhone 4S · 语音助手进入口袋", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      add("AlexNet 横扫 ImageNet", [
+        ...[220, 184, 150, 118, 88, 60].map((s, k) =>
+          R(920 + k * 108, 300 + (220 - s) / 2, "", `<i class="v-plane${k === 5 ? " is-acc" : ""}" style="display:block;width:100%;height:100%;transform:skewY(-16deg)"></i>`, { w: s * 0.62, h: s, f: { x: -k * 108, o: 0 }, t: { x: k * 60, o: 0 }, d: 0.02, od: k * 0.02, dr: 30 + k * 16 })
+        ),
+        R(1480, 290, "v-disp", "15.3%", { style: "font-size:120px", f: { y: 40, o: 0 }, d: 0.14, dr: 90 }),
+        R(1484, 410, "v-mono", "TOP-5 ERROR · 第二名 <b>26.2%</b>", { c: "l", tc: "l", d: 0.2, dr: 90 }),
+        R(924, 580, "v-mono", "<b>2 ×</b> GTX 580 · 深度学习从这里开始", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("Word2Vec 词向量", [
+        R(880, 296, "v-disp", "KING − MAN + WOMAN ≈ <span style='color:var(--red)'>QUEEN</span>", { style: "font-size:66px", c: "l", tc: "l", dr: 50 }),
+        R(900, 392, "", `<svg viewBox="0 0 640 190"><path class="ln" pathLength="1" d="M20 170 L260 30"/><path class="ln" pathLength="1" d="M360 170 L600 30"/><path class="ln red" pathLength="1" d="M20 170 L360 170 M260 30 L600 30"/></svg>`, { w: 640, h: 190, draw: true, d: 0.08, dr: 70 }),
+        ...[["MAN", 900, 572], ["KING", 1150, 386], ["WOMAN", 1240, 572], ["QUEEN", 1490, 386]].map(([w, x, y], k) => R(x, y, "v-mono", `<b>${w}</b>`, { f: { y: 10, o: 0 }, d: 0.12 + k * 0.02, dr: 70 })),
+      ]);
+
+      add("生成对抗网络 GAN", [
+        R(920, 300, "v-ink v-disp", "G", { w: 150, h: 150, style: "display:grid;place-items:center;font-size:110px", f: { x: -120, o: 0 }, t: { x: -120, o: 0 }, dr: 40 }),
+        R(1430, 300, "v-accbox v-disp", "D", { w: 150, h: 150, style: "display:grid;place-items:center;font-size:110px", f: { x: 120, o: 0 }, t: { x: 120, o: 0 }, dr: 40 }),
+        R(1090, 290, "", `<svg viewBox="0 0 320 170"><path class="ln thick" pathLength="1" d="M0 60 C 100 0, 220 0, 320 60"/><path class="ln red" pathLength="1" d="M320 110 C 220 170, 100 170, 0 110"/></svg>`, { w: 320, h: 170, draw: true, d: 0.1, dr: 40 }),
+        R(924, 476, "v-cap", "生成器<em>FORGER</em>", { c: "l", tc: "l", d: 0.14, dr: 40 }),
+        R(1434, 476, "v-cap", "判别器<em>DETECTIVE</em>", { c: "l", tc: "l", d: 0.16, dr: 40 }),
+        R(924, 560, "v-mono", "两个网络互相欺骗，直到真假难辨", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("ResNet 残差网络", [
+        R(900, 260, "v-disp", "x + F(x)", { style: "font-size:140px", c: "l", tc: "l", dr: 60 }),
+        R(900, 420, "", `<svg viewBox="0 0 860 120"><path class="ln" pathLength="1" d="M0 100 L860 100"/><path class="ln red" pathLength="1" d="M40 100 C 40 10, 240 10, 240 100 M240 100 C 240 10, 440 10, 440 100 M440 100 C 440 10, 640 10, 640 100 M640 100 C 640 10, 840 10, 840 100"/></svg>`, { w: 860, h: 120, draw: true, d: 0.06, dr: 80 }),
+        ...[0, 1, 2, 3, 4].map((k) => R(924 + k * 200, 506, "v-sq", "", { w: 32, h: 28, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: 0.08 + k * 0.03, dr: 80 })),
+        R(904, 580, "v-mono", "<b>152</b> LAYERS · TOP-5 <b>3.57%</b> · 低于人类基准 5.1%", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const go = [];
+      const STONES = [[2, 2, 0], [6, 2, 1], [2, 6, 1], [6, 6, 0], [4, 4, 0], [3, 5, 1], [5, 3, 1], [4, 2, 0], [2, 4, 1], [5, 6, 0], [6, 4, 1], [3, 3, 0]];
+      STONES.forEach(([c, r, w], k) => go.push(R(900 + c * 36 - 15, 270 + r * 36 - 15, `v-stone${w ? " is-w" : ""}`, "", { w: 30, h: 30, f: { s: 2, o: 0 }, t: { s: 0, o: 0 }, d: 0.06 + k * 0.012, od: k * 0.01, dr: 40 })));
+      go.push(R(900 + 7 * 36 - 15, 270 + 1 * 36 - 15, "v-stone is-37", "", { w: 30, h: 30, f: { s: 3, o: 0 }, t: { s: 0, o: 0 }, d: 0.24, dr: 40 }));
+      add("AlphaGo 击败李世石", [
+        R(900, 270, "", `<svg viewBox="0 0 288 288"><path class="ln" pathLength="1" d="${Array.from({ length: 9 }, (_, i) => `M0 ${i * 36} L288 ${i * 36} M${i * 36} 0 L${i * 36} 288`).join(" ")}"/></svg>`, { w: 288, h: 288, draw: true, dr: 40 }),
+        ...go,
+        R(1290, 296, "v-disp", "MOVE 37", { style: "font-size:110px", c: "l", tc: "l", d: 0.12, dr: 80 }),
+        R(1290, 400, "v-disp", "4 : 1", { style: "font-size:160px", f: { y: 40, o: 0 }, d: 0.16, dr: 80 }),
+        R(904, 590, "v-mono", "AlphaGo vs 李世石 · 首尔 · 「那一手不是人类会下的棋」", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("WaveNet 生成语音", [
+        R(890, 250, "v-out", "SPEECH", { style: "font-size:150px", c: "l", tc: "l", dr: 40 }),
+        ...wave(900, 480, 72, 12, 6, 110, 2.1),
+        R(904, 570, "v-mono", "<b>16,000</b> SAMPLES / SEC · 逐点生成的人声", { c: "l", tc: "l", d: 0.16 }),
+      ]);
+
+      const toks = ["Attention", "is", "all", "you", "need"];
+      const tx = [880, 1094, 1170, 1270, 1388];
+      add("Transformer", [
+        R(870, 236, "v-out", "ATTENTION", { style: "font-size:170px", f: { s: 1.2, o: 0 }, t: { x: -200, o: 0 }, dr: 60 }),
+        R(900, 400, "", `<svg viewBox="0 0 600 80"><path class="ln red" pathLength="1" d="M90 80 C 120 0, 230 0, 250 80 M90 80 C 140 -30, 330 -30, 350 80 M90 80 C 150 -60, 450 -60, 470 80 M290 80 C 330 20, 540 20, 580 80"/></svg>`, { w: 600, h: 80, draw: true, d: 0.1, dr: 50 }),
+        ...toks.map((w, k) => R(tx[k], 484, "v-token", w, { f: { y: 30, o: 0 }, t: { y: -30, o: 0 }, d: 0.06 + k * 0.03, od: k * 0.02, dr: 50 })),
+        R(884, 580, "v-mono", "VASWANI ET AL. · 2017 · <b>8 × P100</b> · 3.5 天", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      const P = [["GPT-1", 117e6, "117M"], ["GPT-2", 1.5e9, "1.5B"], ["GPT-3 / OpenAI API", 175e9, "175B"]];
+      add(
+        "GPT-1",
+        [
+          R(880, 286, "v-cap", "参数量<em>PARAMETERS · LINEAR SCALE</em>", { c: "l", tc: "l" }),
+          ...P.flatMap(([at, v, lab], k) => [
+            R(880, 320 + k * 64, "v-mono", `<b>${at.split(" ")[0]}</b>`, { at, c: "l", tc: "l", d: 0.05 }),
+            R(990, 318 + k * 64, `v-bar${k === 2 ? " is-acc" : ""}`, "", { at, w: Math.max(3, (v / 175e9) * 800), h: 24, c: "l", tc: "l", d: 0.1 }),
+            R(1000 + Math.max(3, (v / 175e9) * 800) + 10, 318 + k * 64, "v-mono", lab, { at, f: { x: -20, o: 0 }, d: 0.16, style: k === 2 ? "display:none" : "" }),
+            R(1280, 500, "v-disp", lab, { at, u: at, style: "font-size:120px", f: { y: 50, o: 0 }, t: { y: -50, o: 0 }, d: 0.12, od: -0.05, dr: 60 }),
+          ]),
+        ],
+        "GPT-3 / OpenAI API"
+      );
+
+      add("GitHub Copilot 技术预览", [
+        R(900, 290, "v-code", "def is_human(task):", { c: "l", tc: "l", dr: 40 }),
+        R(900, 330, "v-code", "    <i># TODO: 交给机器来写</i>", { c: "l", tc: "l", d: 0.08, dr: 40 }),
+        R(900, 370, "v-code", "    return <b>False</b>", { c: "l", tc: "l", d: 0.16, dr: 40 }),
+        R(900, 440, "v-accbox v-mono", "<b>TAB ↹</b> 接受建议", { style: "padding:8px 14px", f: { y: 20, o: 0 }, d: 0.2, dr: 40 }),
+        R(904, 560, "v-mono", "由 Codex 驱动 · 代码开始自动补全自己", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      const helix = (ph) => {
+        let d = "";
+        for (let i = 0; i <= 60; i++) d += `${i ? "L" : "M"}${(i * 14).toFixed(0)} ${(90 + 70 * Math.sin(i * 0.32 + ph)).toFixed(1)} `;
+        return d;
+      };
+      const rungs = Array.from({ length: 20 }, (_, i) => {
+        const x = i * 42;
+        const a = 90 + 70 * Math.sin((x / 14) * 0.32);
+        const b = 90 + 70 * Math.sin((x / 14) * 0.32 + Math.PI);
+        return `M${x} ${a.toFixed(1)} L${x} ${b.toFixed(1)}`;
+      }).join(" ");
+      add("AlphaFold 2 论文发表", [
+        R(900, 270, "", `<svg viewBox="0 0 840 180"><path class="ln" pathLength="1" d="${rungs}"/><path class="ln thick" pathLength="1" d="${helix(0)}"/><path class="ln red" pathLength="1" d="${helix(Math.PI)}"/></svg>`, { w: 840, h: 180, draw: true, c: "l", tc: "r", dr: 60 }),
+        R(900, 476, "v-disp", "GDT 92.4", { style: "font-size:96px", c: "l", tc: "l", d: 0.12 }),
+        R(1300, 500, "v-mono", "CASP14 · 蛋白质结构 · <b>50 年</b>难题", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("Midjourney 开放测试", [
+        R(900, 262, "v-mono", "/imagine <b>a city after the last human job</b> --v 3", { c: "l", tc: "l" }),
+        ...Array.from({ length: 10 }, (_, k) => {
+          const c = k % 5;
+          const r = Math.floor(k / 5);
+          const h = ((k * 53) % 17) / 17;
+          return R(900 + c * 150, 304 + r * 146, "v-gen", "", { w: 136, h: 136, style: `--gx1:${20 + h * 60}%;--gy1:${70 - h * 40}%;--gx2:${80 - h * 50}%;--ga:${h * 180}deg`, f: { s: 0, r: -30 + h * 60, o: 0 }, t: { s: 0.6, o: 0 }, d: 0.04 + h * 0.16, od: c * 0.02, dr: 40 + r * 30 });
+        }),
+      ]);
+
+      add("ChatGPT", [
+        R(1250, 276, "v-bubble", "帮我写一封辞职信。", { f: { x: 60, o: 0 }, t: { y: -40, o: 0 }, dr: 50 }),
+        R(900, 340, "v-bubble is-ai", "当然。以下是一封得体的辞职信……", { f: { x: -60, o: 0 }, t: { y: -40, o: 0 }, d: 0.08, dr: 50 }),
+        R(1190, 404, "v-bubble", "……顺便帮我找份新工作。", { f: { x: 60, o: 0 }, t: { y: -40, o: 0 }, d: 0.16, dr: 50 }),
+        R(900, 468, "v-disp", "100M", { style: "font-size:120px", c: "l", tc: "l", d: 0.14, dr: 80 }),
+        R(1180, 520, "v-mono", "USERS IN <b>2</b> MONTHS · 史上增长最快的应用", { c: "l", tc: "l", d: 0.2, dr: 80 }),
+      ]);
+
+      const EX = [["律师资格考试", 90], ["SAT 数学", 89], ["GRE 语文", 99], ["生物奥赛", 99]];
+      add("GPT-4", [
+        R(900, 292, "v-cap", "考试成绩 · 人类考生百分位<em>PERCENTILE</em>", { c: "l", tc: "l" }),
+        ...EX.flatMap(([lab, v], k) => [
+          R(900, 350 + k * 62, "v-mono", `<b>${lab}</b>`, { c: "l", tc: "l", d: 0.04 + k * 0.03 }),
+          R(1080, 348 + k * 62, "v-hatch", "", { w: 600, h: 26, c: "l", tc: "l", d: 0.04 + k * 0.03 }),
+          R(1080, 348 + k * 62, "v-bar is-acc", "", { w: v * 6, h: 26, c: "l", tc: "l", d: 0.1 + k * 0.03 }),
+          R(1700, 342 + k * 62, "v-disp", String(v), { style: "font-size:40px", f: { x: 30, o: 0 }, d: 0.16 + k * 0.02 }),
+        ]),
+      ]);
+
+      add("Sora 技术预告", [
+        R(760, 300, "v-film", `<div style="display:flex;gap:14px;padding:30px 14px">${Array.from({ length: 9 }, (_, k) => `<i class="v-frame" style="display:block;flex:none;width:186px;height:136px;filter:hue-rotate(${k * 12}deg)"></i>`).join("")}</div>`, { w: 1800, h: 196, c: "l", tc: "l", dr: 420 }),
+        R(900, 530, "v-cap", "一行文字 → 60 秒视频<em>TEXT TO VIDEO</em>", { c: "l", tc: "l", d: 0.14 }),
+      ]);
+
+      add("o1-preview", [
+        R(900, 250, "v-cn", "先想，再答。", { style: "font-size:84px", c: "l", tc: "l", dr: 40 }),
+        R(910, 410, "", `<svg viewBox="0 0 780 20"><path class="ln" pathLength="1" d="M0 10 L780 10"/></svg>`, { w: 780, h: 20, draw: true, d: 0.04, dr: 60 }),
+        ...Array.from({ length: 12 }, (_, k) => R(900 + k * 70, 410, `v-dot${k === 11 ? " is-lit" : ""}`, "", { w: 20, h: 20, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: k * 0.016, od: k * 0.01, dr: 60 })),
+        R(904, 460, "v-mono", "THINKING… <b>37s</b> · 推理链长度成为新的算力", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("DeepSeek-R1", [
+        R(880, 270, "v-out", "OPEN<br />WEIGHTS", { style: "font-size:150px", c: "l", tc: "l", dr: 60 }),
+        R(1500, 296, "v-ink v-disp", "MIT", { style: "padding:10px 22px;font-size:60px", f: { r: -30, s: 2, o: 0 }, mid: { p: [0, 0.01], r: -8 }, d: 0.2, dr: 90 }),
+        R(904, 560, "v-mono", "推理模型权重公开 · 训练成本据称 <b>$5.6M</b>", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      const agents = [];
+      for (let r = 0; r < 5; r++)
+        for (let c = 0; c < 7; c++) {
+          const k = r * 7 + c;
+          agents.push(R(900 + c * 44, 290 + r * 44, "v-sq is-off", "", { w: 34, h: 34, f: { o: 0 }, t: { o: 0 }, dr: 40 }));
+          agents.push(R(900 + c * 44, 290 + r * 44, `v-sq${k % 9 === 4 ? " is-acc" : ""}`, "", { w: 34, h: 34, f: { s: 0, o: 0 }, t: { s: 0, o: 0 }, d: 0.05 + (k / 35) * 0.2, od: (k / 35) * 0.1, dr: 40 }));
+        }
+      add("Claude Opus 4 / Sonnet 4", [
+        ...agents,
+        R(1260, 260, "v-disp", "7h", { style: "font-size:200px", f: { y: 40, o: 0 }, d: 0.12, dr: 80 }),
+        R(1264, 470, "v-cap", "连续自主工作<em>AGENTIC CODING</em>", { c: "l", tc: "l", d: 0.18, dr: 80 }),
+      ]);
+
+      add("AlphaZero", [
+        ...["围棋", "将棋", "国际象棋"].map((lab, k) =>
+          R(900 + k * 250, 280, "v-ink v-disp", lab, {
+            w: 220,
+            h: 150,
+            style: "display:grid;place-items:center;font-size:42px;font-family:var(--f-sans);font-weight:900",
+            f: { y: -40 - k * 20, r: -8 + k * 8, o: 0 },
+            t: { y: 30, o: 0 },
+            d: k * 0.05,
+            dr: 40 + k * 20,
+          })
+        ),
+        R(900, 470, "v-out", "ONE NET", { style: "font-size:120px", c: "l", tc: "l", d: 0.12, dr: 50 }),
+        R(904, 590, "v-mono", "从零自对弈 · 围棋 / 国际象棋 / 将棋", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("BERT", [
+        R(900, 300, "v-token", "the", { f: { x: -30, o: 0 }, d: 0.02, dr: 30 }),
+        R(1040, 300, "v-token", "[MASK]", { style: "background:var(--y)", f: { s: 1.4, o: 0 }, d: 0.08, dr: 20 }),
+        R(1280, 300, "v-token", "sat", { f: { x: 30, o: 0 }, d: 0.14, dr: 30 }),
+        R(900, 400, "", `<svg viewBox="0 0 520 80"><path class="ln red" pathLength="1" d="M40 70 C 80 0, 200 0, 250 40 M460 70 C 420 0, 300 0, 250 40"/></svg>`, { w: 520, h: 80, draw: true, d: 0.1, dr: 40 }),
+        R(900, 510, "v-out", "BOTH WAYS", { style: "font-size:110px", c: "l", tc: "l", d: 0.12 }),
+        R(904, 620, "v-mono", "双向掩码预训练 · 多项理解基准被刷新", { c: "l", tc: "l", d: 0.18 }),
+      ]);
+
+      add("Stable Diffusion 公开发布", [
+        ...Array.from({ length: 12 }, (_, k) => {
+          const c = k % 6;
+          const r = Math.floor(k / 6);
+          const h = ((k * 47) % 13) / 13;
+          return R(900 + c * 92, 280 + r * 92, "v-gen", "", {
+            w: 80,
+            h: 80,
+            style: `--gx1:${15 + h * 70}%;--gy1:${20 + h * 50}%;--ga:${h * 160}deg`,
+            f: { s: 0.2, o: 0 },
+            t: { s: 0.4, o: 0 },
+            d: h * 0.18,
+            dr: 30,
+          });
+        }),
+        R(1480, 290, "v-disp", "OPEN", { style: "font-size:92px", f: { x: 40, o: 0 }, d: 0.1, dr: 70 }),
+        R(1484, 390, "v-mono", "LATENT · 消费级硬件可跑", { c: "l", tc: "l", d: 0.16, dr: 70 }),
+      ]);
+
+      add("LLaMA", [
+        R(880, 270, "v-out", "LLAMA", { style: "font-size:180px", c: "l", tc: "l", dr: 40 }),
+        ...[0, 1, 2, 3].map((k) =>
+          R(900 + k * 36, 470, "v-sq", "", { w: 28, h: 120 - k * 16, f: { y: 40, o: 0 }, t: { y: -20, o: 0 }, d: 0.08 + k * 0.04, dr: 20 })
+        ),
+        R(1100, 490, "v-cap", "研究权重<em>OPEN-WEIGHT RACE</em>", { c: "l", tc: "l", d: 0.14 }),
+        R(904, 600, "v-mono", "开源基座竞赛从这里拉开", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("GPT-6 Astra", [
+        R(870, 230, "v-out", "AGI?", { style: "font-size:340px", f: { s: 1.6, o: 0 }, t: { s: 0.9, o: 0 }, dr: 50 }),
+        R(904, 580, "v-mono", "门槛被再次移动 · 没有人能说清它跨过了没有", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      add("Claude Opus 5.5", [
+        R(900, 280, "v-cap", "运行成本<em>VS OPUS 5</em>", { c: "l", tc: "l" }),
+        R(900, 360, "v-mono", "<b>OPUS 5</b>", { c: "l", tc: "l", d: 0.04 }),
+        R(1100, 352, "v-bar", "", { w: 640, h: 28, c: "l", tc: "l", d: 0.08 }),
+        R(900, 430, "v-mono", "<b>5.5</b>", { c: "l", tc: "l", d: 0.1 }),
+        R(1100, 422, "v-bar is-acc", "", { w: 384, h: 28, c: "l", tc: "l", d: 0.16 }),
+        R(1520, 410, "v-disp", "−40%", { style: "font-size:96px", f: { x: 40, o: 0 }, d: 0.18, dr: 40 }),
+        R(904, 520, "v-mono", "长程智能体编码与知识工作 · 成本约为前代的六成", { c: "l", tc: "l", d: 0.22 }),
+      ]);
+
+      add("GPT-6.1 Sol", [
+        R(900, 286, "v-cap", "标准 API 价格<em>VS GPT-6 ASTRA</em>", { c: "l", tc: "l" }),
+        R(900, 370, "v-hatch", "", { w: 700, h: 36, c: "l", tc: "l" }),
+        R(900, 370, "v-bar", "", { w: 700, h: 36, c: "l", tc: "l", d: 0.06 }),
+        R(900, 418, "v-mono", "ASTRA", { c: "l", tc: "l", d: 0.04 }),
+        R(900, 470, "v-bar is-acc", "", { w: 140, h: 36, c: "l", tc: "l", d: 0.14 }),
+        R(900, 518, "v-mono", "SOL · 约 <b>1/5</b>", { c: "l", tc: "l", d: 0.16 }),
+        R(1640, 360, "v-disp", "⅕", { style: "font-size:140px", f: { y: 30, o: 0 }, d: 0.12, dr: 40 }),
+      ]);
+
+      add("Gemini 4 Argon", [
+        R(980, 270, "v-hatch", "", { w: 280, h: 280, d: 0.04, dr: 20 }),
+        R(1020, 300, "v-ink", "", { w: 200, h: 220, style: "clip-path:polygon(50% 0,100% 28%,100% 70%,50% 100%,0 70%,0 28%)", d: 0.1, dr: 10 }),
+        R(1360, 290, "v-cn", "防御向", { style: "font-size:72px", c: "l", tc: "l", d: 0.08 }),
+        R(1360, 380, "v-disp", "LIMITED", { style: "font-size:84px", f: { x: 50, o: 0 }, d: 0.14, dr: 40 }),
+        R(1364, 480, "v-mono", "长程软件工程 · 法务金融 · 有限放量", { c: "l", tc: "l", d: 0.2 }),
+      ]);
+
+      const last = M.events[M.events.length - 1];
+      const rev = fmtDate(M.data.updated);
+      add(last.title, [
+        R(900, 268, "v-cn", "人类事务剩余", { style: "font-size:48px", c: "l", d: 0.02 }),
+        R(890, 320, "v-disp v-acc", `${M.agg}%`, { style: "font-size:220px", f: { y: 50, o: 0 }, d: 0.08, dr: 24 }),
+        R(1380, 360, "v-cap", `${esc(last.title)}<em>${fmtDate(last.date)}</em>`, { c: "l", tc: "l", d: 0.12 }),
+        R(1380, 430, "v-mono", `截至 <b>${rev}</b> · 每天核对一次`, { c: "l", d: 0.18 }),
+        R(1380, 468, "v-mono", "计数还在继续。", { c: "l", d: 0.24 }),
+      ]);
+
+      return v;
     }
 
-    function boxFits(box, placed) {
-      if (box.cardY < 104 || box.cardY + CARD_H > 948) return false;
-      return !placed.some((c) => hits(box, c));
+    function headWord(title) {
+      const m = title.match(/^[A-Za-z0-9][A-Za-z0-9 .·\-\/]*[A-Za-z0-9.]/);
+      return m ? m[0].trim() : "";
     }
 
-    function layoutNodes() {
-      const placed = [];
-      nodes = [];
-      let upNext = true;
-      let ord = 0;
+    function build() {
+      const ev = M.events;
+      const find = (t) => ev.findIndex((e) => e.title === t);
+      const out = [];
+      const covered = new Set();
+      const push = (it, ai, ui) => {
+        const iai = it.at !== undefined ? (typeof it.at === "number" ? it.at : find(it.at)) : ai;
+        const iui = it.u !== undefined ? find(it.u) : ui;
+        const clip = it.c || it.tc;
+        out.push({
+          ...it,
+          f: it.f || (it.c ? {} : { x: 60, o: 0 }),
+          t: it.t || (it.tc ? {} : { x: -60, o: 0 }),
+          clip,
+          anchor: it.anchor ?? iai,
+          inA: it.inA ?? iai - 0.75 + (it.d || 0),
+          inW: it.inW ?? 0.55,
+          outA: it.outA ?? iui + 0.15 + (it.od || 0),
+          outW: it.outW ?? 0.4,
+          dr: it.dr ?? 50,
+        });
+      };
+
+      scenes().forEach((sc) => {
+        const ai = find(sc.at);
+        if (ai < 0) return;
+        const ui = sc.until ? find(sc.until) : ai;
+        for (let i = ai; i <= ui; i++) covered.add(i);
+        sc.items.forEach((it) => push(it, ai, ui));
+      });
+
       ev.forEach((e, i) => {
-        const impact = e.impact || "mid";
-        const major = impact === "high";
-        const nd = { i, x: RX[i], impact, major };
-        if (!major) {
-          nd.side = i % 2 ? "down" : "up";
-          nodes.push(nd);
-          return;
+        if (!covered.has(i)) {
+          const w = headWord(e.title);
+          const cjk = !w;
+          const label = cjk ? e.title : w;
+          const fs = cjk ? Math.min(84, 860 / label.length) : Math.min(170, 900 / (label.length * 0.47));
+          push(R(904, 290, "v-mono", `No.<b>${pad(i + 1, 3)}</b> · ${fmtDate(e.date)} · ${esc(e.era)} · IMPACT <b>${(e.impact || "mid").toUpperCase()}</b>`, { c: "l", tc: "l", dr: 30 }), i, i);
+          push(R(896, 320, cjk ? "v-cn" : "v-out", esc(label), { style: `font-size:${fs.toFixed(0)}px`, c: "l", tc: "l", d: 0.04, dr: 90 }), i, i);
+          push(R(904, 336 + fs * (cjk ? 1.1 : 0.88), "v-rule", "", { w: 420, h: 6, c: "l", tc: "l", d: 0.12, dr: 60 }), i, i);
         }
-        let side = upNext ? "up" : "down";
-        upNext = !upNext;
-        let L = side === "up" ? [136, 158, 184][ord % 3] : [100, 122][ord % 2];
-        let ang = ord % 3 === 0 ? 45 : 90;
-        ord += 1;
-        let box = cardBox(RX[i], side, L, ang);
-        if (!boxFits(box, placed)) {
-          ang = 90;
-          box = cardBox(RX[i], side, L, ang);
-        }
-        let tries = 0;
-        while (!boxFits(box, placed) && tries < 10) {
-          tries += 1;
-          ang = 90;
-          L += 28;
-          if (side === "up" && AXIS_Y - L - CARD_H < 104) {
-            side = "down";
-            L = 96;
-          }
-          if (side === "down" && AXIS_Y + L + CARD_H > 948) {
-            side = "up";
-            L = 136;
-          }
-          box = cardBox(RX[i], side, L, ang);
-        }
-        Object.assign(nd, box);
-        placed.push(box);
-        nodes.push(nd);
-      });
-      nodes.forEach((nd) => {
-        if (nd.major) return;
-        const clash = nodes.some((o) => o.major && o.side === nd.side && Math.abs(o.x - nd.x) < 220);
-        if (clash) nd.side = nd.side === "up" ? "down" : "up";
-      });
-    }
-
-    function layoutSegs() {
-      const phases = M.phases;
-      const notable = (p) => p.end - p.start + 1 >= 3 || RX[p.end] - RX[p.start] >= 800;
-      segs = [];
-      let cur = null;
-      phases.forEach((p, i) => {
-        let ahead = false;
-        if (!notable(p)) {
-          for (let j = i + 1; j < Math.min(phases.length, i + 4); j++) {
-            if (phases[j].name === p.name && notable(phases[j])) {
-              ahead = true;
-              break;
-            }
-            if (notable(phases[j])) break;
-          }
-        }
-        const startNew = cur && p.name !== cur.name && (notable(p) || ahead);
-        if (!cur) cur = { name: p.name, start: p.start, end: p.end };
-        else if (startNew) {
-          segs.push(cur);
-          cur = { name: p.name, start: p.start, end: p.end };
-        } else cur.end = p.end;
-      });
-      if (cur) segs.push(cur);
-    }
-
-    function buildDom() {
-      el.eras.replaceChildren();
-      el.rings.replaceChildren();
-      el.nodes.replaceChildren();
-      el.decades.replaceChildren();
-      el.fg.replaceChildren();
-
-      segs.forEach((seg, k) => {
-        const tone = Math.min(k, 6);
-        const en = ERA_EN[seg.name] || "";
-        const y0 = ev[seg.start].date.slice(0, 4);
-        const y1 = ev[seg.end].date.slice(0, 4);
-        const div = document.createElement("div");
-        div.className = "era-wipe";
-        div.dataset.k = String(tone);
-        div.innerHTML = `<div class="loom"><div class="loom-rings"></div><p class="loom-en">${esc(en || seg.name)}</p>${
-          en ? `<p class="loom-cn">${esc(seg.name)}</p>` : ""
-        }<p class="loom-yr">${y0} — ${y1}</p></div>`;
-        if (k > 0) div.style.visibility = "hidden";
-        el.eras.appendChild(div);
-        seg.el = div;
-        seg.loom = div.querySelector(".loom");
-        seg.on = k === 0;
-        seg.full = k === 0;
-        if (k > 0) {
-          const ring = document.createElement("i");
-          ring.className = "wipe-ring";
-          el.rings.appendChild(ring);
-          seg.ring = ring;
-        }
-      });
-
-      const impZh = { high: "高", mid: "中", low: "低" };
-      const frag = document.createDocumentFragment();
-      let paths = "";
-      nodes.forEach((nd) => {
-        const e = ev[nd.i];
-        const node = document.createElement("div");
-        node.className = `node ${nd.major ? "is-major" : "is-minor"} is-${nd.side}`;
-        node.dataset.impact = nd.impact;
-        node.style.left = `${nd.x}px`;
-        node.style.top = `${AXIS_Y}px`;
-        if (nd.major) {
-          const relX = (nd.endX - nd.x).toFixed(1);
-          const relY = (nd.endY - AXIS_Y).toFixed(1);
-          const cX = (nd.cardX - nd.x).toFixed(1);
-          const cY = (nd.cardY - AXIS_Y).toFixed(1);
-          const tags = (e.tags || [])
-            .slice(0, 3)
-            .map((t) => `<span>${esc(t)}</span>`)
+        if (e.leaves.length) {
+          const chips = e.leaves
+            .slice(0, 4)
+            .map((l) => `<span><b>${esc(l.name)}</b><em>${l.remaining}%</em></span>`)
             .join("");
-          const leaves = e.leaves || [];
-          const leafHtml = leaves.length
-            ? `<p class="card-leaves"><em>让渡</em>${leaves
-                .slice(0, 2)
-                .map((l) => `<span>${esc(l.name)}<b>${l.remaining}</b></span>`)
-                .join("")}${leaves.length > 2 ? `<span class="more">+${leaves.length - 2}</span>` : ""}</p>`
-            : "";
-          node.innerHTML = `<i class="joint"></i><i class="diamond" style="left:${relX}px;top:${relY}px"></i><article class="card" style="left:${cX}px;top:${cY}px"><header><b>EV-${pad(nd.i + 1, 2)}</b><time>${fmtDate(e.date)}</time><em>${impZh[nd.impact] || "中"}</em></header><h3>${esc(e.title)}</h3><p class="card-blurb">${esc(e.blurb || "")}</p><footer>${tags}</footer>${leafHtml}</article>`;
-          const d = `M ${nd.x.toFixed(1)} ${AXIS_Y} L ${nd.endX.toFixed(1)} ${nd.endY.toFixed(1)}`;
-          paths += `<path class="branch-ink" data-i="${nd.i}" d="${d}" /><path class="branch" data-i="${nd.i}" d="${d}" />`;
-        } else {
-          node.innerHTML = `<i class="dot"></i><p class="lab"><time>${e.date.slice(0, 4)}</time><b>${esc(e.title)}</b></p>`;
+          const more = e.leaves.length > 4 ? `<span class="is-more">+${e.leaves.length - 4}</span>` : "";
+          push(R(800, 608, "v-chips", `<i>让渡 →</i>${chips}${more}`, { f: { x: -180, o: 0 }, t: { x: 280, o: 0 }, d: 0.2, od: -0.1, dr: 20 }), i, i);
         }
-        node.style.visibility = "hidden";
-        nd.el = node;
-        nd.hidden = true;
-        nd.settled = false;
-        nd.zero = false;
-        frag.appendChild(node);
-      });
-      el.nodes.appendChild(frag);
-
-      axisX0 = RX[0] - 36;
-      const axisX1 = RX[n - 1] + 480;
-      axisLen = Math.max(1, axisX1 - axisX0);
-      el.svg.setAttribute("width", String(axisX1 + 20));
-      el.svg.setAttribute("height", "1080");
-      el.svg.style.width = `${axisX1 + 20}px`;
-      el.svg.style.height = "1080px";
-      const axisD = `M ${axisX0} ${AXIS_Y} L ${axisX1} ${AXIS_Y}`;
-      el.svg.innerHTML = `<path class="axis-ghost" d="${axisD}" /><path class="axis-ink" d="${axisD}" /><path class="axis-live" d="${axisD}" />${paths}`;
-      axisPath = el.svg.querySelector(".axis-live");
-      axisInk = el.svg.querySelector(".axis-ink");
-      axisPath.style.strokeDasharray = `${axisLen} ${axisLen}`;
-      axisInk.style.strokeDasharray = `${axisLen} ${axisLen}`;
-      axisPath.style.strokeDashoffset = String(axisLen);
-      axisInk.style.strokeDashoffset = String(axisLen);
-      el.svg.querySelectorAll(".branch").forEach((p) => {
-        const nd = nodes[Number(p.dataset.i)];
-        nd.path = p;
-        nd.pathLen = Math.hypot(nd.endX - nd.x, nd.endY - AXIS_Y) || 1;
-        p.style.strokeDasharray = `${nd.pathLen} ${nd.pathLen}`;
-        p.style.strokeDashoffset = String(nd.pathLen);
-      });
-      el.svg.querySelectorAll(".branch-ink").forEach((p) => {
-        const nd = nodes[Number(p.dataset.i)];
-        nd.ink = p;
-        p.style.strokeDasharray = `${nd.pathLen} ${nd.pathLen}`;
-        p.style.strokeDashoffset = String(nd.pathLen);
       });
 
-      const y0 = Number(ev[0].date.slice(0, 4));
-      const y1 = Number(ev[n - 1].date.slice(0, 4));
-      let decades = "";
-      for (let y = Math.floor(y0 / 10) * 10; y <= y1 + 10; y += 10) {
-        const x = xAtTime(Date.UTC(y, 0, 1));
-        decades += `<span style="left:${(x * 0.6).toFixed(1)}px">${y}</span>`;
-      }
-      el.decades.innerHTML = decades;
+      M.phases.forEach((p, k) => {
+        const win = { inA: p.start - 0.9, inW: 0.6, outA: p.end + 0.2, outW: 0.6, anchor: (p.start + p.end) / 2 };
+        push(R(792, 190, "v-plate", `<b>${pad(p.no)}</b><span>${esc(p.name)}</span><em>${p.y0} — ${p.y1}</em>`, { ...win, c: "l", tc: "l", dr: 0 }), p.start, p.end);
+        push(R(1190, 186, "v-word", ERA_EN[p.name] || p.name, { ...win, f: { x: 160, o: 0 }, t: { x: -160, o: 0 }, dr: 36 }), p.start, p.end);
+      });
 
-      const kinds = ["plus", "ring", "tri", "br"];
-      let fg = "";
-      for (let i = 0, x = 240; x < RX[n - 1] + 800; i += 1, x += 920) {
-        const top = i % 2 === 0 ? 130 + ((i * 83) % 150) : 730 + ((i * 57) % 120);
-        fg += `<i class="fg-bit fg-${kinds[i % 4]}" style="left:${(x * 1.42).toFixed(0)}px;top:${top}px"><b></b></i>`;
-      }
-      el.fg.innerHTML = fg;
-
-      const span = RX[n - 1] - RX[0] || 1;
-      el.ticks.innerHTML = ev
-        .map((e, i) => `<i data-impact="${e.impact || "mid"}" style="left:${((RX[i] / span) * 100).toFixed(3)}%"></i>`)
-        .join("");
-      tickEls = [...el.ticks.children];
-      let lastF = -1;
-      let years = "";
-      for (let y = Math.ceil(y0 / 10) * 10; y <= y1; y += 10) {
-        const f = xAtTime(Date.UTC(y, 0, 1)) / span;
-        if (f < 0 || f > 1) continue;
-        if (lastF >= 0 && (f - lastF) * SCRUB_W < 52) continue;
-        lastF = f;
-        years += `<span style="left:${(f * 100).toFixed(2)}%">${y}</span>`;
-      }
-      el.syears.innerHTML = years;
-      el.scrub.setAttribute("aria-valuemax", String(n));
-      el.walker.style.top = `${AXIS_Y - 36}px`;
-      el.scene.style.setProperty("--ax", `${AXIS_Y}px`);
-      el.scene.style.setProperty("--fx", `${FOCUS_X}px`);
+      el.art.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      out.forEach((it) => {
+        const d = document.createElement("div");
+        d.className = `v ${it.cls || ""}`.trim();
+        d.style.cssText = `left:${it.x - ART_X}px;top:${it.y - ART_Y}px;${it.w ? `width:${it.w}px;` : ""}${it.h ? `height:${it.h}px;` : ""}${it.style || ""}`;
+        d.innerHTML = it.html;
+        it.el = d;
+        frag.appendChild(d);
+      });
+      el.art.appendChild(frag);
+      items = out;
     }
 
-    function prep(nd) {
-      if (nd.ready) return;
-      nd.joint = nd.el.querySelector(".joint");
-      nd.dia = nd.el.querySelector(".diamond");
-      nd.card = nd.el.querySelector(".card");
-      nd.title = nd.el.querySelector("h3");
-      nd.blurb = nd.el.querySelector(".card-blurb");
-      nd.dot = nd.el.querySelector(".dot");
-      nd.lab = nd.el.querySelector(".lab");
-      nd.ready = true;
-    }
-
-    function paintMajor(nd, u) {
-      prep(nd);
-      if (u <= 0) {
-        if (nd.zero) return;
-        nd.zero = true;
-        nd.settled = false;
-        set(nd.path, "strokeDashoffset", nd.pathLen.toFixed(2));
-        set(nd.ink, "strokeDashoffset", nd.pathLen.toFixed(2));
-        set(nd.joint, "transform", "scale(0)");
-        set(nd.dia, "transform", "rotate(45deg) scale(0)");
-        set(nd.card, "opacity", "0");
-        set(nd.card, "transform", "scale(0)");
-        return;
-      }
-      nd.zero = false;
-      if (u >= 1) {
-        if (nd.settled) return;
-        nd.settled = true;
-        set(nd.path, "strokeDashoffset", "0");
-        set(nd.ink, "strokeDashoffset", "0");
-        set(nd.joint, "transform", "scale(1)");
-        set(nd.dia, "transform", "rotate(45deg) scale(1)");
-        set(nd.card, "opacity", "1");
-        set(nd.card, "transform", "scale(1)");
-        set(nd.title, "clipPath", "inset(0 0 0 0)");
-        if (nd.blurb) set(nd.blurb, "clipPath", "inset(0 0 0 0)");
-        return;
-      }
-      nd.settled = false;
-      const cu = band(u, 0, 0.4);
-      const ju = band(u, 0.06, 0.38);
-      const du = band(u, 0.28, 0.66);
-      const su = band(u, 0.4, 0.76);
-      const tu = band(u, 0.55, 0.84);
-      const bu = band(u, 0.68, 0.96);
-      const js = reduce ? ju : pop(ju);
-      const ds = reduce ? du : pop(du);
-      const ss = reduce ? su : pop(su);
-      const off = (nd.pathLen * (1 - cu)).toFixed(2);
-      set(nd.path, "strokeDashoffset", off);
-      set(nd.ink, "strokeDashoffset", off);
-      set(nd.joint, "transform", `scale(${js.toFixed(3)})`);
-      set(nd.dia, "transform", `rotate(45deg) scale(${Math.max(0, ds).toFixed(3)})`);
-      set(nd.card, "transform", `scale(${Math.max(0, ss).toFixed(3)})`);
-      set(nd.card, "opacity", clamp((su - 0.04) / 0.42, 0, 1).toFixed(3));
-      set(nd.title, "clipPath", `inset(0 ${((1 - tu) * 100).toFixed(1)}% 0 0)`);
-      if (nd.blurb) set(nd.blurb, "clipPath", `inset(0 ${((1 - bu) * 100).toFixed(1)}% 0 0)`);
-    }
-
-    function paintMinor(nd, u) {
-      prep(nd);
-      if (u <= 0) {
-        if (nd.zero) return;
-        nd.zero = true;
-        nd.settled = false;
-        set(nd.dot, "transform", "scale(0)");
-        set(nd.lab, "opacity", "0");
-        return;
-      }
-      nd.zero = false;
-      if (u >= 1) {
-        if (nd.settled) return;
-        nd.settled = true;
-        set(nd.dot, "transform", "scale(1)");
-        set(nd.lab, "opacity", "1");
-        set(nd.lab, "transform", "translate3d(0,0,0)");
-        return;
-      }
-      nd.settled = false;
-      const du = band(u, 0.04, 0.46);
-      const lu = band(u, 0.32, 0.78);
-      const ds = reduce ? du : pop(du);
-      const dy = (1 - lu) * (nd.side === "up" ? 8 : -8);
-      set(nd.dot, "transform", `scale(${Math.max(0, ds).toFixed(3)})`);
-      set(nd.lab, "opacity", lu.toFixed(3));
-      set(nd.lab, "transform", `translate3d(0,${dy.toFixed(1)}px,0)`);
-    }
-
-    function render(p) {
-      const cam = xAt(p);
-      set(el.mid, "transform", `translate3d(${(FOCUS_X - cam).toFixed(1)}px,0,0)`);
-      set(el.decades, "transform", `translate3d(${(FOCUS_X - cam * 0.6).toFixed(1)}px,0,0)`);
-      set(el.fg, "transform", `translate3d(${(FOCUS_X - cam * 1.42).toFixed(1)}px,0,0)`);
-      set(el.walker, "transform", `translate3d(${cam.toFixed(1)}px,0,0)`);
-
-      const drawn = clamp(cam + LEAD - axisX0, 0, axisLen);
-      const axisOff = (axisLen - drawn).toFixed(1);
-      set(axisPath, "strokeDashoffset", axisOff);
-      set(axisInk, "strokeDashoffset", axisOff);
-
-      const left = cam - FOCUS_X - 520;
-      const right = cam + (1920 - FOCUS_X) + 520;
-      for (let i = 0; i < n; i++) {
-        const nd = nodes[i];
-        const on = nd.x > left && nd.x < right;
-        if (!on) {
-          if (!nd.hidden) {
-            nd.el.style.visibility = "hidden";
-            nd.hidden = true;
-          }
+    function renderArt(p) {
+      for (const it of items) {
+        const e = it.el;
+        if (p <= it.inA || p >= it.outA + it.outW) {
+          set(e, "visibility", "hidden");
           continue;
         }
-        if (nd.hidden) {
-          nd.el.style.visibility = "visible";
-          nd.hidden = false;
-          nd.settled = false;
-          nd.zero = false;
+        const ein = smooth((p - it.inA) / it.inW);
+        const eout = smooth((p - it.outA) / it.outW);
+        const qi = 1 - ein;
+        const f = it.f;
+        const t = it.t;
+        const m = it.mid;
+        const em = m ? smooth((p - it.anchor - m.p[0]) / (m.p[1] - m.p[0])) : 0;
+        const x = (f.x || 0) * qi + (t.x || 0) * eout - (p - it.anchor) * it.dr + (m ? (m.x || 0) * em : 0);
+        const y = (f.y || 0) * qi + (t.y || 0) * eout + (m ? (m.y || 0) * em : 0);
+        const r = (f.r || 0) * qi + (t.r || 0) * eout + (m ? (m.r || 0) * em : 0);
+        const s = 1 + ((f.s ?? 1) - 1) * qi + ((t.s ?? 1) - 1) * eout + (m ? ((m.s ?? 1) - 1) * em : 0);
+        let o = 1;
+        if (f.o !== undefined) o *= f.o + (1 - f.o) * ein;
+        if (t.o !== undefined) o *= 1 + (t.o - 1) * eout;
+        set(e, "visibility", o > 0.004 ? "visible" : "hidden");
+        set(e, "opacity", o.toFixed(3));
+        set(e, "transform", `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${Math.max(0, s).toFixed(3)})`);
+        if (it.clip) {
+          const q = [0, 0, 0, 0];
+          const side = { t: 0, r: 1, b: 2, l: 3 };
+          if (it.c) q[(side[it.c] + 2) % 4] = qi;
+          if (it.tc) q[side[it.tc]] = Math.max(q[side[it.tc]], eout);
+          set(e, "clipPath", `inset(${q.map((v) => `calc(${v.toFixed(3)} * (100% + 8px) - 4px)`).join(" ")})`);
         }
-        const u = nd.major
-          ? clamp((cam - (nd.x - 340)) / 300, 0, 1)
-          : clamp((cam - (nd.x - 220)) / 200, 0, 1);
-        if (nd.major) paintMajor(nd, u);
-        else paintMinor(nd, u);
-      }
-
-      const bp = `${(-cam * 0.6).toFixed(1)}px 0`;
-      segs.forEach((seg, k) => {
-        const cx = (RX[seg.start] + RX[seg.end]) / 2;
-        const near = clamp(1 - Math.abs(cam - cx) / 2600, 0, 1);
-        const sc = (0.88 + 0.12 * near).toFixed(3);
-        const op = (0.07 + 0.28 * near).toFixed(3);
-        const sx = FOCUS_X + (cx - cam) * 0.2;
-        if (k === 0 || seg.on) {
-          set(seg.el, "backgroundPosition", `${bp}, ${bp}`);
-          set(seg.loom, "opacity", op);
-          set(seg.loom, "transform", `translate3d(${(sx - 430).toFixed(1)}px,48px,0) scale(${sc})`);
-        }
-        if (k === 0) return;
-        const travel = cam - (RX[seg.start] - 140);
-        const t = clamp(travel / 700, 0, 1);
-        if (t <= 0) {
-          if (seg.on) {
-            seg.el.style.visibility = "hidden";
-            seg.on = false;
-            seg.full = false;
-            set(seg.ring, "opacity", "0");
-          }
-          return;
-        }
-        if (!seg.on) {
-          seg.el.style.visibility = "visible";
-          seg.on = true;
-          set(seg.el, "backgroundPosition", `${bp}, ${bp}`);
-        }
-        if (t >= 1) {
-          if (!seg.full) {
-            seg.full = true;
-            set(seg.el, "clipPath", "none");
-            set(seg.ring, "opacity", "0");
-          }
-          return;
-        }
-        seg.full = false;
-        const ox = FOCUS_X + (RX[seg.start] - cam);
-        const oy = AXIS_Y - 88;
-        const radius = 36 + t * 2500;
-        set(seg.el, "clipPath", `circle(${radius.toFixed(0)}px at ${ox.toFixed(1)}px ${oy.toFixed(1)}px)`);
-        set(seg.ring, "opacity", ((1 - t) * 0.9).toFixed(3));
-        set(seg.ring, "transform", `translate3d(${ox.toFixed(1)}px,${AXIS_Y.toFixed(1)}px,0) scale(${(radius / 100).toFixed(3)})`);
-      });
-
-      const dt = new Date(timeAt(p));
-      const ys = String(dt.getUTCFullYear());
-      const ds = `${pad(dt.getUTCMonth() + 1)}.${pad(dt.getUTCDate())}`;
-      if (ys !== hudYear) {
-        hudYear = ys;
-        el.year.textContent = ys;
-      }
-      if (ds !== hudDate) {
-        hudDate = ds;
-        el.date.textContent = ds;
-      }
-      const hr = String(Math.round(human(p)));
-      if (hr !== hudHuman) {
-        hudHuman = hr;
-        el.human.textContent = hr;
-      }
-      const xs = String(Math.round(cam));
-      if (xs !== hudX) {
-        hudX = xs;
-        el.xread.textContent = `X ${xs}  ·  Y 0.00`;
-      }
-
-      const span = RX[n - 1] - RX[0] || 1;
-      const frac = clamp((cam - RX[0]) / span, 0, 1);
-      set(el.fill, "transform", `scaleX(${frac.toFixed(4)})`);
-      set(el.head, "transform", `translate3d(${(frac * SCRUB_W).toFixed(1)}px,0,0)`);
-      set(el.timer, "transform", `scaleX(${frac.toFixed(4)})`);
-
-      const near = clamp(Math.round(Math.max(p, 0)), 0, n - 1);
-      if (near !== nearK) {
-        nearK = near;
-        const e = ev[near];
-        el.era.textContent = e.era;
-        el.idx.textContent = `EV-${pad(near + 1, 2)}`;
-        el.count.textContent = `${pad(near + 1)}/${pad(n)}`;
-        el.scrub.setAttribute("aria-valuenow", String(near + 1));
-        el.scrub.setAttribute("aria-valuetext", `${e.date} ${e.title}`);
-        tickEls.forEach((tk, i) => {
-          tk.classList.toggle("is-past", i < near);
-          tk.classList.toggle("is-on", i === near);
-        });
-      }
-
-      const moving = playing || Math.abs(vel) > 0.045;
-      if (moving !== wasGo) {
-        wasGo = moving;
-        el.scene.classList.toggle("is-go", moving);
+        if (it.draw) set(e, "--dr", (ein * (1 - eout)).toFixed(3));
       }
     }
 
+    /* ---------- 布局 ---------- */
+
     function layout() {
-      ev = M.events;
+      const ev = M.events;
       n = ev.length;
-      if (!n) return;
-      RX = new Array(n);
-      RX[0] = 0;
-      for (let i = 1; i < n; i++) {
-        const years = Math.max(0, (ev[i].t - ev[i - 1].t) / (365.25 * 864e5));
-        let g = 156 + 82 * Math.log2(1 + years);
-        if (years < 0.45) g += 48;
-        const hi = ev[i].impact === "high";
-        const hip = ev[i - 1].impact === "high";
-        if (hi || hip) g = Math.max(g, 300);
-        if (hi && hip) g = Math.max(g, 380);
-        if (ev[i].era !== ev[i - 1].era) g += 110;
-        RX[i] = RX[i - 1] + g;
-      }
+
+      let x = 0;
+      ev.forEach((e, i) => {
+        if (i > 0) {
+          const years = Math.max(0, (e.t - ev[i - 1].t) / (365.25 * 864e5));
+          x += 208 + 72 * Math.log2(1 + years);
+          if (e.phase !== ev[i - 1].phase) x += 96;
+        }
+        RX[i] = x;
+      });
+      xAtTime = (t) => {
+        if (t <= ev[0].t) return RX[0] - ((ev[0].t - t) / (365.25 * 864e5)) * 40;
+        if (t >= ev[n - 1].t) return RX[n - 1] + ((t - ev[n - 1].t) / (365.25 * 864e5)) * 400;
+        let k = 0;
+        while (k < n - 2 && ev[k + 1].t <= t) k++;
+        const a = ev[k].t;
+        const b = ev[k + 1].t;
+        return RX[k] + (RX[k + 1] - RX[k]) * (b > a ? (t - a) / (b - a) : 0);
+      };
+      xMin = RX[0] - 1400;
+      xMax = RX[n - 1] + 1400;
+
       const cg = Math.max(0, ev.findIndex((e) => e.title === "ChatGPT"));
       leafCurve = M.leaves.map((l) => ({
         rem: l.remaining,
         j: l.hits.length ? Math.min(...l.hits.map((h) => ev.indexOf(h))) : -1,
         a: cg,
-        b: Math.max(cg + 1, n - 1),
+        b: n - 1,
       }));
-      layoutNodes();
-      layoutSegs();
-      buildDom();
-      nearK = -1;
-      render(pos);
+
+      const y0 = Number(ev[0].date.slice(0, 4));
+      const y1 = Number(ev[n - 1].date.slice(0, 4)) + 1;
+      let yh = "";
+      let lastLab = -Infinity;
+      for (let y = y0 - 4; y <= y1; y++) {
+        const yx = xAtTime(Date.UTC(y, 0, 1));
+        const dec = y % 10 === 0;
+        const lab = yx - lastLab >= 46 && (dec || yx - lastLab >= 90 || y >= 2010);
+        if (lab) lastLab = yx;
+        yh += `<span class="${dec ? "is-dec" : ""}" style="left:${yx.toFixed(1)}px">${lab ? `<b>${y}</b>` : ""}</span>`;
+      }
+      el.years.innerHTML = yh;
+
+      el.railPh.innerHTML = M.phases
+        .map((p, k) => {
+          const a = k === 0 ? xMin : (RX[p.start - 1] + RX[p.start]) / 2 + 40;
+          const b = k + 1 < M.phases.length ? (RX[p.end] + RX[p.end + 1]) / 2 + 40 : xMax;
+          return `<span style="left:${a.toFixed(0)}px;width:${(b - a).toFixed(0)}px"><em>PHASE ${pad(p.no)}</em>${esc(p.name)}</span>`;
+        })
+        .join("");
+
+      el.events.innerHTML = ev
+        .map(
+          (e, i) =>
+            `<div class="rv-ev" data-i="${i}" data-impact="${e.impact || "mid"}" style="left:${RX[i]}px;--stem:${i % 2 ? 46 : 18}px"><span><time>${fmtDate(e.date)}</time><strong>${esc(e.title)}</strong></span></div>`
+        )
+        .join("");
+      evEls = [...el.events.querySelectorAll(".rv-ev")];
+
+      let line = "";
+      let area = `M${xMin} 0`;
+      for (let p = -1 - 1400 / S; p <= n - 1 + 1400 / S; p += 0.05) {
+        const px = railX(p);
+        const py = curveY(human(clamp(p, -1, n - 1)));
+        line += `${line ? "L" : "M"}${px.toFixed(1)} ${py.toFixed(2)} `;
+        area += ` L${px.toFixed(1)} ${py.toFixed(2)}`;
+      }
+      area += ` L${xMax} 0 Z`;
+      el.ero.setAttribute("width", String(xMax - xMin));
+      el.ero.setAttribute("height", "100");
+      el.ero.setAttribute("viewBox", `${xMin} 0 ${xMax - xMin} 100`);
+      el.ero.style.left = `${xMin}px`;
+      el.ero.innerHTML = `<defs>
+          <pattern id="ero-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="8" class="ero-hatch-line" /></pattern>
+          <clipPath id="ero-clip"><rect id="ero-rect" x="${xMin}" y="-10" width="0" height="120" /></clipPath>
+        </defs>
+        <path class="ero-line is-future" d="${line}" />
+        <g clip-path="url(#ero-clip)"><path class="ero-area" d="${area}" /><path class="ero-line" d="${line}" /></g>`;
+      el.eroRect = el.ero.querySelector("#ero-rect");
+
+      build();
+      layoutAxis();
+
+      let html = "";
+      for (let k = 0; k < 4; k++) {
+        let col = "";
+        for (let v = 0; v <= 10; v++) col += `<span>${v % 10}</span>`;
+        html += `<span class="dg"><span class="dg-col">${col}</span></span>`;
+      }
+      el.year.innerHTML = html;
+    }
+
+    function layoutAxis() {
+      const ev = M.events;
+      const span = (RX[n - 1] - RX[0]) || 1;
+      const frac = (x) => clamp((x - RX[0]) / span, 0, 1);
+      xs = RX.map(frac);
+      const xAt = (t) => frac(xAtTime(t));
+      const y0 = Number(ev[0].date.slice(0, 4));
+      const y1 = Number(ev[n - 1].date.slice(0, 4));
+      const want = [];
+      for (let y = Math.ceil(y0 / 10) * 10; y <= y1; y += 10) want.push(y);
+      for (let y = 2012; y <= y1; y++) want.push(y);
+      let lastX = -1;
+      el.axYears.innerHTML = [...new Set(want)]
+        .sort((a, b) => a - b)
+        .map((y) => {
+          const x = xAt(Date.UTC(y, 0, 1));
+          if (lastX >= 0 && (x - lastX) * AXIS_W < 48) return "";
+          lastX = x;
+          return `<span style="left:${(x * 100).toFixed(3)}%">${y}</span>`;
+        })
+        .join("");
+
+      const Hh = { high: 18, mid: 12, low: 7 };
+      el.ticks.innerHTML = ev
+        .map((e, i) => `<span class="tk" data-impact="${e.impact || "mid"}" style="left:${(xs[i] * 100).toFixed(3)}%;--h:${Hh[e.impact] || 12}px"></span>`)
+        .join("");
+
+      el.phases.innerHTML = M.phases
+        .map((p, k) => {
+          const a = k === 0 ? 0 : (xs[p.start - 1] + xs[p.start]) / 2;
+          const b = k + 1 < M.phases.length ? (xs[p.end] + xs[p.end + 1]) / 2 : 1;
+          const wide = (b - a) * AXIS_W > 96;
+          return `<button type="button" class="ph" data-k="${k}" style="left:${(a * 100).toFixed(3)}%;width:${((b - a) * 100).toFixed(3)}%" title="${esc(p.name)} ${p.y0}—${p.y1}"><em>${pad(p.no)}</em>${wide ? esc(p.name) : ""}</button>`;
+        })
+        .join("");
+      el.body.setAttribute("aria-valuemax", String(n));
+    }
+
+    function invXs(f) {
+      if (f <= xs[0]) return 0;
+      if (f >= xs[n - 1]) return n - 1;
+      let k = 0;
+      while (k < n - 2 && xs[k + 1] < f) k++;
+      return k + (f - xs[k]) / (xs[k + 1] - xs[k] || 1);
+    }
+
+    /* ---------- 文字槽位 ---------- */
+
+    function titleSize(s) {
+      let u = 0;
+      for (const ch of s) u += ch === " " ? 0.24 : isCJK(ch) ? 0.92 : /[A-Z0-9]/.test(ch) ? 0.5 : 0.42;
+      const one = (COL_W - 4) / u;
+      if (one >= 58) return Math.min(one, 96);
+      return clamp(((COL_W - 4) * 1.85) / u, 34, 56);
+    }
+
+    function titleHTML(s) {
+      return [...s].map((c) => (isCJK(c) ? `<span class="cjk">${esc(c)}</span>` : esc(c))).join("");
+    }
+
+    function fill(slot, i) {
+      if (i < 0 || i >= n) {
+        slot.innerHTML = "";
+        return [];
+      }
+      const e = M.events[i];
+      const p = M.phases[e.phase];
+      const lvl = { low: 1, mid: 2, high: 3 }[e.impact] || 2;
+      const rows = e.leaves;
+      const MAX = 3;
+      const rep = rows.length
+        ? rows
+            .slice(0, MAX)
+            .map(
+              (l) =>
+                `<div class="sl-row"><span>${esc(l.name)}<small>${esc(l.domain.name)}</small></span>${bar(l.remaining)}<b class="${l.remaining <= CRIT ? "is-crit" : ""}">${l.remaining}</b></div>`
+            )
+            .join("") + (rows.length > MAX ? `<p class="sl-more">+ ${rows.length - MAX} 项</p>` : "")
+        : `<p class="sl-empty">未直接记入领域让渡，是其后 ${n - 1 - i} 个节点的前置。</p>`;
+
+      slot.innerHTML = `
+        <div class="sl-meta" data-r="0">
+          <span class="sl-era">${esc(e.era)}</span>
+          <span class="sl-phase">PHASE ${pad(p.no)}-${pad(i - p.start + 1)} · No.${pad(i + 1, 3)}</span>
+          <span class="sl-date">${fmtDate(e.date)}</span>
+        </div>
+        <h3 class="sl-title" data-r="1" style="--fs:${titleSize(e.title).toFixed(1)}px">${titleHTML(e.title)}</h3>
+        <div class="sl-rule" data-r="2"></div>
+        <p class="sl-blurb" data-r="3">${esc(e.blurb || "")}</p>
+        <div class="sl-foot" data-r="4">
+          ${(e.tags || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
+          <span class="sl-imp" data-level="${e.impact || "mid"}">${[1, 2, 3].map((v) => `<i class="${v <= lvl ? "is-on" : ""}"></i>`).join("")}<b>${(e.impact || "mid").toUpperCase()}</b></span>
+        </div>
+        <div class="sl-rep" data-r="5">
+          <p class="sl-rep-h">让渡记录<span>TRANSFERRED</span><b>${pad(rows.length)}</b></p>
+          ${rep}
+        </div>`;
+      return [...slot.querySelectorAll("[data-r]")];
+    }
+
+    /* ---------- 每帧渲染 ---------- */
+
+    function yearFloat(ms) {
+      const d = new Date(ms);
+      const y = d.getUTCFullYear();
+      const a = Date.UTC(y, 0, 1);
+      const b = Date.UTC(y + 1, 0, 1);
+      return y + (ms - a) / (b - a);
+    }
+
+    function odometer(yf) {
+      const cols = el.year.querySelectorAll(".dg-col");
+      const digits = [yf % 10];
+      let carry = Math.max(0, digits[0] - 9);
+      for (let k = 1; k < 4; k++) {
+        const base = Math.floor(yf / Math.pow(10, k)) % 10;
+        digits[k] = base + carry;
+        if (base !== 9) carry = 0;
+      }
+      for (let k = 0; k < 4; k++) {
+        const col = cols[3 - k];
+        if (col) set(col, "transform", `translateY(${(-digits[k]).toFixed(4)}em)`);
+      }
+    }
+
+    function render(p) {
+      const k = n > 1 ? clamp(Math.floor(p), -1, n - 2) : 0;
+      const t = n > 1 ? clamp(p - k, 0, 1) : 0;
+      const rx = railX(p);
+
+      set(el.world, "transform", `translate3d(${(HEAD_X - rx).toFixed(2)}px,0,0)`);
+      set(el.bg, "--gx", `${(-(rx * 0.3) % 120).toFixed(1)}px`);
+      set(el.bg, "--bx", `${(-rx % 1000).toFixed(1)}px`);
+      const cw = Math.round(rx - xMin);
+      if (cw !== clipW && el.eroRect) {
+        clipW = cw;
+        el.eroRect.setAttribute("width", String(Math.max(0, cw)));
+      }
+
+      const h = human(p);
+      const hr = Math.round(h);
+      set(el.zone, "--m", ((100 - h) / 100).toFixed(4));
+      if (el.zoneH.textContent !== String(hr)) {
+        el.zoneH.textContent = String(hr);
+        el.zoneM.textContent = String(100 - hr);
+        el.rhH.textContent = String(hr);
+      }
+      set(el.rhVal, "transform", `translate3d(0,${clamp(curveY(h) - 46, 0, 60).toFixed(1)}px,0)`);
+
+      evEls.forEach((nd, i) => set(nd, "--f", smooth(1 - Math.abs(p - i) * 1.4).toFixed(3)));
+
+      const ka = clamp(k, 0, n - 1);
+      const kb = clamp(k + 1, 0, n - 1);
+      const ms = p < 0 ? M.events[0].t : M.events[ka].t + (M.events[kb].t - M.events[ka].t) * t;
+      odometer(yearFloat(ms));
+      const dd = new Date(ms);
+      const ds = `${dd.getUTCFullYear()}.${pad(dd.getUTCMonth() + 1)}`;
+      if (el.rhDate.textContent !== ds) el.rhDate.textContent = ds;
+
+      if (slotK !== k) {
+        slotK = k;
+        rowsA = fill(el.slotA, k);
+        rowsB = fill(el.slotB, k + 1);
+      }
+      rowsA.forEach((r, j) => set(r, "--e", (1 - smooth((t - 0.08 - j * 0.04) / 0.32)).toFixed(3)));
+      rowsB.forEach((r, j) => set(r, "--e", smooth((t - 0.42 - j * 0.04) / 0.32).toFixed(3)));
+      set(el.scan, "transform", `translate3d(${((0.02 + 0.96 * t) * COL_W).toFixed(1)}px,0,0)`);
+      set(el.scan, "opacity", Math.sin(Math.PI * t).toFixed(3));
+
+      renderArt(p);
+
+      const fx = p < 0 ? 0 : xs[ka] + (xs[kb] - xs[ka]) * t;
+      set(el.head, "transform", `translate3d(${(fx * AXIS_W).toFixed(2)}px,0,0)`);
+      set(el.progress, "transform", `scaleX(${fx.toFixed(4)})`);
+
+      const near = clamp(Math.round(p), 0, n - 1);
+      if (near !== nearK) {
+        nearK = near;
+        const e = M.events[near];
+        el.ticks.querySelectorAll(".tk").forEach((tk, i) => {
+          tk.classList.toggle("is-past", i < near);
+          tk.classList.toggle("is-on", i === near);
+        });
+        el.phases.querySelectorAll(".ph").forEach((b, i) => b.classList.toggle("is-on", i === e.phase));
+        const wash = ERA_WASH[e.era] || "#d9d4c8";
+        set(el.bg, "--wash", wash);
+        el.body.setAttribute("aria-valuenow", String(near + 1));
+        el.body.setAttribute("aria-valuetext", `${e.date} ${e.title}`);
+      }
+    }
+
+    /* ---------- 物理 / 循环 ---------- */
+
+    function snap() {
+      const f = target - Math.floor(target);
+      if (f < 1e-6) return;
+      if (lastDir > 0) target = f > 0.12 ? Math.ceil(target) : Math.floor(target);
+      else if (lastDir < 0) target = f < 0.88 ? Math.floor(target) : Math.ceil(target);
+      else target = Math.round(target);
+      target = clamp(target, 0, n - 1);
     }
 
     function frame(now) {
       const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000));
       lastT = now;
-      if (playing && !dragging && n > 1) {
-        const px = cruise(xAt(pos));
-        target += (px / gapAt(pos)) * dt;
-        if (target > pos + 0.55) target = pos + 0.55;
-        if (target > n - 1) target = n - 1;
+
+      if (!dragging && now - lastInput > 260) snap();
+
+      const w = dragging ? 26 : pos < 0 ? 3.2 : 5.4;
+      const zeta = dragging ? 1 : 0.74;
+      const acc = w * w * (target - pos) - 2 * zeta * w * vel;
+      vel += acc * dt;
+      pos += vel * dt;
+      if (Math.abs(target - pos) < 1e-4 && Math.abs(vel) < 1e-3) {
+        pos = target;
+        vel = 0;
       }
-      if (!dragging) {
-        if (reduce) {
-          pos = target;
-          vel = 0;
-        } else {
-          const w = 5.2;
-          const zeta = 0.88;
-          const acc = w * w * (target - pos) - 2 * zeta * w * vel;
-          vel += acc * dt;
-          pos += vel * dt;
-          if (Math.abs(target - pos) < 2e-4 && Math.abs(vel) < 2e-3) {
-            pos = target;
-            vel = 0;
+      pos = clamp(pos, -1, n - 1);
+
+      const settled = !dragging && pos === target && Number.isInteger(target);
+      if (settled && !settledAt) settledAt = now;
+      if (!settled) settledAt = 0;
+      if (playing && settled) {
+        const pr = (now - settledAt) / DWELL;
+        set(el.timer, "transform", `scaleX(${clamp(pr, 0, 1).toFixed(3)})`);
+        if (pr >= 1) {
+          if (target < n - 1) {
+            target += 1;
+            lastDir = 1;
+          } else {
+            setPlaying(false);
           }
         }
+      } else if (!playing) {
+        set(el.timer, "transform", "scaleX(0)");
       }
-      pos = clamp(pos, -0.35, n - 1);
-      if (playing && target >= n - 1 - 1e-4 && pos >= n - 1 - 0.004) setPlaying(false);
+
       render(pos);
       raf = requestAnimationFrame(frame);
     }
 
     function paintPlay() {
-      el.play.innerHTML = intent ? '<span class="i-pause"></span>' : '<span class="i-play"></span>';
+      const showPause = intent;
+      el.play.innerHTML = showPause ? '<span class="i-pause"></span>' : '<span class="i-play"></span>';
       el.play.classList.toggle("is-hold", intent && suspend);
       el.play.setAttribute("aria-label", intent ? (suspend ? "悬停已暂停，移开继续" : "暂停自动回放") : "开始自动回放");
     }
 
     function setPlaying(v) {
       intent = v;
-      playing = intent && !suspend && !reduce;
+      playing = intent && !suspend;
+      if (!playing) settledAt = 0;
       paintPlay();
     }
 
     function setSuspend(v) {
       if (suspend === v) return;
       suspend = v;
-      playing = intent && !suspend && !reduce;
+      playing = intent && !suspend;
+      if (suspend) settledAt = 0;
       paintPlay();
     }
 
@@ -1191,26 +1414,27 @@
         setPlaying(false);
         return;
       }
-      if (n > 1 && target >= n - 1 - 0.02 && pos >= n - 1 - 0.05) {
+      if (Math.round(target) >= n - 1) {
         target = 0;
-        pos = -0.2;
-        vel = 0;
+        lastDir = -1;
       }
       setPlaying(true);
+      settledAt = 0;
     }
 
     function step(d) {
       setPlaying(false);
+      lastDir = d;
       target = clamp(Math.round(target) + d, 0, n - 1);
     }
 
     function goTo(i) {
       setPlaying(false);
+      lastDir = 0;
       target = clamp(i, 0, n - 1);
     }
 
     function wheel(e) {
-      if (!n) return false;
       const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
       const d = raw * (e.deltaMode === 1 ? 33 : 1);
       if (Math.abs(d) < 1) return true;
@@ -1222,8 +1446,9 @@
       }
       edgeAt = 0;
       setPlaying(false);
-      const px = clamp(d * 1.25, -480, 480);
-      target = clamp(invX(xAt(target) + px), -0.15, n - 1);
+      lastDir = Math.sign(d);
+      lastInput = performance.now();
+      target = clamp(target + d * 0.0032, 0, n - 1);
       return true;
     }
 
@@ -1235,22 +1460,25 @@
       $("#ac-next").addEventListener("click", () => step(1));
       el.play.addEventListener("click", toggle);
 
+      el.phases.addEventListener("click", (ev) => {
+        const b = ev.target.closest(".ph");
+        if (b) goTo(M.phases[Number(b.dataset.k)].start);
+      });
+
       const scale = () => Number(stage.style.getPropertyValue("--s")) || 1;
+
       let lastX = 0;
       let downX = 0;
-      let downY = 0;
       let lastMoveT = 0;
-      let camVel = 0;
-
+      let v = 0;
       el.hit.addEventListener("pointerdown", (ev) => {
         dragging = true;
         setPlaying(false);
         el.hit.setPointerCapture(ev.pointerId);
         el.hit.classList.add("is-drag");
         lastX = downX = ev.clientX;
-        downY = ev.clientY;
         lastMoveT = performance.now();
-        camVel = 0;
+        v = 0;
         target = pos;
         vel = 0;
       });
@@ -1259,96 +1487,72 @@
         const now = performance.now();
         const dx = (ev.clientX - lastX) / scale();
         lastX = ev.clientX;
-        const dtm = Math.max(8, now - lastMoveT) / 1000;
+        const k = clamp(Math.floor(target), 0, n - 2);
+        const sp = RX[k + 1] - RX[k] || S;
+        const dp = -dx / sp;
+        target = clamp(target + dp, -0.4, n - 1);
+        const dtm = Math.max(1, now - lastMoveT);
+        v = v * 0.6 + (dp / dtm) * 1000 * 0.4;
         lastMoveT = now;
-        pos = clamp(invX(xAt(pos) - dx), -0.25, n - 1);
-        target = pos;
-        vel = 0;
-        const inst = -dx / dtm;
-        camVel = camVel * 0.55 + inst * 0.45;
       });
       const up = (ev) => {
         if (!dragging) return;
         dragging = false;
         el.hit.classList.remove("is-drag");
-        const moved = Math.hypot(ev.clientX - downX, ev.clientY - downY);
-        if (moved < 6) {
-          const s = scale();
-          const r = stage.getBoundingClientRect();
-          const sx = (ev.clientX - r.left) / s;
-          const sy = (ev.clientY - r.top) / s;
-          const cam = xAt(pos);
-          const wx = cam + (sx - FOCUS_X);
-          let best = -1;
-          nodes.forEach((nd, i) => {
-            if (Math.hypot(wx - nd.x, sy - AXIS_Y) < 28) best = i;
-            if (nd.major) {
-              if (Math.hypot(wx - nd.endX, sy - nd.endY) < 26) best = i;
-              if (wx >= nd.cardX && wx <= nd.cardX + CARD_W && sy >= nd.cardY && sy <= nd.cardY + CARD_H) best = i;
-            }
-          });
-          if (best >= 0) goTo(best);
+        if (Math.abs(ev.clientX - downX) < 6) {
+          const r = el.hit.getBoundingClientRect();
+          const sy = (ev.clientY - r.top) / scale() + 180;
+          if (sy >= 700) {
+            const wx = (ev.clientX - r.left) / scale() - HEAD_X + railX(pos);
+            let best = Math.round(pos);
+            let bd = Infinity;
+            RX.forEach((x, i) => {
+              const dd = Math.abs(wx - x - 60);
+              if (dd < bd) {
+                bd = dd;
+                best = i;
+              }
+            });
+            goTo(best);
+          }
           return;
         }
-        if (performance.now() - lastMoveT > 80) camVel = 0;
-        target = clamp(invX(xAt(pos) + clamp(camVel, -2400, 2400) * 0.32), -0.15, n - 1);
+        if (performance.now() - lastMoveT > 120) v = 0;
+        lastDir = Math.sign(v);
+        target = clamp(target + clamp(v * 0.22, -3, 3), 0, n - 1);
+        lastInput = 0;
       };
       el.hit.addEventListener("pointerup", up);
       el.hit.addEventListener("pointercancel", up);
 
-      let scrubDrag = false;
-      const scrubTo = (ev) => {
-        const r = el.scrub.getBoundingClientRect();
-        const f = clamp((ev.clientX - r.left) / r.width, 0, 1);
-        const x = (RX[0] || 0) + f * ((RX[n - 1] || 0) - (RX[0] || 0));
-        target = invX(x);
-        pos = target;
-        vel = 0;
+      let axisDrag = false;
+      const axisTo = (ev) => {
+        const r = el.body.getBoundingClientRect();
+        target = invXs(clamp((ev.clientX - r.left) / r.width, 0, 1));
       };
-      el.scrub.addEventListener("pointerdown", (ev) => {
-        scrubDrag = true;
+      el.body.addEventListener("pointerdown", (ev) => {
+        axisDrag = true;
         dragging = true;
         setPlaying(false);
-        el.scrub.setPointerCapture(ev.pointerId);
-        scrubTo(ev);
+        el.body.setPointerCapture(ev.pointerId);
+        axisTo(ev);
       });
-      el.scrub.addEventListener("pointermove", (ev) => {
-        if (scrubDrag) scrubTo(ev);
-      });
-      const scrubUp = () => {
-        if (!scrubDrag) return;
-        scrubDrag = false;
+      el.body.addEventListener("pointermove", (ev) => axisDrag && axisTo(ev));
+      const axisUp = () => {
+        if (!axisDrag) return;
+        axisDrag = false;
         dragging = false;
+        lastDir = 0;
+        lastInput = 0;
       };
-      el.scrub.addEventListener("pointerup", scrubUp);
-      el.scrub.addEventListener("pointercancel", scrubUp);
-      el.scrub.addEventListener("keydown", (ev) => {
-        if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") {
-          ev.preventDefault();
-          ev.stopPropagation();
-          step(ev.key === "ArrowRight" ? 1 : -1);
-        }
-      });
+      el.body.addEventListener("pointerup", axisUp);
+      el.body.addEventListener("pointercancel", axisUp);
     }
 
-    function enter(prev) {
-      if (!n) return;
-      if (prev === 0 || prev == null || prev < 0) {
-        vel = 0;
-        nearK = -1;
-        if (reduce) {
-          pos = 0;
-          target = 0;
-          setPlaying(false);
-        } else {
-          pos = -0.28;
-          target = 0;
-          setPlaying(true);
-        }
-      }
+    function enter() {
       lastT = performance.now();
+      settledAt = 0;
       edgeAt = 0;
-      render(pos);
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(frame);
     }
@@ -1360,7 +1564,6 @@
 
     return { layout, bind, enter, leave, step, toggle, wheel, setPlaying };
   })();
-
 
   /* ==========================================================
      02 领域血条
@@ -1570,7 +1773,7 @@
       LG.render();
 
       hooks.enter[0] = () => COVER.intro();
-      hooks.enter[1] = (prev) => TL.enter(prev);
+      hooks.enter[1] = () => TL.enter();
       hooks.leave[1] = () => TL.leave();
       hooks.enter[2] = () => DM.enter();
 
