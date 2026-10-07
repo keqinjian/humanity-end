@@ -70,8 +70,8 @@
 
 .theme button {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   background: linear-gradient(135deg, var(--sw-a) 0 50%, var(--sw-b) 50% 100%);
   box-shadow: inset 0 0 0 1px var(--hud-line);
   clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
@@ -2785,7 +2785,7 @@ a {
   position: relative;
   font-family: var(--f-display);
   font-weight: 800;
-  font-size: 180px;
+  font-size: 112px;
   line-height: 0.78;
   letter-spacing: -0.03em;
 }
@@ -2856,7 +2856,7 @@ a {
   grid-template-columns: 1fr 1fr;
   column-gap: 36px;
   align-content: start;
-  max-height: 430px;
+  max-height: 520px;
   margin: 0 28px 0 0;
   padding: 0 20px 24px 48px;
   overflow: auto;
@@ -2882,12 +2882,18 @@ a {
 }
 
 .dd-leaf-name {
-  font-size: 17px;
+  min-width: 0;
+  max-width: 48%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
   font-weight: 700;
 }
 
 .dd-leaf-by {
   flex: 1;
+  min-width: 0;
   font-family: var(--f-mono);
   font-size: 11px;
   color: var(--ink-3);
@@ -2897,6 +2903,7 @@ a {
 }
 
 .dd-leaf-val {
+  flex: none;
   font-family: var(--f-display);
   font-weight: 700;
   font-size: 26px;

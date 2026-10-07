@@ -187,9 +187,15 @@
     hooks.enter[n] && hooks.enter[n](prev);
   }
 
+  let queuedScene = null;
+
   function go(n) {
     n = clamp(n, 0, SCENES.length - 1);
-    if (n === scene || busy) return;
+    if (n === scene) return;
+    if (busy) {
+      queuedScene = n;
+      return;
+    }
     lastNav = performance.now();
     if (reduce || scene < 0) {
       swap(n);
@@ -205,6 +211,13 @@
     setTimeout(() => {
       busy = false;
       sh.classList.remove("is-run", "is-back");
+      if (queuedScene != null && queuedScene !== scene) {
+        const next = queuedScene;
+        queuedScene = null;
+        go(next);
+      } else {
+        queuedScene = null;
+      }
     }, 1200);
   }
 
@@ -223,7 +236,7 @@
   }
 
   function setTheme(t) {
-    if (!THEMES.includes(t) || t === document.documentElement.dataset.theme || busy) return;
+    if (!THEMES.includes(t) || t === document.documentElement.dataset.theme) return;
     const apply = () => {
       document.documentElement.dataset.theme = t;
       try {
@@ -233,7 +246,7 @@
       }
       markTheme();
     };
-    if (reduce) {
+    if (reduce || busy) {
       apply();
       return;
     }
