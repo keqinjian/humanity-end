@@ -1155,7 +1155,6 @@ a {
   inset: 0;
   pointer-events: none;
   background: radial-gradient(ellipse 58% 72% at 76% 40%, color-mix(in srgb, var(--wash, transparent) 70%, transparent), transparent 70%);
-  transition: background 0.7s linear;
 }
 
 .tl-head,
@@ -2393,8 +2392,9 @@ a {
   white-space: nowrap;
   overflow: hidden;
   border-left: 2px solid var(--pink);
-  color: var(--pink-2);
-  transition: background 0.3s, color 0.3s;
+  --on: 0;
+  color: color-mix(in srgb, var(--y) calc(var(--on) * 100%), var(--pink-2));
+  background: color-mix(in srgb, var(--pink) calc(var(--on) * 100%), transparent);
 }
 
 .ph em {
@@ -2406,13 +2406,8 @@ a {
 }
 
 .ph:hover {
-  color: var(--pink);
-  background: color-mix(in srgb, var(--pink) 6%, transparent);
-}
-
-.ph.is-on {
-  background: var(--pink);
-  color: var(--y);
+  color: color-mix(in srgb, var(--y) calc(var(--on, 0) * 100%), var(--pink));
+  background: color-mix(in srgb, var(--pink) calc((6 + var(--on, 0) * 94) * 1%), transparent);
 }
 
 .axis-body {
@@ -2451,31 +2446,25 @@ a {
 }
 
 .tk {
+  --bw: 3px;
+  --bm: -1px;
+  --on: 0;
+  --past: 0;
   position: absolute;
   bottom: 20px;
-  width: 3px;
-  margin-left: -1px;
+  width: calc(var(--bw) + (6px - var(--bw)) * var(--on));
+  margin-left: calc(var(--bm) + (-3px - var(--bm)) * var(--on));
   height: var(--h);
-  background: var(--pink-3);
+  background: color-mix(in srgb, var(--red) calc(var(--on) * 100%), color-mix(in srgb, var(--pink) calc(var(--past) * 100%), var(--pink-3)));
 }
 
 .tk[data-impact="high"] {
-  width: 5px;
-  margin-left: -2px;
+  --bw: 5px;
+  --bm: -2px;
 }
 
 .tk[data-impact="low"] {
-  width: 2px;
-}
-
-.tk.is-past {
-  background: var(--pink);
-}
-
-.tk.is-on {
-  width: 6px;
-  margin-left: -3px;
-  background: var(--red);
+  --bw: 2px;
 }
 
 .axis-years {
