@@ -474,7 +474,8 @@
     const HEAD_X = 960;
     const ART_X = 740;
     const ART_Y = 150;
-    const DWELL = 3600;
+    /* 自动回放的巡航速度（事件 / 秒）。经过事件时乘 playEase，只放慢、不停住。 */
+    const CRUISE = 0.25;
     const AXIS_W = 1680;
     const COL_W = 600;
 
@@ -489,13 +490,10 @@
     let pos = -0.9;
     let vel = 0;
     let target = 0;
-    let lastDir = 0;
     let intent = !reduce;
     let suspend = false;
     let playing = intent;
     let dragging = false;
-    let lastInput = 0;
-    let settledAt = 0;
     let edgeAt = 0;
     let raf = 0;
     let lastT = 0;
@@ -504,6 +502,9 @@
     let rowsA = [];
     let rowsB = [];
     let evEls = [];
+    let tickEls = [];
+    let phaseEls = [];
+    let washRGB = [];
     let clipW = -1;
     const cache = new Map();
 
@@ -1076,6 +1077,16 @@
       xMin = RX[0] - 1400;
       xMax = RX[n - 1] + 1400;
 
+      washRGB = ev.map((e) => {
+        const hex = (ERA_WASH[e.era] || "#d9d4c8").replace("#", "");
+        return {
+          hex: `#${hex}`,
+          r: parseInt(hex.slice(0, 2), 16),
+          g: parseInt(hex.slice(2, 4), 16),
+          b: parseInt(hex.slice(4, 6), 16),
+        };
+      });
+
       const cg = Math.max(0, ev.findIndex((e) => e.title === "ChatGPT"));
       leafCurve = M.leaves.map((l) => ({
         rem: l.remaining,
@@ -1182,6 +1193,8 @@
         })
         .join("");
       el.body.setAttribute("aria-valuemax", String(n));
+      tickEls = [...el.ticks.children];
+      phaseEls = [...el.phases.querySelectorAll(".ph")];
     }
 
     function invXs(f) {
@@ -1321,38 +1334,84 @@
       set(el.head, "transform", `translate3d(${(fx * AXIS_W).toFixed(2)}px,0,0)`);
       set(el.progress, "transform", `scaleX(${fx.toFixed(4)})`);
 
-      const near = clamp(Math.round(p), 0, n - 1);
-      if (near !== nearK) {
+      paintTrack(p);
+
+      const near = clamp(Math.round(Math.max(p, 0)), 0, n - 1);
+      if (near !== nearK && n) {
         nearK = near;
         const e = M.events[near];
-        el.ticks.querySelectorAll(".tk").forEach((tk, i) => {
-          tk.classList.toggle("is-past", i < near);
-          tk.classList.toggle("is-on", i === near);
-        });
-        el.phases.querySelectorAll(".ph").forEach((b, i) => b.classList.toggle("is-on", i === e.phase));
-        const wash = ERA_WASH[e.era] || "#d9d4c8";
-        set(el.bg, "--wash", wash);
         el.body.setAttribute("aria-valuenow", String(near + 1));
         el.body.setAttribute("aria-valuetext", `${e.date} ${e.title}`);
       }
     }
 
+    /* 刻度、阶段和时代色是 pos 的连续函数：整数上与原先的选中态一致，半路交叉淡化。 */
+
+    function mixHex(i, j, u) {
+      const a = washRGB[i];
+      const b = washRGB[j];
+      if (!a) return "#d9d4c8";
+      if (!b || u <= 0 || a.hex === b.hex) return a.hex;
+      if (u >= 1) return b.hex;
+      const r = Math.round(a.r + (b.r - a.r) * u);
+      const g = Math.round(a.g + (b.g - a.g) * u);
+      const bl = Math.round(a.b + (b.b - a.b) * u);
+      return `#${((r << 16) | (g << 8) | bl).toString(16).padStart(6, "0")}`;
+    }
+
+    function phaseOn(ph, p) {
+      const x = Math.max(p, 0);
+      let raw = 1;
+      if (x < ph.start) raw = 1 - (ph.start - x);
+      else if (x > ph.end) raw = 1 - (x - ph.end);
+      return smooth(clamp(raw, 0, 1));
+    }
+
+    function paintTrack(p) {
+      const pp = Math.max(p, 0);
+      tickEls.forEach((tk, i) => {
+        const d = pp - i;
+        const ad = Math.abs(d);
+        const on = ad >= 1 ? 0 : smooth(1 - ad);
+        const past = d <= 0 ? 0 : smooth(clamp(d / 0.85, 0, 1));
+        set(tk, "--on", on.toFixed(3));
+        set(tk, "--past", past.toFixed(3));
+      });
+      phaseEls.forEach((b, i) => set(b, "--on", phaseOn(M.phases[i], p).toFixed(3)));
+      let wash = "#d9d4c8";
+      if (n > 0) {
+        if (p <= 0) wash = mixHex(0, 0, 0);
+        else if (p >= n - 1) wash = mixHex(n - 1, n - 1, 0);
+        else {
+          const k = Math.floor(p);
+          wash = mixHex(k, k + 1, smooth(p - k));
+        }
+      }
+      set(el.bg, "--wash", wash);
+    }
+
     /* ---------- 物理 / 循环 ---------- */
 
-    function snap() {
-      const f = target - Math.floor(target);
-      if (f < 1e-6) return;
-      if (lastDir > 0) target = f > 0.12 ? Math.ceil(target) : Math.floor(target);
-      else if (lastDir < 0) target = f < 0.88 ? Math.floor(target) : Math.ceil(target);
-      else target = Math.round(target);
-      target = clamp(target, 0, n - 1);
+    /* 0 在事件上，1 在两事件正中。经过事件时略慢，中段略快，始终大于 0。 */
+    function playEase(p) {
+      const frac = p - Math.floor(p);
+      const dist = Math.min(frac, 1 - frac);
+      return 0.62 + 0.66 * smooth(dist / 0.5);
     }
 
     function frame(now) {
       const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000));
       lastT = now;
 
-      if (!dragging && now - lastInput > 260) snap();
+      if (playing && n > 1 && target >= pos - 0.05) {
+        if (pos < -0.002 && target <= 0.002) {
+          target = 0;
+        } else {
+          if (target < pos) target = pos;
+          if (target < n - 1) target = Math.min(n - 1, target + CRUISE * playEase(clamp(pos, 0, n - 1)) * dt);
+          if (target >= n - 1 - 1e-6 && pos >= n - 1 - 0.008) setPlaying(false);
+        }
+      }
 
       const w = dragging ? 26 : pos < 0 ? 3.2 : 5.4;
       const zeta = dragging ? 1 : 0.74;
@@ -1365,23 +1424,9 @@
       }
       pos = clamp(pos, -1, n - 1);
 
-      const settled = !dragging && pos === target && Number.isInteger(target);
-      if (settled && !settledAt) settledAt = now;
-      if (!settled) settledAt = 0;
-      if (playing && settled) {
-        const pr = (now - settledAt) / DWELL;
-        set(el.timer, "transform", `scaleX(${clamp(pr, 0, 1).toFixed(3)})`);
-        if (pr >= 1) {
-          if (target < n - 1) {
-            target += 1;
-            lastDir = 1;
-          } else {
-            setPlaying(false);
-          }
-        }
-      } else if (!playing) {
-        set(el.timer, "transform", "scaleX(0)");
-      }
+      const showRun = intent || (n > 1 && pos >= n - 1 - 0.02 && target >= n - 1 - 1e-4);
+      if (showRun && n > 1) set(el.timer, "transform", `scaleX(${clamp(Math.max(pos, 0) / (n - 1), 0, 1).toFixed(4)})`);
+      else set(el.timer, "transform", "scaleX(0)");
 
       render(pos);
       raf = requestAnimationFrame(frame);
@@ -1397,7 +1442,6 @@
     function setPlaying(v) {
       intent = v;
       playing = intent && !suspend;
-      if (!playing) settledAt = 0;
       paintPlay();
     }
 
@@ -1405,7 +1449,6 @@
       if (suspend === v) return;
       suspend = v;
       playing = intent && !suspend;
-      if (suspend) settledAt = 0;
       paintPlay();
     }
 
@@ -1414,23 +1457,17 @@
         setPlaying(false);
         return;
       }
-      if (Math.round(target) >= n - 1) {
-        target = 0;
-        lastDir = -1;
-      }
+      if (Math.round(Math.max(pos, target)) >= n - 1) target = 0;
       setPlaying(true);
-      settledAt = 0;
     }
 
     function step(d) {
       setPlaying(false);
-      lastDir = d;
       target = clamp(Math.round(target) + d, 0, n - 1);
     }
 
     function goTo(i) {
       setPlaying(false);
-      lastDir = 0;
       target = clamp(i, 0, n - 1);
     }
 
@@ -1446,8 +1483,6 @@
       }
       edgeAt = 0;
       setPlaying(false);
-      lastDir = Math.sign(d);
-      lastInput = performance.now();
       target = clamp(target + d * 0.0032, 0, n - 1);
       return true;
     }
@@ -1518,32 +1553,37 @@
           return;
         }
         if (performance.now() - lastMoveT > 120) v = 0;
-        lastDir = Math.sign(v);
         target = clamp(target + clamp(v * 0.22, -3, 3), 0, n - 1);
-        lastInput = 0;
       };
       el.hit.addEventListener("pointerup", up);
       el.hit.addEventListener("pointercancel", up);
 
       let axisDrag = false;
+      let axisMoved = false;
+      let axisX = 0;
       const axisTo = (ev) => {
         const r = el.body.getBoundingClientRect();
         target = invXs(clamp((ev.clientX - r.left) / r.width, 0, 1));
       };
       el.body.addEventListener("pointerdown", (ev) => {
         axisDrag = true;
+        axisMoved = false;
+        axisX = ev.clientX;
         dragging = true;
         setPlaying(false);
         el.body.setPointerCapture(ev.pointerId);
         axisTo(ev);
       });
-      el.body.addEventListener("pointermove", (ev) => axisDrag && axisTo(ev));
+      el.body.addEventListener("pointermove", (ev) => {
+        if (!axisDrag) return;
+        if (Math.abs(ev.clientX - axisX) > 4) axisMoved = true;
+        axisTo(ev);
+      });
       const axisUp = () => {
         if (!axisDrag) return;
         axisDrag = false;
         dragging = false;
-        lastDir = 0;
-        lastInput = 0;
+        if (!axisMoved) target = clamp(Math.round(target), 0, n - 1);
       };
       el.body.addEventListener("pointerup", axisUp);
       el.body.addEventListener("pointercancel", axisUp);
@@ -1551,7 +1591,6 @@
 
     function enter() {
       lastT = performance.now();
-      settledAt = 0;
       edgeAt = 0;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(frame);
