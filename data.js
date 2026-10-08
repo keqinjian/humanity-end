@@ -1,6 +1,6 @@
 /* Synced from data.json for file:// opening. */
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-07",
+  "updated": "2026-10-08",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -741,6 +741,17 @@ window.__HUMANITY_DATA__ = {
         "开源",
         "编码",
         "安全"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-07",
+      "title": "GPT-6 全量进 ChatGPT",
+      "blurb": "OpenAI 把 GPT-6 推给 ChatGPT 全部免费与付费用户（每周超 12 亿人），付费用 GPT-6 Sol、免费用 GPT-6 Luna，并推出 Intelligent UI：回答可直接生成可交互界面与即用小工具。",
+      "era": "2026 临界",
+      "tags": [
+        "普及",
+        "交互"
       ],
       "impact": "mid"
     }
