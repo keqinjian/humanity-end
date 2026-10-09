@@ -281,6 +281,27 @@ window.__HUMANITY_DATA__ = {
       "impact": "mid"
     },
     {
+      "date": "2019-04-13",
+      "title": "OpenAI Five 击败 Dota 2 世界冠军",
+      "blurb": "OpenAI Five 在直播表演赛中 2:0 战胜卫冕 TI 冠军 OG，首次有 AI 在电竞比赛中击败世界冠军战队。",
+      "era": "Transformer",
+      "tags": [
+        "强化学习",
+        "博弈"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2019-07-11",
+      "title": "Pluribus 六人德扑胜职业选手",
+      "blurb": "Facebook AI 与卡内基梅隆大学在 Science 发表 Pluribus，在六人无限注德州扑克中战胜顶尖职业选手，攻下多人不完全信息博弈。",
+      "era": "Transformer",
+      "tags": [
+        "博弈"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2020-06-11",
       "title": "GPT-3 / OpenAI API",
       "blurb": "1750 亿参数少样本模型上线 API，证明规模化预训练可涌现多种任务能力。",
@@ -424,6 +445,17 @@ window.__HUMANITY_DATA__ = {
       "impact": "mid"
     },
     {
+      "date": "2023-08-30",
+      "title": "Swift 无人机竞速胜人类冠军",
+      "blurb": "苏黎世大学团队在 Nature 发表 Swift：强化学习驱动的竞速无人机在实体赛道上 25 场对决赢下 15 场，并跑出最快单圈，AI 首次在真实物理竞技中击败人类冠军。",
+      "era": "生成爆发",
+      "tags": [
+        "机器人",
+        "强化学习"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2023-12-06",
       "title": "Gemini 1.0",
       "blurb": "Google DeepMind 发布原生多模态旗舰家族，把文本、图像与代码纳入统一训练。",
@@ -431,6 +463,17 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "多模态",
         "旗舰"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2023-12-14",
+      "title": "FunSearch 做出数学新发现",
+      "blurb": "DeepMind 在 Nature 发表 FunSearch：大模型配合自动评估器搜索程序，在帽集问题上找到 8 维 512 点的构造，超过此前已知最佳的 496 点。",
+      "era": "生成爆发",
+      "tags": [
+        "数学",
+        "科学"
       ],
       "impact": "mid"
     },
@@ -490,6 +533,17 @@ window.__HUMANITY_DATA__ = {
       "impact": "mid"
     },
     {
+      "date": "2024-07-25",
+      "title": "AlphaProof IMO 银牌水平",
+      "blurb": "DeepMind 的 AlphaProof 与 AlphaGeometry 2 解出 IMO 2024 六题中的四题，得 28/42 分，距金牌线 1 分；题目需人工形式化，部分题耗时达三天。",
+      "era": "推理与代理",
+      "tags": [
+        "数学",
+        "推理"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2024-09-12",
       "title": "o1-preview",
       "blurb": "OpenAI 推出在回答前进行长链推理的模型，数学与复杂编码基准大幅提升。",
@@ -497,6 +551,17 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "推理",
         "数学"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2024-10-09",
+      "title": "AI 拿下诺贝尔奖",
+      "blurb": "10 月 8 日 Hopfield 与 Hinton 因人工神经网络奠基工作获诺贝尔物理学奖；次日 Hassabis 与 Jumper 因 AlphaFold 蛋白质结构预测、Baker 因计算蛋白质设计获诺贝尔化学奖。",
+      "era": "推理与代理",
+      "tags": [
+        "科学",
+        "荣誉"
       ],
       "impact": "high"
     },
@@ -556,6 +621,17 @@ window.__HUMANITY_DATA__ = {
       "impact": "mid"
     },
     {
+      "date": "2025-05-14",
+      "title": "AlphaEvolve 改进 Strassen",
+      "blurb": "DeepMind 发布 Gemini 驱动的进化式编码智能体 AlphaEvolve：找到只需 48 次乘法的 4×4 复矩阵乘法算法，改进了 1969 年 Strassen 算法在该设定下保持的最好结果。",
+      "era": "2025 浪潮",
+      "tags": [
+        "数学",
+        "算法"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2025-05-22",
       "title": "Claude Opus 4 / Sonnet 4",
       "blurb": "Anthropic 新一代编码与智能体旗舰，在长程任务与终端基准上刷新纪录。",
@@ -567,6 +643,17 @@ window.__HUMANITY_DATA__ = {
       "impact": "mid"
     },
     {
+      "date": "2025-07-21",
+      "title": "AI 拿下 IMO 金牌",
+      "blurb": "Gemini Deep Think 在 4.5 小时内用自然语言解出 IMO 2025 六题中的五题，得 35/42 分，成为首个获 IMO 官方评阅认证的金牌水平 AI；OpenAI 两天前也宣布其实验模型拿到同分，由前 IMO 获奖者评阅。",
+      "era": "2025 浪潮",
+      "tags": [
+        "数学",
+        "竞赛"
+      ],
+      "impact": "high"
+    },
+    {
       "date": "2025-08-07",
       "title": "GPT-5",
       "blurb": "OpenAI 将快速模型与深度推理统一为一路由系统，编码、数学与健康问答全面跃升。",
@@ -574,6 +661,17 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "旗舰",
         "统一"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2025-09-17",
+      "title": "ICPC 总决赛 12/12",
+      "blurb": "OpenAI 推理系统在 2025 ICPC 世界总决赛 AI 赛道 5 小时内解出全部 12 题，人类最佳队伍为 11 题；Gemini 2.5 Deep Think 解出 10 题达金牌水平，其中一题无人类队伍解出。",
+      "era": "2025 浪潮",
+      "tags": [
+        "编码",
+        "竞赛"
       ],
       "impact": "high"
     },
@@ -633,6 +731,17 @@ window.__HUMANITY_DATA__ = {
       "impact": "high"
     },
     {
+      "date": "2026-03-26",
+      "title": "AI 科学家登上 Nature",
+      "blurb": "Sakana AI 与 UBC、牛津等在 Nature 发表 The AI Scientist：从选题、查文献、写代码跑实验到撰写论文全程自动，其 v2 生成的论文曾通过 ICLR 2025 研讨会盲审（录用前约定后主动撤回）。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2026-04-23",
       "title": "GPT-5.5",
       "blurb": "OpenAI 旗舰强化计算机使用与知识工作，成为 ChatGPT 默认一代的重要节点。",
@@ -642,6 +751,39 @@ window.__HUMANITY_DATA__ = {
         "计算机使用"
       ],
       "impact": "high"
+    },
+    {
+      "date": "2026-05-20",
+      "title": "AI 推翻 Erdős 单位距离猜想",
+      "blurb": "OpenAI 宣布内部通用推理模型自主构造出反例，推翻 Erdős 1946 年提出、学界普遍相信的平面单位距离猜想；外部数学家已核验并撰写配套论文，Gowers 称其为「AI 数学的里程碑」。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "科学"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2026-06-22",
+      "title": "甲骨文因 AI 缩编 2.1 万人",
+      "blurb": "Oracle 年报（10-K）披露全职员工一年内从 16.2 万降至 14.1 万，减少约 2.1 万人（近 13%），并写明 AI 在运营中的采用与部署「已经并可能继续」导致裁员。",
+      "era": "2026 临界",
+      "tags": [
+        "就业",
+        "替代"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-07-07",
+      "title": "AI 新药进入三期临床",
+      "blurb": "英矽智能启动 Rentosertib 治疗特发性肺纤维化的 III 期临床：靶点由 AI 发现、分子由生成式 AI 设计，计划入组 320 人；此前 IIa 期 60 mg 组 12 周肺活量平均改善 98.4 mL。",
+      "era": "2026 临界",
+      "tags": [
+        "医药",
+        "科学"
+      ],
+      "impact": "mid"
     },
     {
       "date": "2026-07-09",
@@ -655,6 +797,17 @@ window.__HUMANITY_DATA__ = {
       "impact": "high"
     },
     {
+      "date": "2026-07-21",
+      "title": "AI 拿下 IMO 满分",
+      "blurb": "小红书 dots-note-3.0 内部版经 IMO 2026 官方评阅六题全部满分（42/42），本届 666 名人类选手中仅 7 人满分；华为等随后也宣布旗下模型拿到满分。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "竞赛"
+      ],
+      "impact": "high"
+    },
+    {
       "date": "2026-07-24",
       "title": "Claude Opus 5",
       "blurb": "Anthropic 新一代旗舰，面向编码、智能体、知识工作与科学研究的综合前沿。",
@@ -664,6 +817,17 @@ window.__HUMANITY_DATA__ = {
         "科学"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-08-01",
+      "title": "OpenAI 十项数学进展",
+      "blurb": "OpenAI 公布内部版 Astra 在高维球堆积、二元码、非 sofic 群、Connes 刚性猜想、多色 Ramsey 数等十个长期开放问题上取得解决或重大进展，按 Sol API 价算总计约 2000 美元，并附 Lean 证书。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "科学"
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-09-02",
@@ -935,9 +1099,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "math-contest",
           "name": "数学竞赛题",
-          "remaining": 8,
-          "note": "前沿推理模型在奥林匹克级题目上已接近或超过多数人类选手。",
-          "movedBy": "o1 / GPT-5 / DeepSeek-R1"
+          "remaining": 3,
+          "note": "IMO 2026 已有模型经官方评阅拿到 42/42 满分，ICPC 总决赛也被 AI 全题解出；只剩出题与新颖题型判断还在人手里。",
+          "movedBy": "o1 / AI 拿下 IMO 金牌 / ICPC 总决赛 12/12 / AI 拿下 IMO 满分"
         },
         {
           "id": "math-undergrad",
@@ -951,7 +1115,7 @@ window.__HUMANITY_DATA__ = {
           "name": "形式化证明",
           "remaining": 46,
           "note": "模型已能批量写出 Lean 证明（Navier–Stokes 证明 17 小时完成形式化，OpenAI 成果库约四成主结果附 Lean 证明）；形式陈述是否忠实原题与大型库建设仍靠人。",
-          "movedBy": "GPT-6 Astra / OpenAI 数学成果库"
+          "movedBy": "GPT-6 Astra / Navier–Stokes 千禧年难题 / OpenAI 数学论文大轰炸"
         },
         {
           "id": "physics-theory",
