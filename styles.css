@@ -1344,6 +1344,36 @@ a {
   color: var(--pink);
 }
 
+.v-mono.is-epoch b:last-child {
+  padding: 0 6px;
+  background: var(--y);
+  color: var(--pink);
+  box-shadow: inset 0 0 0 1px var(--pink);
+}
+
+.v-out.is-epoch,
+.v-cn.is-epoch {
+  color: var(--y);
+  -webkit-text-stroke: 2px var(--pink);
+}
+
+.art[data-impact="epochal"]::after {
+  content: "EPOCH · 时代级";
+  position: absolute;
+  z-index: 4;
+  top: 10px;
+  right: 28px;
+  padding: 4px 10px;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  background: var(--y);
+  color: var(--pink);
+  box-shadow: inset 0 0 0 2px var(--pink);
+}
+
 .v-cap {
   font-size: 20px;
   font-weight: 700;
@@ -1965,6 +1995,7 @@ a {
 
 .sl-imp {
   margin-left: auto;
+  flex: none;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1988,6 +2019,27 @@ a {
 .sl-imp[data-level="high"] i.is-on {
   background: var(--red);
   border-color: var(--red);
+}
+
+.sl-imp[data-level="epochal"] i {
+  height: 26px;
+}
+
+.sl-imp[data-level="epochal"] i.is-on {
+  background: var(--y);
+  border-color: var(--pink);
+}
+
+.sl-imp[data-level="epochal"] b {
+  padding: 0 6px;
+  background: var(--y);
+  color: var(--pink);
+  box-shadow: inset 0 0 0 1px var(--pink);
+}
+
+.slot[data-impact="epochal"] .sl-rule {
+  background: var(--y);
+  box-shadow: 140px 0 0 -1px var(--pink);
 }
 
 .sl-imp b {
@@ -2221,6 +2273,28 @@ a {
   background: var(--pink);
 }
 
+.rv-ev[data-impact="epochal"]::before {
+  width: 16px;
+  height: 16px;
+  left: -8px;
+  top: -3px;
+  background: var(--y);
+  border-color: var(--pink);
+  box-shadow: 0 0 0 2px var(--y);
+  transform: rotate(45deg) scale(calc(1.05 + var(--f, 0) * 0.7));
+}
+
+.rv-ev[data-impact="epochal"]::after {
+  width: 3px;
+  left: -1.5px;
+  background: var(--y);
+}
+
+.rv-ev[data-impact="epochal"] strong {
+  color: var(--pink);
+  font-weight: 900;
+}
+
 .rv-ev[data-impact="mid"]::before {
   border-radius: 50%;
   background: var(--y);
@@ -2356,6 +2430,103 @@ a {
   color: var(--pink-2);
 }
 
+.imp-legend {
+  position: absolute;
+  z-index: 5;
+  right: 150px;
+  top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--pink-2);
+  pointer-events: none;
+}
+
+.imp-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.imp-legend b {
+  font-family: var(--f-sans);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--pink);
+}
+
+.imp-legend em {
+  font-style: normal;
+}
+
+.imp-legend i {
+  display: block;
+  flex: none;
+  box-sizing: border-box;
+  border: 2px solid var(--pink);
+  background: var(--paper);
+}
+
+.imp-legend span[data-impact="epochal"] i {
+  width: 11px;
+  height: 11px;
+  background: var(--y);
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 1px var(--y);
+}
+
+.imp-legend span[data-impact="high"] i {
+  width: 9px;
+  height: 9px;
+  background: var(--pink);
+  transform: rotate(45deg);
+}
+
+.imp-legend span[data-impact="mid"] i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--y);
+}
+
+.imp-legend span[data-impact="low"] i {
+  width: 7px;
+  height: 7px;
+  background: transparent;
+}
+
+.imp-tag {
+  display: inline-block;
+  flex: none;
+  margin-left: 8px;
+  padding: 0 5px;
+  font-style: normal;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1.45;
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 45%, transparent);
+  vertical-align: 1px;
+}
+
+.imp-tag[data-impact="high"] {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--ink);
+}
+
+.imp-tag[data-impact="epochal"] {
+  background: var(--y);
+  border-color: var(--y);
+  color: var(--pink);
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -2465,6 +2636,13 @@ a {
 
 .tk[data-impact="low"] {
   --bw: 2px;
+}
+
+.tk[data-impact="epochal"] {
+  --bw: 7px;
+  --bm: -3px;
+  background: var(--y);
+  box-shadow: inset 0 0 0 1px var(--pink);
 }
 
 .axis-years {

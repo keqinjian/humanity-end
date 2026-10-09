@@ -36,7 +36,7 @@ window.__HUMANITY_DATA__ = {
         "AI",
         "学术"
       ],
-      "impact": "high"
+      "impact": "epochal"
     },
     {
       "date": "1958-07-01",
@@ -80,7 +80,7 @@ window.__HUMANITY_DATA__ = {
         "视觉",
         "CNN"
       ],
-      "impact": "mid"
+      "impact": "high"
     },
     {
       "date": "1997-05-11",
@@ -91,7 +91,7 @@ window.__HUMANITY_DATA__ = {
         "博弈",
         "搜索"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "1997-11-15",
@@ -124,7 +124,7 @@ window.__HUMANITY_DATA__ = {
         "视觉",
         "数据"
       ],
-      "impact": "mid"
+      "impact": "high"
     },
     {
       "date": "2011-02-14",
@@ -157,7 +157,7 @@ window.__HUMANITY_DATA__ = {
         "视觉",
         "CNN"
       ],
-      "impact": "high"
+      "impact": "epochal"
     },
     {
       "date": "2013-08-16",
@@ -179,7 +179,7 @@ window.__HUMANITY_DATA__ = {
         "生成",
         "视觉"
       ],
-      "impact": "mid"
+      "impact": "high"
     },
     {
       "date": "2015-12-10",
@@ -212,7 +212,7 @@ window.__HUMANITY_DATA__ = {
         "强化学习",
         "博弈"
       ],
-      "impact": "high"
+      "impact": "epochal"
     },
     {
       "date": "2016-09-08",
@@ -234,7 +234,7 @@ window.__HUMANITY_DATA__ = {
         "架构",
         "NLP"
       ],
-      "impact": "high"
+      "impact": "epochal"
     },
     {
       "date": "2017-12-05",
@@ -256,7 +256,7 @@ window.__HUMANITY_DATA__ = {
         "语言模型",
         "预训练"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2018-10-11",
@@ -267,7 +267,7 @@ window.__HUMANITY_DATA__ = {
         "预训练",
         "NLP"
       ],
-      "impact": "mid"
+      "impact": "high"
     },
     {
       "date": "2019-02-14",
@@ -332,7 +332,7 @@ window.__HUMANITY_DATA__ = {
         "代码",
         "工具"
       ],
-      "impact": "mid"
+      "impact": "high"
     },
     {
       "date": "2021-07-15",
@@ -343,7 +343,7 @@ window.__HUMANITY_DATA__ = {
         "科学",
         "生物"
       ],
-      "impact": "high"
+      "impact": "epochal"
     },
     {
       "date": "2021-08-10",
@@ -376,7 +376,7 @@ window.__HUMANITY_DATA__ = {
         "图像",
         "创作"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2022-08-22",
@@ -387,7 +387,7 @@ window.__HUMANITY_DATA__ = {
         "图像",
         "开源"
       ],
-      "impact": "mid"
+      "impact": "high"
     },
     {
       "date": "2022-11-30",
@@ -398,7 +398,7 @@ window.__HUMANITY_DATA__ = {
         "对话",
         "产品"
       ],
-      "impact": "high"
+      "impact": "epochal"
     },
     {
       "date": "2023-02-24",
@@ -409,7 +409,7 @@ window.__HUMANITY_DATA__ = {
         "开源",
         "语言模型"
       ],
-      "impact": "mid"
+      "impact": "high"
     },
     {
       "date": "2023-03-14",
@@ -431,7 +431,7 @@ window.__HUMANITY_DATA__ = {
         "对话",
         "安全"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2023-07-18",
@@ -497,7 +497,7 @@ window.__HUMANITY_DATA__ = {
         "旗舰",
         "对话"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2024-05-13",
@@ -508,7 +508,7 @@ window.__HUMANITY_DATA__ = {
         "多模态",
         "语音"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2024-06-20",
@@ -574,7 +574,7 @@ window.__HUMANITY_DATA__ = {
         "视频",
         "多模态"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2025-01-20",
@@ -596,7 +596,7 @@ window.__HUMANITY_DATA__ = {
         "推理",
         "编码"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2025-04-05",
@@ -607,7 +607,7 @@ window.__HUMANITY_DATA__ = {
         "开源",
         "多模态"
       ],
-      "impact": "low"
+      "impact": "mid"
     },
     {
       "date": "2025-04-16",
@@ -673,7 +673,7 @@ window.__HUMANITY_DATA__ = {
         "编码",
         "竞赛"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2025-09-29",
@@ -728,7 +728,7 @@ window.__HUMANITY_DATA__ = {
         "旗舰",
         "智能体"
       ],
-      "impact": "high"
+      "impact": "low"
     },
     {
       "date": "2026-03-26",
@@ -750,7 +750,7 @@ window.__HUMANITY_DATA__ = {
         "旗舰",
         "计算机使用"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2026-05-20",
@@ -794,7 +794,7 @@ window.__HUMANITY_DATA__ = {
         "旗舰",
         "分层"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2026-07-21",
@@ -805,7 +805,7 @@ window.__HUMANITY_DATA__ = {
         "数学",
         "竞赛"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2026-07-24",
@@ -827,7 +827,7 @@ window.__HUMANITY_DATA__ = {
         "数学",
         "科学"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2026-09-02",
@@ -906,7 +906,7 @@ window.__HUMANITY_DATA__ = {
         "编码",
         "安全"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2026-10-06",
@@ -929,7 +929,7 @@ window.__HUMANITY_DATA__ = {
         "数学",
         "科学"
       ],
-      "impact": "high"
+      "impact": "mid"
     },
     {
       "date": "2026-10-07",
