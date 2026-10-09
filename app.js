@@ -34,6 +34,32 @@
     "2026 临界": "#ee8d7c",
   };
 
+  /* 四档影响力。不认识的取值（以及缺省）按 mid，避免坏数据把刻度画丢。 */
+  const IMPACT_RANK = { low: 1, mid: 2, high: 3, epochal: 4 };
+  const IMPACT_LABEL = { low: "LOW", mid: "MID", high: "HIGH", epochal: "EPOCH" };
+  const IMPACT_ZH = { low: "低", mid: "中", high: "高", epochal: "时代级" };
+  const IMPACT_TICK_H = { epochal: 22, high: 18, mid: 12, low: 7 };
+
+  function normImpact(v) {
+    return IMPACT_RANK[v] ? v : "mid";
+  }
+
+  function impactLabel(v) {
+    return IMPACT_LABEL[normImpact(v)];
+  }
+
+  function impactTag(v) {
+    if (!v) return "";
+    const k = normImpact(v);
+    return `<em class="imp-tag" data-impact="${k}">${impactLabel(k)}</em>`;
+  }
+
+  function strongestImpact(leaf) {
+    const hits = (leaf && leaf.hits) || [];
+    if (!hits.length) return "";
+    return hits.reduce((best, h) => (IMPACT_RANK[normImpact(h.impact)] > IMPACT_RANK[normImpact(best.impact)] ? h : best)).impact;
+  }
+
   const $ = (sel, root = document) => root.querySelector(sel);
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const stage = $("#stage");
@@ -107,7 +133,7 @@
 
   function model(data) {
     const events = data.events
-      .map((e, o) => ({ ...e, _o: o, t: toTime(e.date) }))
+      .map((e, o) => ({ ...e, _o: o, t: toTime(e.date), impact: normImpact(e.impact) }))
       .sort((a, b) => a.t - b.t || a._o - b._o);
 
     const domains = data.domains.map((d, i) => {
@@ -415,7 +441,7 @@
 
       const latest = events.slice(-14).reverse();
       const items = latest
-        .map((e) => `<span><time>${fmtDate(e.date)}</time><b>${esc(e.title)}</b>${esc(e.era)}</span>`)
+        .map((e) => `<span data-impact="${e.impact}"><time>${fmtDate(e.date)}</time><b>${esc(e.title)}</b>${impactTag(e.impact)}${esc(e.era)}</span>`)
         .join("");
       $("#ticker-run").innerHTML = items + items;
 
@@ -980,8 +1006,9 @@
           const cjk = !w;
           const label = cjk ? e.title : w;
           const fs = cjk ? Math.min(84, 860 / label.length) : Math.min(170, 900 / (label.length * 0.47));
-          push(R(904, 290, "v-mono", `No.<b>${pad(i + 1, 3)}</b> · ${fmtDate(e.date)} · ${esc(e.era)} · IMPACT <b>${(e.impact || "mid").toUpperCase()}</b>`, { c: "l", tc: "l", dr: 30 }), i, i);
-          push(R(896, 320, cjk ? "v-cn" : "v-out", esc(label), { style: `font-size:${fs.toFixed(0)}px`, c: "l", tc: "l", d: 0.04, dr: 90 }), i, i);
+          const epoch = e.impact === "epochal" ? " is-epoch" : "";
+          push(R(904, 290, `v-mono${epoch}`, `No.<b>${pad(i + 1, 3)}</b> · ${fmtDate(e.date)} · ${esc(e.era)} · IMPACT <b>${impactLabel(e.impact)}</b>`, { c: "l", tc: "l", dr: 30 }), i, i);
+          push(R(896, 320, `${cjk ? "v-cn" : "v-out"}${epoch}`, esc(label), { style: `font-size:${fs.toFixed(0)}px`, c: "l", tc: "l", d: 0.04, dr: 90 }), i, i);
           push(R(904, 336 + fs * (cjk ? 1.1 : 0.88), "v-rule", "", { w: 420, h: 6, c: "l", tc: "l", d: 0.12, dr: 60 }), i, i);
         }
         if (e.leaves.length) {
@@ -1148,7 +1175,7 @@
       el.events.innerHTML = ev
         .map(
           (e, i) =>
-            `<div class="rv-ev" data-i="${i}" data-impact="${e.impact || "mid"}" style="left:${RX[i]}px;--stem:${i % 2 ? 46 : 18}px"><span><time>${fmtDate(e.date)}</time><strong>${esc(e.title)}</strong></span></div>`
+            `<div class="rv-ev" data-i="${i}" data-impact="${e.impact}" style="left:${RX[i]}px;--stem:${i % 2 ? 46 : 18}px"><span><time>${fmtDate(e.date)}</time><strong>${esc(e.title)}</strong></span></div>`
         )
         .join("");
       evEls = [...el.events.querySelectorAll(".rv-ev")];
@@ -1208,10 +1235,20 @@
         })
         .join("");
 
-      const Hh = { high: 18, mid: 12, low: 7 };
       el.ticks.innerHTML = ev
-        .map((e, i) => `<span class="tk" data-impact="${e.impact || "mid"}" style="left:${(xs[i] * 100).toFixed(3)}%;--h:${Hh[e.impact] || 12}px"></span>`)
+        .map((e, i) => `<span class="tk" data-impact="${e.impact}" style="left:${(xs[i] * 100).toFixed(3)}%;--h:${IMPACT_TICK_H[e.impact] || IMPACT_TICK_H.mid}px"></span>`)
         .join("");
+
+      const counts = { epochal: 0, high: 0, mid: 0, low: 0 };
+      ev.forEach((e) => {
+        counts[e.impact] = (counts[e.impact] || 0) + 1;
+      });
+      const legend = $("#imp-legend");
+      if (legend) {
+        legend.innerHTML = ["epochal", "high", "mid", "low"]
+          .map((k) => `<span data-impact="${k}"><i aria-hidden="true"></i><b>${IMPACT_ZH[k]}</b><em>${IMPACT_LABEL[k]} ${counts[k] || 0}</em></span>`)
+          .join("");
+      }
 
       el.phases.innerHTML = M.phases
         .map((p, k) => {
@@ -1251,11 +1288,13 @@
     function fill(slot, i) {
       if (i < 0 || i >= n) {
         slot.innerHTML = "";
+        delete slot.dataset.impact;
         return [];
       }
       const e = M.events[i];
       const p = M.phases[e.phase];
-      const lvl = { low: 1, mid: 2, high: 3 }[e.impact] || 2;
+      const lvl = IMPACT_RANK[e.impact] || 2;
+      slot.dataset.impact = e.impact;
       const rows = e.leaves;
       const MAX = 3;
       const rep = rows.length
@@ -1279,7 +1318,7 @@
         <p class="sl-blurb" data-r="3">${esc(e.blurb || "")}</p>
         <div class="sl-foot" data-r="4">
           ${(e.tags || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
-          <span class="sl-imp" data-level="${e.impact || "mid"}">${[1, 2, 3].map((v) => `<i class="${v <= lvl ? "is-on" : ""}"></i>`).join("")}<b>${(e.impact || "mid").toUpperCase()}</b></span>
+          <span class="sl-imp" data-level="${e.impact}">${[1, 2, 3, 4].map((v) => `<i class="${v <= lvl ? "is-on" : ""}"></i>`).join("")}<b>${impactLabel(e.impact)}</b></span>
         </div>
         <div class="sl-rep" data-r="5">
           <p class="sl-rep-h">让渡记录<span>TRANSFERRED</span><b>${pad(rows.length)}</b></p>
@@ -1371,6 +1410,7 @@
         const e = M.events[near];
         el.body.setAttribute("aria-valuenow", String(near + 1));
         el.body.setAttribute("aria-valuetext", `${e.date} ${e.title}`);
+        if (el.art.dataset.impact !== e.impact) el.art.dataset.impact = e.impact;
       }
     }
 
@@ -1421,11 +1461,18 @@
 
     /* ---------- 物理 / 循环 ---------- */
 
-    /* 0 在事件上，1 在两事件正中。经过事件时略慢，中段略快，始终大于 0。 */
+    /* 0 在事件上，1 在两事件正中。经过事件时略慢，中段略快，始终大于 0。
+       时代级在事件附近再乘一档减速，其余三档保持原来的缓急。 */
     function playEase(p) {
       const frac = p - Math.floor(p);
       const dist = Math.min(frac, 1 - frac);
-      return 0.74 + 0.36 * smooth(dist / 0.5);
+      const base = 0.74 + 0.36 * smooth(dist / 0.5);
+      const i = clamp(Math.round(p), 0, n - 1);
+      if (n && M.events[i].impact === "epochal") {
+        const near = 1 - smooth(clamp(dist / 0.28, 0, 1));
+        return base * (1 - 0.32 * near);
+      }
+      return base;
     }
 
     /* 早期约 0.40 事件/秒，平滑加到末段约 1.10，再乘靠近事件时的轻微减速。 */
@@ -1724,6 +1771,7 @@
               <span class="dd-leaf-top">
                 <span class="dd-leaf-name">${esc(c.name)}</span>
                 <span class="dd-leaf-by">← ${esc(c.movedBy || "—")}</span>
+                ${impactTag(strongestImpact(M.leaves.find((l) => l.id === c.id)))}
                 <span class="dd-leaf-val${c.remaining <= CRIT ? " is-crit" : ""}">${c.remaining}</span>
               </span>
               ${bar(c.remaining, k)}
@@ -1804,7 +1852,7 @@
         tip.innerHTML = `<div class="lt-top"><span class="lt-name">${esc(l.name)}</span><span class="lt-v${l.remaining <= CRIT ? " is-crit" : ""}">${l.remaining}%</span></div>
           <p class="lt-d">${pad(l.domain.no)} · ${esc(l.domain.name)}</p>
           <p class="lt-note">${esc(l.note || "")}</p>
-          <p class="lt-by">← ${esc(l.movedBy || "—")}</p>`;
+          <p class="lt-by">← ${esc(l.movedBy || "—")}${impactTag(strongestImpact(l))}</p>`;
         const cs = chart.getBoundingClientRect();
         const bs = b.getBoundingClientRect();
         const k = cs.width / 1680;
