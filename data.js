@@ -1,6 +1,6 @@
 /* Synced from data.json for file:// opening. */
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-08",
+  "updated": "2026-10-09",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -688,6 +688,18 @@ window.__HUMANITY_DATA__ = {
       "impact": "high"
     },
     {
+      "date": "2026-09-08",
+      "title": "Navier–Stokes 千禧年难题",
+      "blurb": "OpenAI 宣布：比 GPT-6 Astra 更强的内部模型驱动约 1 万个协作智能体，88 小时给出带外力三维 Navier–Stokes 有限时间爆破的证明（Clay 表述 C/D），再由 GPT-6 Astra 用 17 小时完成 Lean 形式化；Lean 证明已获外部独立复核，但不涉及无外力情形。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "科学",
+        "智能体"
+      ],
+      "impact": "high"
+    },
+    {
       "date": "2026-09-22",
       "title": "Claude Opus 5.5",
       "blurb": "Anthropic Claude 5.5 家族首发：长程智能体编码与知识工作接近 Claude Fable 5.1 水平，运行成本比 Opus 5 低约四成。",
@@ -743,6 +755,17 @@ window.__HUMANITY_DATA__ = {
         "安全"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-10-06",
+      "title": "OpenAI 数学论文大轰炸",
+      "blurb": "OpenAI 公开内部未发布模型产出的 722 篇数学手稿（372 个结果族、17 个学科），从约 4000 道开放问题中筛出，平均每个结果约耗 3 小时 ChatGPT Pro 算力，约四成主结果附 Lean 形式化；未经同行评审，次日即因错误撤回 3 篇。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "科学"
+      ],
+      "impact": "high"
     },
     {
       "date": "2026-10-07",
@@ -907,7 +930,7 @@ window.__HUMANITY_DATA__ = {
     {
       "id": "science",
       "name": "科学",
-      "note": "竞赛数学与结构预测已被大幅占领；实验设计与新范式提出仍剩较多人类空间。",
+      "note": "竞赛数学与结构预测已被大幅占领，AI 开始批量产出研究级数学结果；实验设计与新范式提出仍剩较多人类空间。",
       "children": [
         {
           "id": "math-contest",
@@ -926,9 +949,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "formal-proof",
           "name": "形式化证明",
-          "remaining": 52,
-          "note": "Lean/Isabelle 辅助增强，但大型库建设与定义选择仍慢且人类密集。",
-          "movedBy": "GPT-6 Astra"
+          "remaining": 46,
+          "note": "模型已能批量写出 Lean 证明（Navier–Stokes 证明 17 小时完成形式化，OpenAI 成果库约四成主结果附 Lean 证明）；形式陈述是否忠实原题与大型库建设仍靠人。",
+          "movedBy": "GPT-6 Astra / OpenAI 数学成果库"
         },
         {
           "id": "physics-theory",
