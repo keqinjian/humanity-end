@@ -1,6 +1,5 @@
-/* Synced from data.json for file:// opening. */
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-09",
+  "updated": "2026-10-11",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -939,6 +938,17 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "普及",
         "交互"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-08",
+      "title": "AlphaProof Nexus 形式化证明",
+      "blurb": "Google DeepMind 在 Science 发表 AlphaProof Nexus：用大模型搜索 Lean 形式化证明，在尝试的 353 个 Erdős 问题中证出 9 个、492 个 OEIS 猜想中证出 44 个；论文也承认形式化表述仍需专家人工复核。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "形式化"
       ],
       "impact": "mid"
     }
