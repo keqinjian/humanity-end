@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-11",
+  "updated": "2026-10-13",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -949,6 +949,18 @@
       "tags": [
         "数学",
         "形式化"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-12",
+      "title": "Meta Muse Wonder",
+      "blurb": "Meta 超级智能实验室发布首个前沿模型 Muse Wonder 与 Muse Wonder Full，在 Prometheus 吉瓦级数据中心训练；Meta 自测基准分与 GPT-6 Astra 相当，主打跨天到跨月的「主动记忆」，宣布在 MemoryBench 上超过同代对手。Wonder 走 API，Full 仅限 Muse Code 订阅。",
+      "era": "2026 临界",
+      "tags": [
+        "旗舰",
+        "智能体",
+        "记忆"
       ],
       "impact": "mid"
     }
