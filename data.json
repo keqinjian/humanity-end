@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-13",
+  "updated": "2026-10-14",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -412,17 +412,6 @@
     },
     {
       "date": "2023-03-14",
-      "title": "GPT-4",
-      "blurb": "OpenAI 发布多模态输入旗舰模型，推理、编码与考试表现相对上一代跃升明显。",
-      "era": "生成爆发",
-      "tags": [
-        "旗舰",
-        "多模态"
-      ],
-      "impact": "high"
-    },
-    {
-      "date": "2023-03-14",
       "title": "Claude 首次公开发布",
       "blurb": "Anthropic 推出注重安全对齐的对话模型 Claude，成为 ChatGPT 的重要竞品。",
       "era": "生成爆发",
@@ -431,6 +420,17 @@
         "安全"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2023-03-14",
+      "title": "GPT-4",
+      "blurb": "OpenAI 发布多模态输入旗舰模型，推理、编码与考试表现相对上一代跃升明显。",
+      "era": "生成爆发",
+      "tags": [
+        "旗舰",
+        "多模态"
+      ],
+      "impact": "high"
     },
     {
       "date": "2023-07-18",
@@ -961,6 +961,18 @@
         "旗舰",
         "智能体",
         "记忆"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-13",
+      "title": "Gemini 4 Argon 全面开放",
+      "blurb": "Google 把此前仅限 Fairwind 可信网络防御方的 Gemini 4 Argon 推向全球：开发者与企业可走付费 Gemini API / AI Studio / Antigravity，AI Pro 与 Ultra 订阅者可在 Gemini 应用与搜索 AI Mode 使用；官宣定价起步 2/10 美元每百万输入/输出 token，并展示量子纠错、核聚变 Grad 猜想反例扩展、酶设计与罕见病基因组等早期用例。",
+      "era": "2026 临界",
+      "tags": [
+        "普及",
+        "旗舰",
+        "科学"
       ],
       "impact": "mid"
     }
