@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-14",
+  "updated": "2026-10-15",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -953,6 +953,18 @@ window.__HUMANITY_DATA__ = {
       "impact": "mid"
     },
     {
+      "date": "2026-10-09",
+      "title": "TheoPhysEval 物理研究题 98%",
+      "blurb": "ICTS 等机构 37 位物理学家放出 50 道未发表的研究级理论物理题（世界专家约一天可解）；GPT-6 Astra 配 Codex 在可联网条件下自主解对 49 道（98%），单题成本不到 3 美元，还查出几道专家原答案里的错误，Opus 5.5 解对 46 道。作者强调这些只是沿用已知方法的计算题，选题与构造新理论仍要靠人。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "物理",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2026-10-12",
       "title": "Meta Muse Wonder",
       "blurb": "Meta 超级智能实验室发布首个前沿模型 Muse Wonder 与 Muse Wonder Full，在 Prometheus 吉瓦级数据中心训练；Meta 自测基准分与 GPT-6 Astra 相当，主打跨天到跨月的「主动记忆」，宣布在 MemoryBench 上超过同代对手。Wonder 走 API，Full 仅限 Muse Code 订阅。",
@@ -975,6 +987,30 @@ window.__HUMANITY_DATA__ = {
         "科学"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-10-14",
+      "title": "Google Deep Review 公开",
+      "blurb": "Google 公开发布智能体审稿系统 Deep Review：前身 PAT 已在 STOC、ICML、NeurIPS、ICLR 为 1.6 万多篇投稿做投稿前审阅，现扩展到法律、金融等技术文档，全球开放，每人每周两次免费并提供 API，底层接入 Gemini 4 Argon。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "学术",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-14",
+      "title": "Grok Voice 3.0",
+      "blurb": "SpaceXSI（xAI）发布语音到语音模型 Grok Voice 3.0：Artificial Analysis 语音到语音指数 86.9 居首，延迟不到一秒，API 维持每分钟 0.08 美元；官方宣布 Starlink 客服每天约 2 万通电话由它接听，约七成无需人工介入。",
+      "era": "2026 临界",
+      "tags": [
+        "语音",
+        "智能体",
+        "替代"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
@@ -1154,9 +1190,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "physics-theory",
           "name": "理论物理推演",
-          "remaining": 55,
-          "note": "符号操作与文献综述加速明显；新物理图像仍极少由模型独立提出。",
-          "movedBy": "Claude Opus 5"
+          "remaining": 48,
+          "note": "研究级「转曲柄」计算已接近世界专家（TheoPhysEval 50 题解对 49 题）；提出好问题、判断方向与构造新理论仍以人为主。",
+          "movedBy": "TheoPhysEval 物理研究题 98%"
         },
         {
           "id": "physics-exp",
