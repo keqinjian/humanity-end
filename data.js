@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-15",
+  "updated": "2026-10-16",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1011,6 +1011,30 @@ window.__HUMANITY_DATA__ = {
         "替代"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-10-14",
+      "title": "从头设计半胱氨酸蛋白酶",
+      "blurb": "华盛顿大学蛋白质设计研究所 Baker 实验室在 Nature 连发两篇：用深度学习从头设计出序列特异的半胱氨酸蛋白酶与金属蛋白酶，可在选定位点剪切多肽（含阿尔茨海默相关淀粉样蛋白），最高相对未催化反应加速约 3×10⁷ 与 1×10⁸，晶体结构与设计模型吻合，并在哺乳动物细胞内起效；Baker 称蛋白质设计正从「造形状」迈向「造能改变化学的分子机器」。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "生物",
+        "药物"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2026-10-15",
+      "title": "Meta Muse Spark Open",
+      "blurb": "Meta 放出迄今最强美系开放权重模型 Muse Spark Open：816B 总参（42B 激活）原生多模态 MoE、百万 token 上下文，主打长程编码与智能体；权重上架 Hugging Face 等平台，并可在两台 Apple M5 Ultra Mac Studio 上本地跑通，许可为带有限商用条款的 Muse Model License。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "多模态",
+        "编码"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
