@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-16",
+  "updated": "2026-10-18",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1035,6 +1035,66 @@ window.__HUMANITY_DATA__ = {
         "编码"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-10-16",
+      "title": "Claude 设计更优量子线路",
+      "blurb": "Anthropic STEM Fellows 项目中，Claude Mythos 5 在无人干预闭环下为化学、优化、物理模拟与数论等八类量子线路原语提出设计；经自动评测，若干方案相对已发表最优线路把量子比特×门数代价压低一个数量级以上，椭圆曲线点加法与 DQI 解码等步骤出现新可逆算法。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "量子",
+        "智能体"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2026-10-16",
+      "title": "Claude 还原 NIST 椭圆曲线种子",
+      "blurb": "Anthropic 内部研究模型在约半小时内查明 NIST P-192 至 P-521 等曲线种子并非口令哈希，而是用 Unix 时间戳初始化的 C 库 lrand48 输出；官方强调这不是密码学破译，反而削弱了「NSA 暗藏后门」的猜测，相关赏金将捐给 Internet Security Research Group。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "密码",
+        "安全"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-16",
+      "title": "Google 湿实验闭环智能体",
+      "blurb": "Google Research 公布 VERID 湿实验数字孪生与闭环 aptamer / 蛋白质 binder 设计：智能体在液体处理机器人上干跑校验后实操，三轮 aptamer 把 on-target 命中率抬到约三到四成，并对 FAP 肿瘤靶点筛出个位数纳摩尔亲和力的 de novo binder；仍属人机协作与安全受控原型。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "生物",
+        "机器人"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-16",
+      "title": "Reflection Beam 开放权重",
+      "blurb": "Reflection 放出首个开放权重模型 Beam：501B 总参（23B 激活）稀疏 MoE、百万 token 上下文，主打编码与长程智能体，Apache 2.0 上架 Hugging Face，并配套 Mirror CLI 与四十余家推理/云伙伴；美系开放权重竞争再添一席。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "编码",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-17",
+      "title": "DeepSeek-V4.1-Flash-1017",
+      "blurb": "DeepSeek 将 V4.1 Flash 升级为 Flash-1017（权重同步上架 Hugging Face），官方称编码与智能体基准抬升且任务更短更快，API 价与调用名不变；同日对外开放自研 Search & Fetch API，按成功请求计费。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "编码",
+        "智能体"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
@@ -1501,16 +1561,16 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "lab-liquid",
           "name": "实验室液体处理",
-          "remaining": 45,
-          "note": "移液与高通量筛选自动化成熟；方案例外处理仍靠技术员。",
-          "movedBy": "实验室自动化平台"
+          "remaining": 42,
+          "note": "移液与高通量筛选自动化成熟；Google VERID 等智能体已能闭环实操，方案例外与安全仍靠人。",
+          "movedBy": "Google 湿实验闭环智能体"
         },
         {
           "id": "lab-plan",
           "name": "实验方案规划",
-          "remaining": 48,
-          "note": "协议草稿可生成，试剂现实、伦理与失败迭代仍人类主导。",
-          "movedBy": "Claude Opus 5 / GPT-6 Astra"
+          "remaining": 45,
+          "note": "协议草稿与闭环 aptamer/蛋白设计可生成；试剂现实、伦理与失败迭代仍人类主导。",
+          "movedBy": "Google 湿实验闭环智能体"
         }
       ]
     },
