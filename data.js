@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-18",
+  "updated": "2026-10-19",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1033,6 +1033,18 @@ window.__HUMANITY_DATA__ = {
         "开源",
         "多模态",
         "编码"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-15",
+      "title": "Intern-S2 助攻 Ghys 猜想三维情形",
+      "blurb": "上海人工智能实验室宣布，数学家借助内部版 Intern-S2 多轮对话，解决 Ghys 1995 年提出的全纯 Anosov 猜想的复三维（余维一）情形；预印本由 KTH 的 Jiesong Zhang 单独署名并声明亲自核验全部论证，北大团队用 SHEAF 智能体约五天把四个主定理形式化为约 55 万行 Lean（以 1969 年 Hsiang–Wall 定理为假设），尚未同行评审。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "科学",
+        "形式化"
       ],
       "impact": "mid"
     },
