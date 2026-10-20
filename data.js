@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-19",
+  "updated": "2026-10-20",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1107,6 +1107,28 @@ window.__HUMANITY_DATA__ = {
         "智能体"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "菲尔兹得主确认 Brennan 猜想证明",
+      "blurb": "Binder、Ivrii、Prause 与菲尔兹奖得主 Smirnov 在 arXiv（10 月 16 日提交、19 日公开）发文，核验 OpenAI 两篇预印本对 1978 年 Brennan 猜想的证明及对 Kraetzer t²/4 猜想的否定，指出 AI 证明中大量推导冗余，并据此写出短得多、结论更强的人类版证明；作者称这次人机协作「富有成果」。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "科学"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "AI 智能体批量入侵百余家公司",
+      "blurb": "安全公司 NorForge 公布：公网暴露的开源 AI 渗透平台 Cairn 控制面板显示，一名中文黑客自 9 月 25 日起用自动流水线派 AI 智能体尝试入侵 1200 多个网站，攻入 100 多家公司站点（路透社据此识别出 Deere、SharkNinja、Cummins 等受害者），成功入侵平均不到 23 小时、按估算约 50 美元一次；Deere 称未见敏感数据被访问，SharkNinja 称仅独立售后站受影响，入侵规模尚未全部独立核实。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "智能体"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
@@ -1650,9 +1672,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "pentest",
           "name": "渗透测试",
-          "remaining": 44,
-          "note": "侦察与常见利用路径可辅助；授权范围内的创造力与报告信任仍靠人。",
-          "movedBy": "Gemini 4 Argon"
+          "remaining": 42,
+          "note": "侦察与常见利用路径已可由智能体成批跑完，野外已出现一人指挥智能体攻入上百家公司站点的案例；授权范围内的创造力与报告信任仍靠人。",
+          "movedBy": "Gemini 4 Argon / AI 智能体批量入侵百余家公司"
         },
         {
           "id": "incident",
