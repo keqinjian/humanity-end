@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-20",
+  "updated": "2026-10-21",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1129,6 +1129,29 @@
         "智能体"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-10-20",
+      "title": "Claude 设计蝎毒素结合蛋白",
+      "blurb": "Anthropic 公布：内部研究模型在 Claude Science 中约 64 小时基本自主地生成 318,484 个蛋白设计，针对危险蝎毒神经毒素挑出候选，经 Adaptyv Bio 与 Twist Bioscience 湿实验测试 211 个，17 个达到结合标准；官方强调尚未验证能中和毒液、不宣称做出抗蝎毒血清，全部设计与数据公开。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "生物",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-20",
+      "title": "DeepSeek 开源推理引擎 DeepInfer",
+      "blurb": "DeepSeek 以 Apache 2.0 开源自家生产服务所用的推理框架 DeepInfer，基于 FlashMLA、DeepGEMM、DeepEP，支持 NVIDIA 与华为昇腾硬件；目前只覆盖单机推理，分离式部署与多副本负载均衡需自行搭建。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "基础设施"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
