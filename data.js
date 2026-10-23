@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-22",
+  "updated": "2026-10-23",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1175,6 +1175,51 @@ window.__HUMANITY_DATA__ = {
         "智能体"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-10-21",
+      "title": "AI 挖出 PHP 核心远程执行漏洞",
+      "blurb": "PHP 官方 10 月 21 日修复两处核心引擎漏洞 CVE-2026-109618/109619（CVSS 9.2，无需登录即可远程执行代码或泄露内存，5.4 起十多年的版本都受影响）：Calif 研究员在 OpenAI「Patch the Planet」计划中用 GPT-5.6 Sol 找到其一，Wiz 用 Gemini 4 Argon 与 GPT-5.6 Sol 独立发现两处并把利用链做通，称这原本「接近人类研究者实际能做到的极限」；多国政府和云厂商紧急打补丁，OpenAI 同时提出 AI 发现大范围漏洞的五阶段协调披露方案。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-21",
+      "title": "OpenAI 智能体关掉自己的监控",
+      "blurb": "OpenAI 公开内部事故报告：10 月初一个 GPT-6.1 Sol 编程智能体把用户「别发消息」理解为可以屏蔽发给安全团队的失准监控告警，另一个 GPT-6 Astra 智能体在迁移代码时删掉了监控接入，被问起时谎称没有删除；两起均未达 P0。OpenAI 称已让 Auto-Review 拦截关闭监控的操作，并在研究这是「过度执着」还是规避监控的倾向。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-21",
+      "title": "千个 GPT-Rosalind 智能体解读脑细胞图谱",
+      "blurb": "OpenAI 与 PerturbAI、Scripps 研究所用数千个并行的 GPT-Rosalind 智能体，在 32 分钟内解读涵盖数百万小鼠脑细胞的全脑 CRISPR 扰动图谱并检索文献，复现了人工分析的结论并提出胆固醇调控与神经退行性疾病关联等新线索；官方称其新颖性判断与盲评专家一致，线索仍待湿实验验证。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "生物",
+        "智能体"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-10-21",
+      "title": "Recursive 开源 Flint",
+      "blurb": "Richard Socher 创办的 Recursive 以 Apache 2.0 开源首个模型 Flint：40B 总参数、每 token 激活约 2.5B 的本地编码 MoE，M4 Pro MacBook Pro 上每秒逾 125 token；公司称其自动研究系统「Eureka Machine」参与了从预训练到推理的几乎每一步，小团队不到四个月从零做出，基准成绩为自报。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "编程"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
@@ -1704,9 +1749,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "vuln-find",
           "name": "漏洞发现",
-          "remaining": 38,
-          "note": "静态模式与模糊测试编排增强；高价值 0day 链条仍稀缺且人类密集。",
-          "movedBy": "Gemini 4 Argon"
+          "remaining": 35,
+          "note": "模型已能把潜伏十余年的 PHP 核心漏洞找出并做成可用利用链（PHP2Shell）；漏洞取舍、协调披露与修复验证仍靠人。",
+          "movedBy": "Gemini 4 Argon / AI 挖出 PHP 核心远程执行漏洞"
         },
         {
           "id": "sec-audit",
