@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-24",
+  "updated": "2026-10-25",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1252,6 +1252,17 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "就业",
         "金融"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-10-22",
+      "title": "ChatGPT 助攻推翻 Simon L² 猜想",
+      "blurb": "Simon Becker 与 Mengxuan Yang 在 arXiv（2610.31637）发文，推翻 Barry Simon 2000 年薛定谔算子十五问中的第 8 题（L² 猜想）：在任意 d≥2 维都构造出满足其 L² 条件的小而光滑的势，算子却完全没有连续谱。作者写明，第一版构造、最终证明所用的机制，以及「出乎意料地」推广到全谱的一步都由 ChatGPT 给出，作者重写论证并承担全部责任；目前仍是未经同行评审的预印本，所用 ChatGPT 版本未披露。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "科学"
       ],
       "impact": "low"
     },
