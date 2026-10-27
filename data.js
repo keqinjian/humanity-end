@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-26",
+  "updated": "2026-10-27",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1311,6 +1311,43 @@ window.__HUMANITY_DATA__ = {
         "智能体"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-10-26",
+      "title": "AI 宣布推翻指数时间假设",
+      "blurb": "OpenAI 宣布内部模型同时拿下三项成果：推翻复杂性理论的指数时间假设（ETH，称 3-SAT 可在约 exp(n/(log n)^{1/2+o(1)}) 的亚指数时间内求解，但不意味着 P=NP），证明调和分析中 1991 年提出的局部光滑猜想在所有维度成立（进而推出全维 Kakeya 与 Stein 限制猜想），并给出含 QCD 在内的四维相互作用规范场论的严格存在性证明（包括千禧年难题之一 Yang–Mills 问题中的「存在」部分，不含质量间隙）。前两项已公开自然语言证明与 Lean 形式化；ETH 由该假设的原提出者 Impagliazzo、Paturi 与 Ryan Williams 牵头公开核查，物理结果由诺奖得主 David Gross 领衔的小组复核、暂不公开 AI 原稿。三项均尚未经同行评审。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "科学",
+        "形式化",
+        "物理"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2026-10-26",
+      "title": "GPT-6.1 Terra",
+      "blurb": "OpenAI 发布主打计算机操作的中档模型 GPT-6.1 Terra：官方称在 Agents’ Last Exam 上比 GPT-5.6 Terra 高 15 个百分点、成本约三分之一，与旗舰 GPT-6 Astra 持平而每 token 价格只有其十分之一，任务完成速度快三倍以上；API 每百万 token 输入 1 美元、输出 5 美元，即日起向 ChatGPT Plus、Pro、企业与教育用户及 Codex 开放。",
+      "era": "2026 临界",
+      "tags": [
+        "计算机使用",
+        "智能体",
+        "效率"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-10-26",
+      "title": "Mirendil Fern 千万 token 上下文",
+      "blurb": "成立不久的新实验室 Mirendil 发布首个从头预训练的模型 Fern 0.1，宣布支持最长 1000 万 token 上下文（约 50 万行代码），主打审计训练数据、按日志调试训练和通读智能体全程记录；公司自测在 1000 万 token 下单针检索 100%、多跳问答 45%（每项仅 20 例）。暂未开放 API、价格与权重，只接受早期申请。",
+      "era": "2026 临界",
+      "tags": [
+        "记忆",
+        "编码",
+        "智能体"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
