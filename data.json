@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-27",
+  "updated": "2026-10-28",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1315,7 +1315,7 @@
     {
       "date": "2026-10-26",
       "title": "AI 宣布推翻指数时间假设",
-      "blurb": "OpenAI 宣布内部模型同时拿下三项成果：推翻复杂性理论的指数时间假设（ETH，称 3-SAT 可在约 exp(n/(log n)^{1/2+o(1)}) 的亚指数时间内求解，但不意味着 P=NP），证明调和分析中 1991 年提出的局部光滑猜想在所有维度成立（进而推出全维 Kakeya 与 Stein 限制猜想），并给出含 QCD 在内的四维相互作用规范场论的严格存在性证明（包括千禧年难题之一 Yang–Mills 问题中的「存在」部分，不含质量间隙）。前两项已公开自然语言证明与 Lean 形式化；ETH 由该假设的原提出者 Impagliazzo、Paturi 与 Ryan Williams 牵头公开核查，物理结果由诺奖得主 David Gross 领衔的小组复核、暂不公开 AI 原稿。三项均尚未经同行评审。",
+      "blurb": "OpenAI 宣布内部模型同时拿下三项成果：推翻复杂性理论的指数时间假设（ETH，称 3-SAT 可在约 exp(n/(log n)^{1/2+o(1)}) 的亚指数时间内求解，但不意味着 P=NP），证明调和分析中 1991 年提出的局部光滑猜想在所有维度成立（进而推出全维 Kakeya 与 Stein 限制猜想），并给出含 QCD 在内的四维相互作用规范场论的严格存在性证明（包括千禧年难题之一 Yang–Mills 问题中的「存在」部分，不含质量间隙）。前两项已公开自然语言证明与 Lean 形式化；ETH 由该假设的原提出者 Impagliazzo、Paturi 与 Ryan Williams 牵头公开核查，物理结果由诺奖得主 David Gross 领衔的小组复核、暂不公开 AI 原稿。三项均尚未经同行评审。数小时后 Anthropic 也公开论文《A 2^{o(n)} Time Algorithm for 3-SAT》，称内部 Claude 研究模型在 10 月 16 日无人工输入、用约 1400 万输出 token 独立找到另一条（张量网络收缩）路线、上界几乎相同的亚指数算法，同样附 Lean 4 形式化，也尚未经专家评审；两家都强调结果纯属渐近、对实际求解没有帮助。",
       "era": "2026 临界",
       "tags": [
         "数学",
@@ -1348,6 +1348,30 @@
         "智能体"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-10-26",
+      "title": "Axiom 宣布形式化有限单群分类",
+      "blurb": "Axiom 宣布用 24 天指挥数十个 AI 智能体集群，把被称为「巨型定理」、原证明约 1.5 万页、500 多篇论文的有限单群分类定理完整写成约 4310 万行 Lean 代码，称是首个完整的机检证明；过程中找出文献里 34 处值得注意的偏差（含 Walter 对不平衡群定理论证中的反例），并由 AxiomProver 给出一条新的群论定理绕过缺口。截至发布次日尚无外部团队独立重建核验。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "形式化",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-27",
+      "title": "Claude 攻破五大平台利用链",
+      "blurb": "Anthropic 前沿红队披露，一个未发布的内部 Claude 研究模型在初始提示后自行写出五条可用利用链：默认配置 Chrome 一键沙箱外代码执行、Safari 同源策略绕过、Pixel 9 锁屏绕过、Windows HTTP/3 远程拒绝服务、Linux 多路径 TCP 零点击远程 root；仅 Chrome 就分配 62 个 CVE（均为严重或高危），各厂商已修复。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "漏洞",
+        "智能体"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
@@ -1520,9 +1544,9 @@
         {
           "id": "formal-proof",
           "name": "形式化证明",
-          "remaining": 46,
-          "note": "模型已能批量写出 Lean 证明（Navier–Stokes 证明 17 小时完成形式化，OpenAI 成果库约四成主结果附 Lean 证明）；形式陈述是否忠实原题与大型库建设仍靠人。",
-          "movedBy": "GPT-6 Astra / Navier–Stokes 千禧年难题 / OpenAI 数学论文大轰炸"
+          "remaining": 40,
+          "note": "模型已能批量写出 Lean 证明（Navier–Stokes 证明 17 小时完成形式化），Axiom 宣布用智能体集群 24 天把约 1.5 万页的有限单群分类写成约 4300 万行 Lean；形式陈述是否忠实原题、外部独立复核仍靠人。",
+          "movedBy": "GPT-6 Astra / Navier–Stokes 千禧年难题 / OpenAI 数学论文大轰炸 / Axiom 宣布形式化有限单群分类"
         },
         {
           "id": "physics-theory",
@@ -1877,9 +1901,9 @@
         {
           "id": "vuln-find",
           "name": "漏洞发现",
-          "remaining": 35,
-          "note": "模型已能把潜伏十余年的 PHP 核心漏洞找出并做成可用利用链（PHP2Shell）；漏洞取舍、协调披露与修复验证仍靠人。",
-          "movedBy": "Gemini 4 Argon / AI 挖出 PHP 核心远程执行漏洞"
+          "remaining": 30,
+          "note": "模型已能找出潜伏十余年的 PHP 核心漏洞并做成利用链，内部 Claude 还对 Chrome、Safari、Android、Windows、Linux 各写出完整利用链；漏洞取舍、协调披露与修复验证仍靠人。",
+          "movedBy": "Gemini 4 Argon / AI 挖出 PHP 核心远程执行漏洞 / Claude 攻破五大平台利用链"
         },
         {
           "id": "sec-audit",
