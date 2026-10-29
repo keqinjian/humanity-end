@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-28",
+  "updated": "2026-10-29",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1370,6 +1370,30 @@
         "安全",
         "漏洞",
         "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-27",
+      "title": "Genie 4 实时交互世界模型",
+      "blurb": "Google DeepMind 发布世界模型 Genie 4：实时生成可交互的写实场景并同步生成音乐、环境声与对白，可用自然语言随时改天气、移镜头、加入人物，模拟空气动力学、碰撞等物理；先以研究预览开放给可信测试者，官方称长时一致性与物体恒存仍有缺陷。",
+      "era": "2026 临界",
+      "tags": [
+        "世界模型",
+        "多模态",
+        "仿真"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-28",
+      "title": "Gemini 4 Carbon",
+      "blurb": "Argon 发布两周后，Google 推出新前沿模型 Gemini 4 Carbon：以 59 分登上 Artificial Analysis 智能指数 v5.0 第一（Claude Opus 5.5 为 58、GPT-6 Astra 为 57），在 SEC-bench Pro 找漏洞 88.2%、ExploitGym 利用 54.8%、CWE-bench 修补 71.0% 领先；先只向 Fairwind 计划内的网络防御方开放。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "Google",
+        "安全"
       ],
       "impact": "mid"
     }
