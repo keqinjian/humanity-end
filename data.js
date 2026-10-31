@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-10-29",
+  "updated": "2026-10-31",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-10-01。",
@@ -1396,6 +1396,30 @@ window.__HUMANITY_DATA__ = {
         "安全"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-10-29",
+      "title": "国家级黑客用 AI 智能体并行入侵 200 余机构",
+      "blurb": "CrowdStrike 公布：中国关联的 VAPOR PANDA 自 10 月 17 日起 11 天内，用 ARTEX 多智能体框架（主要跑在 DeepSeek 上，另有一款未能确认的商用模型）同时攻击 14 个以上国家的 200 多家机构，包括多国外交部、美国制药与半导体企业和电信商，确认 9 家被深入控制；人类操作员只在关键节点下中文指令，单次入侵的规划智能体就消耗约 14 亿输入 token。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "智能体",
+        "网络攻击"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-10-29",
+      "title": "Mistral Large 4 放出权重",
+      "blurb": "预览三周后，Mistral 按承诺在 Hugging Face 公开 1T 参数多模态 MoE 模型 Mistral Large 4（Le Chonk）的权重，允许商用、修改和自托管；经过额外强化学习后，官方称其 Terminal-Bench 4.0 从预览时的 28% 升到 41%，是编码与网络防御方向最强的开放权重模型之一。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "Mistral",
+        "模型发布"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
