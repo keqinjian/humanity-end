@@ -1506,6 +1506,30 @@
     },
     {
       "date": "2026-11-04",
+      "title": "AutoDNA 登上 Nature",
+      "blurb": "上海交大等在 Nature 发表 AutoDNA：AI 原生自主生物分子实验室，多智能体编排 20 余种仪器完成超 1.1 万步核酸合成、转录、扩增与测序，人工仅需补试剂与维护硬件；四项演示含酶促 DNA 合成收率对标专家优化、并发协议加速约 3.2 倍、端到端 DNA 数据存储精确回读，以及检出并验证临床 KRAS G13D 突变。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "生物",
+        "机器人",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-04",
+      "title": "AI 批量挖出近千个 Linux 提权漏洞",
+      "blurb": "OpenAI 公布自主漏洞发现—验证—利用—补丁流水线：一次运行用即将发布的网络安全模型复现 1724 个 Linux 内核漏洞，并生成 948 个可用本地提权利用与对应补丁，API 费用约 121 万美元（约每例 1279 美元）；另在 hardened kernelCTF 环境拿到 21 个 LPE，并称抽样中至少 10 种利用手法此前未见。结果经人工复核后按社区建议优先上报关键漏洞。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-04",
       "title": "腾讯 Hy4",
       "blurb": "腾讯发布混元最新模型 Hy4，该系列首次加入视觉理解，并能操作命令行与图形界面（经 Blender 与 CAD 专门训练），权重与系统卡计划近日放出，API 仍约每百万 token 输入 0.90 美元、输出 2.70 美元；在腾讯 Hy 团队与腾讯金融科技的自办盲测里，213 名金融从业者、579 项真实任务中 Hy4 以 3.04 分居受测开放模型之首（DeepSeek-V4.1-Flash-1017 为 2.97，Kimi K3.1 Pro 与 GLM-5.3 均为 2.68），并借 Hyra 2.0 开源单细胞模型 HyCell 与物理场模型 HyPDE。",
       "era": "2026 临界",
@@ -1525,6 +1549,18 @@
         "开源",
         "模型发布",
         "Kimi"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-04",
+      "title": "Ripple-65B Preview",
+      "blurb": "Ricursive Intelligence 以 Apache 2.0 放出从零预训练的稠密 65B 开放权重模型 Ripple-65B Preview（约 12T token、号称最长百万上下文），自报 TerminalBench 2.1 得 80.52，超过参数量大一个数量级的美系开放权重模型；官方称全研发成本约 3200 万美元，权重已上架 Hugging Face 等。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "编码",
+        "智能体"
       ],
       "impact": "low"
     }
@@ -1993,16 +2029,16 @@
         {
           "id": "lab-liquid",
           "name": "实验室液体处理",
-          "remaining": 42,
-          "note": "移液与高通量筛选自动化成熟；Google VERID 等智能体已能闭环实操，方案例外与安全仍靠人。",
-          "movedBy": "Google 湿实验闭环智能体"
+          "remaining": 38,
+          "note": "移液与高通量筛选自动化成熟；Google VERID 等智能体已能闭环实操，AutoDNA 进一步用多智能体编排二十余种仪器自主完成核酸合成到测序，方案例外与安全仍靠人。",
+          "movedBy": "Google 湿实验闭环智能体 / AutoDNA 登上 Nature"
         },
         {
           "id": "lab-plan",
           "name": "实验方案规划",
-          "remaining": 45,
+          "remaining": 42,
           "note": "协议草稿与闭环 aptamer/蛋白设计可生成；试剂现实、伦理与失败迭代仍人类主导。",
-          "movedBy": "Google 湿实验闭环智能体"
+          "movedBy": "Google 湿实验闭环智能体 / AutoDNA 登上 Nature"
         }
       ]
     },
@@ -2056,9 +2092,9 @@
         {
           "id": "vuln-find",
           "name": "漏洞发现",
-          "remaining": 30,
-          "note": "模型已能找出潜伏十余年的 PHP 核心漏洞并做成利用链，内部 Claude 还对 Chrome、Safari、Android、Windows、Linux 各写出完整利用链；漏洞取舍、协调披露与修复验证仍靠人。",
-          "movedBy": "Gemini 4 Argon / AI 挖出 PHP 核心远程执行漏洞 / Claude 攻破五大平台利用链"
+          "remaining": 26,
+          "note": "模型已能找出潜伏十余年的 PHP 核心漏洞并做成利用链，内部 Claude 还对 Chrome、Safari、Android、Windows、Linux 各写出完整利用链，OpenAI 流水线更一次复现千余个内核漏洞并生成近千个 Linux 本地提权利用；漏洞取舍、协调披露与修复验证仍靠人。",
+          "movedBy": "Gemini 4 Argon / AI 挖出 PHP 核心远程执行漏洞 / Claude 攻破五大平台利用链 / AI 批量挖出近千个 Linux 提权漏洞"
         },
         {
           "id": "sec-audit",
