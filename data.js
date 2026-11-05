@@ -1506,6 +1506,19 @@ window.__HUMANITY_DATA__ = {
     },
     {
       "date": "2026-11-04",
+      "title": "AutoDNA 登上 Nature",
+      "blurb": "上海交大等在 Nature 发表 AutoDNA：AI 原生自主生物分子实验室，多智能体编排 20 余种仪器完成超 1.1 万步核酸合成、转录、扩增与测序，人工仅需补试剂与维护硬件；四项演示含酶促 DNA 合成收率对标专家优化、并发协议加速约 3.2 倍、端到端 DNA 数据存储精确回读，以及检出并验证临床 KRAS G13D 突变。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "生物",
+        "机器人",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-04",
       "title": "OpenAI 自主流水线挖出 948 个 Linux 提权漏洞",
       "blurb": "OpenAI 官方博客宣布，其由即将发布的网络攻防模型驱动的自主漏洞发现—验证—利用—补丁流水线，在一次对常用 Linux 发行版内核的扫描中动态复现 1724 个漏洞，并产出 948 个可工作的本地提权（LPE）利用与对应补丁候选，API 成本约 121 万美元（约每条 LPE 1279 美元）；另在 hardened kernelCTF 环境产出 21 个 LPE。人工研究员复核后按社区指引上报；OpenAI 称抽样分析中至少用到 10 种对其与第三方专家而言都是新的利用手法。这是实验室在受控环境中的防御性披露，独立复现尚未公开。",
       "era": "2026 临界",
@@ -1675,7 +1688,7 @@ window.__HUMANITY_DATA__ = {
           "id": "kernel",
           "name": "内核开发",
           "remaining": 66,
-          "note": "OpenAI 流水线已能在内核规模代码上批量发现、验证利用并起草补丁，读代码与草稿能力继续增强；合并标准、并发正确性、ABI 与长期维护责任仍极人类。",
+          "note": "可辅助读代码与写补丁草稿；OpenAI 流水线已能批量产出内核提权利用与补丁候选，但合并标准、并发正确性与 ABI 仍极人类。",
           "movedBy": "GPT-6 Astra / OpenAI 自主流水线挖出 948 个 Linux 提权漏洞"
         },
         {
@@ -2031,16 +2044,16 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "lab-liquid",
           "name": "实验室液体处理",
-          "remaining": 42,
-          "note": "移液与高通量筛选自动化成熟；Google VERID 等智能体已能闭环实操，方案例外与安全仍靠人。",
-          "movedBy": "Google 湿实验闭环智能体"
+          "remaining": 38,
+          "note": "移液与高通量筛选自动化成熟；Google VERID 等智能体已能闭环实操，AutoDNA 进一步用多智能体编排二十余种仪器自主完成核酸合成到测序，方案例外与安全仍靠人。",
+          "movedBy": "Google 湿实验闭环智能体 / AutoDNA 登上 Nature"
         },
         {
           "id": "lab-plan",
           "name": "实验方案规划",
-          "remaining": 45,
+          "remaining": 42,
           "note": "协议草稿与闭环 aptamer/蛋白设计可生成；试剂现实、伦理与失败迭代仍人类主导。",
-          "movedBy": "Google 湿实验闭环智能体"
+          "movedBy": "Google 湿实验闭环智能体 / AutoDNA 登上 Nature"
         }
       ]
     },
@@ -2095,7 +2108,7 @@ window.__HUMANITY_DATA__ = {
           "id": "vuln-find",
           "name": "漏洞发现",
           "remaining": 22,
-          "note": "OpenAI 自主流水线一次扫出 948 个可工作的 Linux 内核本地提权利用并生成补丁候选，此前 Claude 已对五大平台写出完整利用链、模型也能挖出潜伏十余年的 PHP 核心漏洞；漏洞取舍、协调披露与上游合并仍靠人。",
+          "note": "模型已能找出潜伏十余年的 PHP 核心漏洞并做成利用链，内部 Claude 还对 Chrome、Safari、Android、Windows、Linux 各写出完整利用链；OpenAI 自主流水线一次复现 1724 个 Linux 内核漏洞并生成 948 个可用本地提权利用与补丁候选；漏洞取舍、协调披露与修复验证仍靠人。",
           "movedBy": "Gemini 4 Argon / AI 挖出 PHP 核心远程执行漏洞 / Claude 攻破五大平台利用链 / OpenAI 自主流水线挖出 948 个 Linux 提权漏洞"
         },
         {
