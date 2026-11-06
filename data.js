@@ -1,8 +1,8 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-05",
+  "updated": "2026-11-06",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-05。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-06。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1576,6 +1576,30 @@ window.__HUMANITY_DATA__ = {
         "开源",
         "模型发布",
         "编程"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-05",
+      "title": "GPT-6 Cyber",
+      "blurb": "OpenAI 官方博客与系统卡同日发布专攻网络安全的 GPT-6 Cyber：按 Preparedness Framework 将网络安全能力定为 Critical（上一代 GPT-5.6 Cyber 为 High），自报 ExploitGym 48.5%（GPT-5.6 Cyber 为 32.1%）、RemoteExploitBench 完成率 95%（GPT-6 Astra + Daybreak Blue 全部拒答），无部署提示时越权利用率降至 0.07%；先向经核验的 Daybreak Red 用户开放 API/Codex。官方称该模型已用于前述 Linux 948 条本地提权利用与 Firefox 81 个此前未知高危漏洞的发现与补丁候选。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "模型发布",
+        "OpenAI"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-05",
+      "title": "ERNIE-5.5-Flash-Base 放出权重",
+      "blurb": "百度官方放出 ERNIE-5.5-Flash-Base 预训练结束检查点权重：稀疏 MoE，总参 280B、每 token 激活约 14B，预训练约 33.5T token，微调与推理支持至多 1M 上下文；官方称尚未做 mid/post-training，供社区自行域适应与后训练。权重已上 Hugging Face（FP8/BF16），并附厂商自办与同尺寸开源基座对照评测。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "百度"
       ],
       "impact": "low"
     }
