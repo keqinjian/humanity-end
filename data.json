@@ -1602,6 +1602,19 @@
         "百度"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-11-05",
+      "title": "Gemini Omni 1.2 Flash",
+      "blurb": "Google DeepMind 官方博客宣布 Gemini Omni 1.2 Flash 在 Gemini API 与 Google Cloud 全面可用：原生生成与多轮对话编辑最长 15 秒视频（上一代 Omni 1.1 为 10 秒），720p 报价约每秒 0.07 美元（较 1.1 降约 30%），并强调对图像/短视频/音频参考的一致性与 SynthID 水印；这是 Gemini Omni 首次标为生产级一般可用。",
+      "era": "2026 临界",
+      "tags": [
+        "视频",
+        "多模态",
+        "Google",
+        "产品"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
@@ -1928,9 +1941,9 @@
         {
           "id": "short-video",
           "name": "短视频剪辑",
-          "remaining": 25,
+          "remaining": 23,
           "note": "自动粗剪与字幕成熟；节奏品味与平台运营仍偏人。",
-          "movedBy": "Sora 2 / 剪辑助手"
+          "movedBy": "Sora 2 / 剪辑助手 / Gemini Omni 1.2 Flash"
         },
         {
           "id": "film-vfx",
