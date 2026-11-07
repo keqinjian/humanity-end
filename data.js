@@ -1,5 +1,5 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-06",
+  "updated": "2026-11-07",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-06。",
@@ -1602,6 +1602,78 @@ window.__HUMANITY_DATA__ = {
         "百度"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-11-05",
+      "title": "Thinking Machines 发布 Inkling 2 Small",
+      "blurb": "Mira Murati 创办的 Thinking Machines Lab 发布第二代 Inkling 2 Small：594B 总参、17B 激活的多模态 MoE（图像+文本），官方称 Artificial Analysis Intelligence Index 约 31，并在 DesignArena Website 等评测上接近开源前沿；现经 Tinker 提供推理与微调，权重暂闭源，称完成外部安全测评后拟以 Apache-2.0 放出。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "多模态",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-05",
+      "title": "NVIDIA 放出 Cosmos 3 交互世界仿真开源检查点",
+      "blurb": "NVIDIA 在 Hugging Face 放出 Cosmos 3 家族四款开源权重检查点（各约 16B 可训参、OpenMDW1.1）：面向多视角驾驶合成的 Transfer-Auto、流式相机+LiDAR 的 Sim-Auto、由仿真器控制生成 RGB 的 Sim-Transfer，以及双臂机器人动作→视频的 Sim-Bimanual，供驾驶与具身策略在交互世界模型中训练与评测。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "机器人",
+        "自动驾驶"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-05",
+      "title": "蚂蚁 Ling-3.2-flash",
+      "blurb": "蚂蚁 Ant Ling 平台上线原生多模态 Ling-3.2-flash：560B 总参、25B 激活、1M 上下文，原生支持图像/文本/视频，面向复杂视觉理解、多模态长程智能体、三维交互与医疗多模态；聊天与兼容 OpenAI/Anthropic 协议的 API 可用，上线后两周免费。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "多模态",
+        "智能体"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-05",
+      "title": "Gemini Omni 1.2 Flash",
+      "blurb": "Google 宣布 Gemini Omni 1.2 Flash 正式可用：原生视频生成与多轮对话式剪辑最长约 15 秒（上代约 10 秒），参考一致性有提升，720p 草稿价约每秒 0.07 美元、较 Omni 1.1 低约 30%，可升至 4K；经 Gemini API 与 Google Cloud 提供。",
+      "era": "2026 临界",
+      "tags": [
+        "视频",
+        "模型发布",
+        "Google"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-06",
+      "title": "AI 证明 Aaronson–Ambainis 猜想",
+      "blurb": "Physical Superintelligence（PSI）宣布其内部研究系统（运行未公开 Anthropic 模型）给出 2008 年 Aaronson–Ambainis 猜想的证明，并由 Lean 机检通过：该猜想关乎量子算法在随机输入上能否相对经典取得指数级查询加速；证明后可知对多数随机输入，经典算法只需多项式级更多查询即可近似量子判定算法。斯坦福 Blanc 等已阅读证明并称其为「巨大结果」；论文与 Lean 代码已公开。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "形式化证明",
+        "量子计算"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2026-11-06",
+      "title": "AIRoA-0 机器人基础模型开源",
+      "blurb": "日本 AIRoA 放出机器人基础模型 AIRoA-0：基于 Physical Intelligence π0.5，用 YUBI 手持夹爪采集的 16151 小时人类操作数据（无需机器人遥操作）做预训练与后训练，输出夹爪位姿以跨 Franka/TX-G2/OpenArm/UR 等平台部署；十项双臂任务平均成功率 78%，同数据后训练的最强对照 VLA 为 27%。预训练/后训练权重与代码已公开。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "机器人",
+        "具身智能"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
@@ -1774,9 +1846,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "formal-proof",
           "name": "形式化证明",
-          "remaining": 40,
-          "note": "模型已能批量写出 Lean 证明（Navier–Stokes 证明 17 小时完成形式化），Axiom 宣布用智能体集群 24 天把约 1.5 万页的有限单群分类写成约 4300 万行 Lean；形式陈述是否忠实原题、外部独立复核仍靠人。",
-          "movedBy": "GPT-6 Astra / Navier–Stokes 千禧年难题 / OpenAI 数学论文大轰炸 / Axiom 宣布形式化有限单群分类"
+          "remaining": 37,
+          "note": "模型已能批量写出 Lean 证明（Navier–Stokes 证明 17 小时完成形式化），Axiom 宣布用智能体集群 24 天把约 1.5 万页的有限单群分类写成约 4300 万行 Lean；PSI 系统又用 Lean 机检通过 Aaronson–Ambainis 猜想证明。形式陈述是否忠实原题、外部独立复核仍靠人。",
+          "movedBy": "GPT-6 Astra / Navier–Stokes 千禧年难题 / OpenAI 数学论文大轰炸 / Axiom 宣布形式化有限单群分类 / AI 证明 Aaronson–Ambainis 猜想"
         },
         {
           "id": "physics-theory",
@@ -2040,9 +2112,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "robot-desk",
           "name": "桌面机器人操作",
-          "remaining": 50,
-          "note": "演示很炫，泛化抓取与精细装配在开放环境仍不稳。",
-          "movedBy": "V-JEPA 2 / 具身模型"
+          "remaining": 46,
+          "note": "开源 VLA 与世界模型检查点推进明显（AIRoA-0 在十项双臂任务上自报 78% 成功率）；开放环境泛化抓取与精细装配仍不稳。",
+          "movedBy": "V-JEPA 2 / 具身模型 / AIRoA-0 机器人基础模型开源"
         },
         {
           "id": "robot-warehouse",
