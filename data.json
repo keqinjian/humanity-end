@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-08",
+  "updated": "2026-11-10",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
   "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-08。",
@@ -1686,6 +1686,31 @@
         "Google"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-11-09",
+      "title": "Claude Fable 5.2 / Mythos 5.2",
+      "blurb": "Anthropic 发布 Claude Fable 5.2 与同底座、面向核验组织的 Mythos 5.2：定价降至 $8/$40（百万 token），可选 fast mode；$8/$40 相对 5.1 更便宜且自报输出最多快约 30%。官方系统卡与评测称 FrontierCode 2.0 最高 49.1%（Xhigh）、Remote Labor Index 41.3%（相对 Opus 5.5 的 21.3%）、RoboDojo Sim 64.9%（Fable 5.1 为 27.6%）。同日研究帖称，与 Diode 合作时 Fable 5.2 从短提示端到端设计音箱电话、语音助手枢纽与掌上虚拟宠物三款电子设备（原理图、四层 PCB、3D 外壳与固件），工厂按文件直出板卡、电路无需改线即可工作；另宣布约千个 Fable 5.2 智能体约 30 小时完成费马大定理 Lean 形式化（此前同类研究模型约 11 天），并宣布解决两个与全息对偶相关的黑洞理论物理开放问题（附预印本）。Fable 对大众开放，Mythos 经 Cyber/生命科学核验计划开放。",
+      "era": "2026 临界",
+      "tags": [
+        "旗舰",
+        "Anthropic",
+        "硬件",
+        "形式化证明"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2026-11-09",
+      "title": "Meta Muse Ember",
+      "blurb": "Meta 超级智能实验室发布最小高效模型 Muse Ember（muse-ember-1.0）：面向智能体重复子任务（工具调用、编码子任务、路由、抽取、长文档），API 价 $0.10/$0.50（百万输入/输出），1M 上下文、最多 512K 输出；Meta 称在 Artificial Analysis 智能指数相对成本曲线上优于 Claude Haiku 5.5 与 GPT-6 Luna 各档，并位居效率前沿。由 Muse Wonder Full 训练出的首个专用小模型，已上 Muse Code、Meta Model API 与 Google/Oracle 云。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "Meta",
+        "效率"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
@@ -1935,9 +1960,9 @@
         {
           "id": "pcb",
           "name": "PCB 布局",
-          "remaining": 45,
-          "note": "自动布线与规则检查进步大；高速与电源完整性仍需老手。",
-          "movedBy": "Claude Sonnet 5.5"
+          "remaining": 40,
+          "note": "自动布线与规则检查进步大；高速与电源完整性仍需老手。 Fable 5.2 与 Diode 合作端到端设计三款可工作原型板（电路无需改线）。",
+          "movedBy": "Claude Fable 5.2 / Mythos 5.2 / Claude Sonnet 5.5"
         },
         {
           "id": "cad",
