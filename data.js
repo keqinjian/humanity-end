@@ -1,8 +1,8 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-10",
+  "updated": "2026-11-11",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-08。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-11。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1711,6 +1711,67 @@ window.__HUMANITY_DATA__ = {
         "效率"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-11-09",
+      "title": "NVIDIA 发布 GR00T 2 开源世界动作模型",
+      "blurb": "NVIDIA 在机器人学习会议 CoRL 发布开源前沿世界动作模型 GR00T 2（基于 Cosmos）：官方称在无任务级演示时，50 项评测任务中有 40 项至少成功一次；每项仅 1 个演示时 50 项平均成功率 71%，5 个演示时 95%，并称可从人类演示向不同机器人本体迁移而无需机器人演示。同日还发布 Isaac Lab 3.0 等仿真与评测工具；官方称 Foxconn、Siemens、Nexuni 等正在工厂与工业场景中评估。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "机器人",
+        "具身智能"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-10",
+      "title": "AlphaProof Code 在机器码层验证 Signal 协议",
+      "blurb": "Google DeepMind 发布智能体框架 AlphaProof Code，并在 11 月 10 日的技术报告与官方博客中宣布：在人类专家审定 Lean 规格的前提下，由 Gemini 4 Carbon 驱动的证明智能体对 Signal 参考实现 libsignal 的未经修改编译结果（含后量子 PQXDH 握手与双重棘轮）在 AArch64 机器码层写出约 650 万行经 Lean 内核检查的证明，建立前向保密、认证、攻陷后安全与握手保密等协议级性质；受信任规格与 AArch64 语义合计约 2.6 万行。五人团队用约四周完成（论文称若用既往工具需专家数年）；作者未手写任何证明代码。为核验规格强度，他们把 Cheval 等人此前发现、现已修复的两处 libsignal 漏洞重新引入隔离二进制，并给出机检证明表明符号安全定理不再成立。底层密码原语等以外合约形式假设。官方称这是首次把广泛部署的密码协议之协议级安全保证接到未经修改的实现代码上。形式化产物已开源。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "形式化",
+        "Google",
+        "智能体"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2026-11-10",
+      "title": "Gemini 4 Carbon 全面开放",
+      "blurb": "Google 把此前仅限 Fairwind 网络防御方的 Gemini 4 Carbon 全面开放：付费开发者与企业可通过 Gemini API、AI Studio 与 Gemini for business 使用，AI Ultra 订阅者在 Antigravity、Gemini 应用与搜索 AI Mode 上线；引入期定价与 Argon 同为每百万 token $2/$10，11 月 30 日后为 $4/$20。官方称 Carbon 在 CursorBench 4.0、Perplexity 的 WANDR 与 Zapier 的 AutomationBench 排名第一，并预览 Antigravity 的 /swarm 多智能体编排。",
+      "era": "2026 临界",
+      "tags": [
+        "普及",
+        "旗舰",
+        "Google"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-10",
+      "title": "Gemini Robotics 2.5",
+      "blurb": "Google DeepMind 发布视觉—语言—动作模型 Gemini Robotics 2.5，面向机器人合作伙伴放量。官方称在 200 余项任务上相对既有基线成功率提高 30%–100%、完成速度快 20%–30%。与 Apptronik、梅赛德斯-奔驰合作，在匈牙利 Kecskemét 与德国 Sindelfingen 的在产汽车生产线上用 Apollo 2 人形机器人做零件分拣配盘概念验证，官方称成功率为 96%。同时开源机器人越狱评测基准 ASIMOV-Jailbreak；文中称 Gemini 4 Argon 在该基准上抵制率为 99.5%（此前 Gemini Robotics ER 2 为 82%）。",
+      "era": "2026 临界",
+      "tags": [
+        "机器人",
+        "具身智能",
+        "Google"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-10",
+      "title": "IFM 开源世界模型 PAN 2",
+      "blurb": "MBZUAI 旗下 Institute of Foundation Models 发布开源世界模型 PAN 2：给定起始场景与自然语言动作，先由语言模型做带时间戳的概念推理，再由从零训练的视频扩散模型生成后续视频。官方称在 Physics-IQ Verified 公开榜总分第三、开源权重模型中第一，多步规划完成的完整计划数在测试中最多；视频模型权重、完整训练与推理代码及文档以 Apache 2.0 发布。新闻稿写明长期世界一致性仍是未解决问题。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "世界模型",
+        "仿真"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
@@ -2247,9 +2308,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "sec-audit",
           "name": "安全审计与合规",
-          "remaining": 30,
-          "note": "Claude 已能在汇编层为上百个开源库自动写出可机检的无崩溃证明，大规模形式化审计不再只靠专家；规格是否贴合现实、组织风险接受度仍要人拍板。",
-          "movedBy": "Gemini 4 Argon / Claude 大规模形式化验证开源库"
+          "remaining": 25,
+          "note": "Claude 已能在汇编层为上百个开源库自动写出可机检的无崩溃证明；AlphaProof Code 进一步在 AArch64 机器码层为未经修改的 libsignal 证明前向保密、攻陷后安全等协议级性质（约四周、约 650 万行 Lean）。规格是否贴合现实、密码原语合约与组织风险接受度仍要人拍板。",
+          "movedBy": "Gemini 4 Argon / Claude 大规模形式化验证开源库 / AlphaProof Code 在机器码层验证 Signal 协议"
         },
         {
           "id": "pentest",
