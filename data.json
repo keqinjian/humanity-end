@@ -1652,6 +1652,18 @@
       "impact": "low"
     },
     {
+      "date": "2026-11-05",
+      "title": "METR 评估 Anthropic 研发已约加速一倍",
+      "blurb": "独立评估机构 METR 公布对 Anthropic 的高权限评估（2026 年 8 月 12 日至 10 月 29 日）：截至 2026 年 10 月，Anthropic 在可明确指定任务上的能力提升速度，大约是 2024 年 3 月至 2025 年 10 月的两倍（主观结论，不确定区间约 1.3–3 倍）。内部模型按 AECI（Anthropic 版 Epoch Capabilities Index）自 2025 年 10 月起的增速约为此前的 1.9 倍（95% 置信区间 1.5–2.8）；METR 将当前加速的大部分归因于用 AI 做研发，但不确定性很大，且未识别出明确的近期瓶颈。Anthropic 删改了报告中的大量证据。",
+      "era": "2026 临界",
+      "tags": [
+        "评估",
+        "Anthropic",
+        "研发加速"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2026-11-06",
       "title": "AI 证明 Aaronson–Ambainis 猜想",
       "blurb": "Physical Superintelligence（PSI）宣布其内部研究系统（运行未公开 Anthropic 模型）给出 2008 年 Aaronson–Ambainis 猜想的证明，并由 Lean 机检通过：该猜想关乎量子算法在随机输入上能否相对经典取得指数级查询加速；证明后可知对多数随机输入，经典算法只需多项式级更多查询即可近似量子判定算法。斯坦福 Blanc 等已阅读证明并称其为「巨大结果」；论文与 Lean 代码已公开。",
@@ -1725,6 +1737,18 @@
       "impact": "mid"
     },
     {
+      "date": "2026-11-09",
+      "title": "美团 LongCat-2.5 放出 MIT 权重",
+      "blurb": "美团将 LongCat-2.5 权重以 MIT 放到 Hugging Face（meituan-longcat/LongCat-2.5）：原生多模态 MoE，总参约 1.6 万亿、每 token 激活约 480 亿，在 LongCat-2.0 上加强视觉理解与长程智能体编码；仓库含可下载的 safetensors 分片，模型卡写明按 MIT 发布。模型本身于 2026-11-01 公布，随后放出可下载权重。厂商自报 Terminal Bench v2.1 为 88.4（2.0 为 70.8）、DeepSWE v1.1 为 64.6（2.0 为 9.7），模型卡写明未标星号分数为内部实测、仅供参考，尚未见独立复测。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "美团"
+      ],
+      "impact": "low"
+    },
+    {
       "date": "2026-11-10",
       "title": "AlphaProof Code 在机器码层验证 Signal 协议",
       "blurb": "Google DeepMind 发布智能体框架 AlphaProof Code，并在 11 月 10 日的技术报告与官方博客中宣布：在人类专家审定 Lean 规格的前提下，由 Gemini 4 Carbon 驱动的证明智能体对 Signal 参考实现 libsignal 的未经修改编译结果（含后量子 PQXDH 握手与双重棘轮）在 AArch64 机器码层写出约 650 万行经 Lean 内核检查的证明，建立前向保密、认证、攻陷后安全与握手保密等协议级性质；受信任规格与 AArch64 语义合计约 2.6 万行。五人团队用约四周完成（论文称若用既往工具需专家数年）；作者未手写任何证明代码。为核验规格强度，他们把 Cheval 等人此前发现、现已修复的两处 libsignal 漏洞重新引入隔离二进制，并给出机检证明表明符号安全定理不再成立。底层密码原语等以外合约形式假设。官方称这是首次把广泛部署的密码协议之协议级安全保证接到未经修改的实现代码上。形式化产物已开源。",
@@ -1772,6 +1796,18 @@
         "仿真"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-11-11",
+      "title": "MiniMax H3-Image 放出开源权重",
+      "blurb": "MiniMax 发布开源权重图像生成与编辑模型 H3-Image（Hugging Face：MiniMaxAI/MiniMax-H3-Image）：同一检查点支持文生图与最多 16 张参考图的编辑，扩散变换器约 331 亿参数，蒸馏为 6 步采样且无需 classifier-free guidance；官方称可直接生成约 16 兆像素图像（含 4096×4096），并称 4K 生成可在 10 秒内完成、速度可达主流方案的 5 倍，提示遵循为开源权重模型中最强——均为厂商自报，尚未见独立复测。权重按 MiniMax-H3-Image Community License 发布，亦经 API、MiniMax Code 与海螺上线。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "图像生成",
+        "MiniMax"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
