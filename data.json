@@ -1652,6 +1652,18 @@
       "impact": "low"
     },
     {
+      "date": "2026-11-05",
+      "title": "METR 评估 Anthropic 研发已约加速一倍",
+      "blurb": "独立评估机构 METR 公布对 Anthropic 的高权限评估（2026 年 8 月 12 日至 10 月 29 日）：截至 2026 年 10 月，Anthropic 在可明确指定任务上的能力提升速度，大约是 2024 年 3 月至 2025 年 10 月的两倍（主观结论，不确定区间约 1.3–3 倍）。内部模型按 AECI（Anthropic 版 Epoch Capabilities Index）自 2025 年 10 月起的增速约为此前的 1.9 倍（95% 置信区间 1.5–2.8）；METR 将当前加速的大部分归因于用 AI 做研发，但不确定性很大，且未识别出明确的近期瓶颈。Anthropic 删改了报告中的大量证据。",
+      "era": "2026 临界",
+      "tags": [
+        "评估",
+        "Anthropic",
+        "研发加速"
+      ],
+      "impact": "mid"
+    },
+    {
       "date": "2026-11-06",
       "title": "AI 证明 Aaronson–Ambainis 猜想",
       "blurb": "Physical Superintelligence（PSI）宣布其内部研究系统（运行未公开 Anthropic 模型）给出 2008 年 Aaronson–Ambainis 猜想的证明，并由 Lean 机检通过：该猜想关乎量子算法在随机输入上能否相对经典取得指数级查询加速；证明后可知对多数随机输入，经典算法只需多项式级更多查询即可近似量子判定算法。斯坦福 Blanc 等已阅读证明并称其为「巨大结果」；论文与 Lean 代码已公开。",
@@ -1723,6 +1735,18 @@
         "具身智能"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-11-09",
+      "title": "美团 LongCat-2.5 放出 MIT 权重",
+      "blurb": "美团将 LongCat-2.5 权重以 MIT 放到 Hugging Face（meituan-longcat/LongCat-2.5）：原生多模态 MoE，总参约 1.6 万亿、每 token 激活约 480 亿，在 LongCat-2.0 上加强视觉理解与长程智能体编码；仓库含可下载的 safetensors 分片，模型卡写明按 MIT 发布。模型本身于 2026-11-01 公布，随后放出可下载权重。厂商自报 Terminal Bench v2.1 为 88.4（2.0 为 70.8）、DeepSWE v1.1 为 64.6（2.0 为 9.7），模型卡写明未标星号分数为内部实测、仅供参考，尚未见独立复测。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "美团"
+      ],
+      "impact": "low"
     },
     {
       "date": "2026-11-10",
@@ -1806,6 +1830,41 @@
         "开源",
         "图像",
         "模型发布"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-11",
+      "title": "ERNIE 5.5 Flash Preview",
+      "blurb": "百度发布 ERNIE 5.5 Flash Preview：基于此前放出的 ERNIE 5.5 Flash Base 的首个后训练模型，总参 280B、激活约 14B、1M 上下文，面向编程、三维建模、知识工作与内容创作；API 已在千帆上线，官方称权重将很快以 Apache 2.0 开源。官方写明这是后训练过程中的中间检查点，训练尚未结束，部分能力可能仍不足，正式版将继续改进。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "百度"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-11",
+      "title": "Qwen4-Max 开启预览",
+      "blurb": "阿里云通义千问将下一代旗舰多模态模型 Qwen4-Max 以 qwen4-max-preview 开启预览：支持文本生成与默认开启的深度思考、图像与视频理解、工具调用、联网搜索与结构化输出，上下文 1M token、最大输出 393,216 token（思考与最终回答共用）。官方文档写明仅经 Token Plan 提供、不支持按量计费，预览期为 2026-11-11 10:00 至 2026-11-25 24:00（UTC+8），期间不做变更，预览结束后下线。官方预告与文档未公布评测分数。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "旗舰",
+        "阿里"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-11",
+      "title": "Gemini Decision 1",
+      "blurb": "Google 在官方博客发布 Gemini Decisions API，并由新模型 Gemini Decision 1（gemini-decision-1）驱动：对同一份多模态输入（文本、图像、音频、视频与 PDF，至多 256K token）一次可评估最多 1000 道封闭集问题（是非、多选、量表打分），在单次前向中打分并返回概率与置信度，而不逐 token 生成答案；官方称端到端时延约 150–250 毫秒，定价为每百万输入 token 0.10 美元、输出不计费，经 Gemini API 与 Google AI Studio 提供。官方称在其覆盖路由、推理、排序与多模态理解的评测套件中该模型领先且校准误差最低。Google Cloud 上的 Gemini 支持尚未上线。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "Google",
+        "API"
       ],
       "impact": "low"
     }
