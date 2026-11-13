@@ -1,8 +1,8 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-12",
+  "updated": "2026-11-13",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-12。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-13。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1805,6 +1805,31 @@ window.__HUMANITY_DATA__ = {
       "tags": [
         "开源",
         "图像",
+        "模型发布"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-12",
+      "title": "Gemini 4 Hydrogen",
+      "blurb": "Google 发布面向日常编码与智能体工作流的 Gemini 4 Hydrogen：官方称其在默认 high 思考档的 Artificial Analysis 智能指数为 51（最高 xhigh 档为 54），高于 Argon 的 50，并常比同档模型更快完成任务；整段 100 万 token 上下文统一定价为每百万输入 $1.50、输出 $7.50。官方称相对 Gemini 3.8 Flash，默认 high 档完成任务快 2.5 倍，Terminal-Bench 4.1 为 57%（3.8 Flash 为 18.2%），编造陈述减少 5 倍以上。即日起在 Gemini API、AI Studio、Gemini for business、Gemini 应用与面向所有用户的 Google 搜索上线，付费 Google AI Pro/Ultra 用户还可在 Antigravity 使用；并推出可在同一会话中动态切换 Carbon 与 Hydrogen 的 Orchestrator。",
+      "era": "2026 临界",
+      "tags": [
+        "普及",
+        "模型发布",
+        "Google",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-12",
+      "title": "Edge0 放出 145B 端侧模型权重",
+      "blurb": "Edge0 宣布开源面向个人电脑的端侧模型 Edge0-145B 与 Edge0-120B，并同时放出推理框架。官方称 Edge0-145B 为 1450 亿总参的稀疏 MoE（每 token 激活约 101 亿），可在兼容笔记本上本地运行；公司内部评测称 DeepSWE 1.1 为 64.6、Terminal-Bench 2.1 为 86.52，峰值内存约 29GB、解码速度超过 80 token/s。量化权重已上 Hugging Face；许可证为 Edge0 社区协议并叠加 Qwen 社区协议，出售模型或对外提供托管服务需另行授权。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "端侧",
         "模型发布"
       ],
       "impact": "low"
