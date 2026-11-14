@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-13",
+  "updated": "2026-11-14",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-13。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-14。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1831,6 +1831,18 @@
         "开源",
         "端侧",
         "模型发布"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-12",
+      "title": "Inkling 2 Small 放出权重",
+      "blurb": "按 11 月 5 日的承诺，Thinking Machines Lab 在 Hugging Face 以 Apache 2.0 公开 Inkling 2 Small 权重（thinkingmachines/Inkling-2-Small）：594B 总参、17B 激活的多模态 MoE（图像+文本），百万 token 上下文。官方称完成外部安全测评后放出，并已接入 SGLang、vLLM、Unsloth 与多家推理 API；主检查点为原生 NVFP4（官方称预训练至后训练均在该精度完成），另提供 MXFP8 版本。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "智能体"
       ],
       "impact": "low"
     }
