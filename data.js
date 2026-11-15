@@ -1,8 +1,8 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-14",
+  "updated": "2026-11-15",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-14。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-15。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1843,6 +1843,18 @@ window.__HUMANITY_DATA__ = {
         "开源",
         "模型发布",
         "智能体"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-13",
+      "title": "DeepMind 开放 SatWeave 与 PARDIG 气象数据集",
+      "blurb": "Google DeepMind 与 Google Research 以 CC BY 4.0 开放 WeatherNext 3 所用的两个基础数据集，并配发论文（arXiv:2611.13941）：SatWeave 将 GOES-East/West、Meteosat 0° 与印度洋、Himawari 五颗地球静止卫星的影像统一为 0.1°、17 个光谱通道的全球镶嵌，历史库可回溯十年以上，并提供约 1 小时延迟的小时级实时馈送；PARDIG 是由稀疏星载雷达训练的全球降水估计，空间约 10 公里、时间 15 分钟，近实时序列自 2016 年至今（平均延迟约 5 小时），另有回溯至 1999 年的历史版本。官方称其在美、欧、日三套雷达网及全球逾 3.6 万个地面站上优于 NASA IMERG-Final 等基线，中小雨量级的小时降水探测技巧提高逾 30%，对极端降水尤其有效。数据已上 Google Cloud Storage，PARDIG 历史目录亦在 Earth Engine。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "科学",
+        "Google"
       ],
       "impact": "low"
     }
