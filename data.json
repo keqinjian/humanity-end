@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-15",
+  "updated": "2026-11-16",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-15。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-16。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1855,6 +1855,17 @@
         "开源",
         "科学",
         "Google"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-15",
+      "title": "Agnes 2.5 Pro Theta 放出权重",
+      "blurb": "Agnes AI 在 Hugging Face 以 Apache 2.0 公开多模态 MoE 模型 Agnes 2.5 Pro Theta 的 BF16 权重（Agnes-AI/Agnes-2.5-Pro-Theta）：总参约 1878 亿（每 MoE 块 512 个路由专家、top-10 外加共享专家），配置上下文上限 262,144 token，并附带图像与视频处理器及 Transformers 自定义代码。模型卡给出的评测为发布方自报（如 GPQA Diamond 92.9、LiveCodeBench v6 90.5、AA-LCR 84.7、SWE-bench Pro 64.1），未附可复核实验包；权重张量约 375.5 GB，模型卡称全量驻留推理的可行起点为 4 张 H200 级 GPU。该检查点的首次提交时间为 2026-11-15T02:46:17Z。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布"
       ],
       "impact": "low"
     }
