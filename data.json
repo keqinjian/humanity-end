@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-15",
+  "updated": "2026-11-17",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-15。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-17。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1855,6 +1855,30 @@
         "开源",
         "科学",
         "Google"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-16",
+      "title": "Qwen4-Max",
+      "blurb": "阿里通义千问团队发布新一代旗舰 Qwen4-Max：采用新的 Qwen4 稀疏 MoE 架构，总参 2.4 万亿、每 token 激活 710 亿，原生支持视觉理解，上下文 100 万 token；官方称激活参量较同为 2.4T 的 Qwen3.8-Max 少约 25%，在自办行业任务基准 Work360 上整体优于 Qwen3.8-Max，High 思考档少用约 35% token、单任务平均成本约降 60%，并在 Code Arena 排第 6。已在 QwenCloud 以 Token Plan 与 API 上线，亦可在 QwenWork、QwenStudio 使用；官方称随后将开放 Qwen4 系列更小尺寸权重。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "多模态",
+        "阿里"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-16",
+      "title": "腾讯 Hy4 flash",
+      "blurb": "腾讯发布混元系列高性价比模型 Hy4 flash：总参 2240 亿（含 640 亿 Engram 参数）、每 token 激活 120 亿，支持多模态输入与最多 100 万 token 上下文，API 约每百万 token 输入 0.070 美元、输出 0.281 美元、缓存输入 0.003 美元。官方称其在自办 WorkIndex 上整体效果略优于更大的 Hy4 Preview（7700 亿总参、490 亿激活），单任务成本约为 Hy4 Preview 的 1/13、Hy4 的 1/20，解码速度超过 150 token/s；85 名内部用户、259 项任务的盲测中满意度接近 Claude Haiku 5.5。已在腾讯云 TokenHub、WorkBuddy、元宝、企业微信、QQ、ima 与 Marvis 上线，并计划开源。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "效率",
+        "腾讯"
       ],
       "impact": "low"
     }
