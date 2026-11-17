@@ -1859,6 +1859,17 @@ window.__HUMANITY_DATA__ = {
       "impact": "low"
     },
     {
+      "date": "2026-11-15",
+      "title": "Agnes 2.5 Pro Theta 放出权重",
+      "blurb": "Agnes AI 在 Hugging Face 以 Apache 2.0 公开多模态 MoE 模型 Agnes 2.5 Pro Theta 的 BF16 权重（Agnes-AI/Agnes-2.5-Pro-Theta）：总参约 1878 亿（每 MoE 块 512 个路由专家、top-10 外加共享专家），配置上下文上限 262,144 token，并附带图像与视频处理器及 Transformers 自定义代码。模型卡给出的评测为发布方自报（如 GPQA Diamond 92.9、LiveCodeBench v6 90.5、AA-LCR 84.7、SWE-bench Pro 64.1），未附可复核实验包；权重张量约 375.5 GB，模型卡称全量驻留推理的可行起点为 4 张 H200 级 GPU。该检查点的首次提交时间为 2026-11-15T02:46:17Z。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布"
+      ],
+      "impact": "low"
+    },
+    {
       "date": "2026-11-16",
       "title": "Qwen4-Max",
       "blurb": "阿里通义千问团队发布新一代旗舰 Qwen4-Max：采用新的 Qwen4 稀疏 MoE 架构，总参 2.4 万亿、每 token 激活 710 亿，原生支持视觉理解，上下文 100 万 token；官方称激活参量较同为 2.4T 的 Qwen3.8-Max 少约 25%，在自办行业任务基准 Work360 上整体优于 Qwen3.8-Max，High 思考档少用约 35% token、单任务平均成本约降 60%，并在 Code Arena 排第 6。已在 QwenCloud 以 Token Plan 与 API 上线，亦可在 QwenWork、QwenStudio 使用；官方称随后将开放 Qwen4 系列更小尺寸权重。",
@@ -1879,6 +1890,18 @@ window.__HUMANITY_DATA__ = {
         "模型发布",
         "效率",
         "腾讯"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-16",
+      "title": "书生 S2.1 Flash",
+      "blurb": "上海人工智能实验室正式发布书生 S2.1 Flash：面向高难度科学研究的多模态智能体模型，采用约 3200 亿总参、每 token 激活 180 亿的 MoE 架构（部署说明称其基于 GLM-5.3-Flash），以 Sage SciPerception 将分子图、晶体结构、蛋白质序列与三维结构、核酸序列及光谱、质谱、衍射与电生理等十余类科学输入纳入统一表征，并支持检索、编程、工具调用与专业科研软件操作。权重以 MIT 许可放出（BF16 约 645 GB，另有 FP8 版本），官方部署示例为 8 张 H200；官方称在自报的 15 项评测、6 个对比模型中 4 项第一、7 项第二，其中 MLE-bench Lite 为 90.3。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "多模态"
       ],
       "impact": "low"
     }
