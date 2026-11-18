@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-17",
+  "updated": "2026-11-18",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-17。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-18。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1881,6 +1881,42 @@
         "腾讯"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-11-16",
+      "title": "NVIDIA 发布 Nemotron for Science 与化学数据集",
+      "blurb": "NVIDIA 发布 Nemotron for Science：在已开放的 Nemotron 3.5 Super VL 之上，提供面向生命科学与化学的评测、开放化学数据集 LitmusBench v0.2（官方称近 5 万道化学推理题，可用于训练与评测）及后训练配方，供研究机构搭建领域科学智能体。权重与数据集已上 Hugging Face，并优化为可在 128GB 的 DGX Spark 本地运行。官方称阿贡国家实验室、于利希超算中心等正在将其接入科研智能体；合作方结果由官方转述，包括 Terray Therapeutics 后训练后在 RxnScribe 测试集按该基准匹配标准回收约 76% 的标注反应，以及 Lila Sciences 用实验室反馈后训练后将量子点制备准确率提至 61%（官方称超过 GPT-6 Astra 的 54%，推理成本低 10–20 倍）。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "科学",
+        "数据"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-17",
+      "title": "GPT-6.2 Astra / Sol",
+      "blurb": "OpenAI 发布旗舰 GPT-6.2 Astra 与日常工作模型 GPT-6.2 Sol。官方称 Astra 在复杂专业工作上树立新的质量标准，幻灯片、表格与文档更贴近行业模板与惯例，并在网站、游戏与 3D 等前端上写出更干净的代码；在测试多步专业工作的 Agents’ Last Exam 上刷新最高分，较 GPT-6 Astra 高 5.2 分且每任务成本不到三分之一，较 Claude Fable 5.2 高 5.5 分且成本约为后者的 5%（官方注明 Fable 5.2 榜上成绩排除了 9 项使用后备模型的任务）。官方称其是目前最适合科学家的模型，在 Terminal-Bench-Science 0.1 上较 GPT-6 Astra 高 9 个百分点、成本不到三分之一，并在 Vals Science Index 上亦刷新最高分；内部 GDPval v2 较 GPT-6 Astra 高 6.2 个百分点，且少用约 22% 输出 token。官方又称 Astra 为迄今网络安全能力最强的模型，在 ExploitBench Internal Port 上较 GPT-6 Astra 高 22 分，并因此收紧高风险网络安全协助的防护。Sol 在 FrontierCode 2.0 上与 Astra 相差 0.5 分、成本约为五分之一，API 价维持 GPT-6.1 Sol 的每百万 token 输入 2 美元、输出 10 美元；Astra API 输入/输出较 GPT-6 Astra 降 20%，为输入 8 美元、缓存输入 0.40 美元、输出 40 美元。即日起向 ChatGPT Work 与 Codex 的 Plus、Pro、企业与教育用户及 API 开放。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "OpenAI",
+        "效率"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-17",
+      "title": "微软 Ignite 发布七款 MAI 模型",
+      "blurb": "微软 AI 在 Ignite 发布七款主打性价比的新模型，并宣布第二代加速芯片 Maia 200 已投入生产（官方称每瓦 token 吞吐为上一代的 1.7 倍）。官方称：MAI Cyber 2 Flash 在 CyberGymE2E 上达到与 GPT-6 Astra 相当的质量，每任务成本不到其 2%；MAI Code 2 在面向 GitHub Copilot 日常企业编程的四项基准平均达到 GPT-6.1 Sol 质量的 98%、价格约 40%，达到 Claude Opus 5.5 的 96%、价格约 5%，官方同时写明尚未针对基础科研与超长程智能体工作做调优，已可在 GitHub Copilot 使用；MAI Image 2.7 在 Artificial Analysis 修图榜居首，官方称优于 GPT Image 2.6 Sunburst（max）、价格约为五分之一，与 Flash 版一并于 Microsoft Foundry 公开预览；MAI Realtime 1 为该公司首个实时语音到语音模型，起步价每音频分钟 0.01 美元。基于 MAI Transcribe 2 的 Dragon Copilot Transcribe 已承担 Dragon Copilot 全部医患对话转写，官方称每月覆盖 1000 万次就诊、服务约三分之一的美国医生，并称多语言工作流错误率减半。Decision 1.1 官方称较 GPT-6.1 Sol 快 50 倍、便宜 79 倍。同日还宣布 MAI Licensed Weights，允许客户在自有 Azure 环境中定制并运行前沿 MAI 模型。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "效率",
+        "产品"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
