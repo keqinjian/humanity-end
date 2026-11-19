@@ -1,8 +1,8 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-18。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-19。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1917,6 +1917,65 @@ window.__HUMANITY_DATA__ = {
         "产品"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-11-17",
+      "title": "AI 挖出 Java 运行时远程执行漏洞",
+      "blurb": "Oracle 与 OpenJDK 于 11 月 17 日修复 CVE-2026-114938（Oracle 以 CVSS 3.1 评为 8.1 高危）：在支持 AVX-512 VBMI 的 x86-64 上，OpenJDK 用于加速 Base64 解码的例程存在内存破坏，畸形输入可造成堆内存越界写入，进而泄露内存或远程执行代码；受影响范围包括 OpenJDK 17.0.6 及之后版本以及 21、25、27 等相应发行版。安全公司 Calif 同日披露并称之为 Java4Shell，自称 CVSS 4.0 为 9.2，并称其研究员用 AI 约 1 小时发现、再约 2 小时做出首个利用，token 成本不到 200 美元；该公司还称在默认配置下为 Keycloak、Jira、Confluence、Jenkins 等做出未授权远程执行演示。该漏洞依赖特定 CPU 指令集，且没有通用利用链。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "漏洞"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-17",
+      "title": "腾讯 Hy4 flash 放出权重",
+      "blurb": "按 11 月 16 日的承诺，腾讯在 Hugging Face 公开 Hy4 flash 权重（tencent/Hy4-flash，另有 FP8 与 Base 检查点）：总参 2240 亿（含 640 亿 Engram 参数）、每 token 激活 120 亿，支持多模态输入与最多 100 万 token 上下文。许可为腾讯混元许可 1.0（由 Apache 2.0 改编），连续十二个月全球总收入超过 5000 万美元、或所提供产品任一日历月活跃用户超过 1 亿的模型即服务商用须另行签约。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "腾讯"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-18",
+      "title": "Gemini 4 Neon",
+      "blurb": "Google 发布介于 Carbon 与 Hydrogen 之间的 Gemini 4 Neon：面向复杂软件工程、知识工作与科学工作流，官方称在其 xhigh 思考档以 61 分位列 Artificial Analysis 智能指数第 3（紧随更大、更慢的模型），Vals Index 第 2（70.9%），并在 Legal Research Bench 与 Tax Agent Bench 上居首；Artificial Analysis 编码智能体指数以 58.6 分排第 1，Terminal-Bench 4.1 为 65.2%，默认 high 档 FrontierCode 2.0 为 46.2%。官方又称其在 Terminal-Bench Science（70.5%）、RiemannBench（84.0%）与 HLE-Diamond（71.3%）上同档领先，Zapier AutomationBench（56.3%）与 Andon Labs Vending-Bench 2 亦居首；默认 high 档单任务成本较 Carbon 低 32%。定价为每百万 token 输入 3 美元、缓存输入 0.15 美元、输出 15 美元，上下文 100 万 token。即日起在 Gemini API、AI Studio、Gemini for business 上线，付费 Google AI Pro/Ultra 用户可在 Antigravity 与 Gemini 应用中使用。",
+      "era": "2026 临界",
+      "tags": [
+        "普及",
+        "模型发布",
+        "Google",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-18",
+      "title": "OpenAI 模型改进 AMD 旗舰 GPU 设计",
+      "blurb": "OpenAI 发布芯片设计进展：官方称其模型通过改写 SystemVerilog RTL，在已高度优化的 AMD 旗舰 GPU IP 上相对基线最高带来 14% 的功耗—性能—面积（PPA）提升，约相当于用不到 5 个月完成一年的改进；AMD 已将部分改动纳入最近送去制造的设计，并将其余改动写入供后续版本使用的生产设计文件。官方还称，AMD 验证了由其模型撰写的设计在下一代旗舰 CPU 关键模块上有个位数百分比的 PPA 提升。文中并回顾 8 月公布的自研推理芯片 Jalapeño：团队估计模型提议的改动使向量单元与矩阵单元的标准单元面积分别减少约 13% 与 10%，并已在硅片启动中得到验证。OpenAI 同时宣布与 Synopsys 合作训练面向工业 EDA 工具的 GPT-Synopsys。",
+      "era": "2026 临界",
+      "tags": [
+        "芯片",
+        "工程",
+        "OpenAI"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-18",
+      "title": "Architect Labs 宣布 AI 端到端设计 Frostbite CPU",
+      "blurb": "芯片初创公司 Architect Labs 宣布，其智能体集群从交互网（interaction nets）出发，自主迭代编译器、指令集、架构、微架构、RTL、验证直至最终 GDS，得到一款名为 Frostbite 的通用 CPU。该公司称在 7 纳米工艺上综合出最终 GDS（综合时序 800 MHz，GDS 为 500 MHz），并以面积相近的一颗四核簇（0.792 mm²）对比一颗未具名的双发射、顺序执行「传统 CPU」单核（同工艺 0.895 mm²，因法律原因未公布具体型号）：在 25 项负载（含 15 项直至终评才公开的留出集）上，功耗比几何平均为该公司所称的 4.59 倍（搜索集 6.02 倍，留出集 3.83 倍），面积比平均为 8.77 倍。官方写明功耗数字仍为硅前估计，目前尚未公布流片后的实测，亦无独立复核。",
+      "era": "2026 临界",
+      "tags": [
+        "芯片",
+        "工程"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
@@ -2152,9 +2211,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "digital-ic",
           "name": "数字电路设计",
-          "remaining": 50,
-          "note": "RTL 草稿与验证激励可辅助；时序收敛与流片责任仍在人。",
-          "movedBy": "GPT-5.5"
+          "remaining": 45,
+          "note": "OpenAI 模型已能改写 SystemVerilog RTL，官方称在已高度优化的 AMD 旗舰 GPU IP 上最高带来 14% PPA 提升，部分改动已进入送制造的设计；时序收敛与流片签字责任仍在人。",
+          "movedBy": "OpenAI 模型改进 AMD 旗舰 GPU 设计 / GPT-5.5"
         },
         {
           "id": "analog-ic",
