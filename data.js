@@ -1,8 +1,8 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-19",
+  "updated": "2026-11-21",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-19。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-21。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1976,6 +1976,54 @@ window.__HUMANITY_DATA__ = {
         "工程"
       ],
       "impact": "mid"
+    },
+    {
+      "date": "2026-11-20",
+      "title": "腾讯 Hy4 放出权重",
+      "blurb": "按 11 月 4 日的承诺，腾讯在 Hugging Face 等平台公开旗舰 Hy4 权重（tencent/Hy4，另有 FP8 与 Base 检查点）：语言主干总参 7700 亿（不含 ViT、适配器与 DFly2）、文本每 token 激活 490 亿（视觉另计 12.3 亿），支持文本、图像与视频理解及最多 100 万 token 上下文，并放出系统卡。许可为腾讯混元许可 1.0（由 Apache 2.0 改编），连续十二个月全球总收入超过 5000 万美元、或所提供产品任一日历月活跃用户超过 1 亿的模型即服务商用须另行签约。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "腾讯"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-20",
+      "title": "宣布黎曼猜想与 GRH 的 Lean 证明",
+      "blurb": "Anthropic 数学家 Levent Alpöge 宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。MIT 的 Andrew Sutherland 核验页（截至 11 月 20 日 22:05 UTC）称源码可编译、五条主定理只依赖三条标准公理，leanchecker 重放全部模块通过，独立内核 nanoda 与 con-leche 接受完整导出，con-leche 的 --compare 确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；端到端 lake comparator 与 Lean 默认/paranoid 内核对导出的重放仍在进行。Nature、New Scientist 报道了宣布，Scientific American 称独立核验进展使数学家「几乎可以肯定」证明成立，但仍标为进行中的报道。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "形式化证明",
+        "Anthropic"
+      ],
+      "impact": "high"
+    },
+    {
+      "date": "2026-11-20",
+      "title": "宣布无外力 Navier–Stokes 有限时间爆破",
+      "blurb": "纽约大学 Tristan Buckmaster 与 Anthropic 的 Levent Alpöge 宣布给出三维无外力 Navier–Stokes 方程有限时间爆破的证明，称补上 OpenAI 9 月结果中依赖精细调谐外力的漏洞；Buckmaster 于 11 月 20 日在 Mastodon 公布仓库（论文 79 页，标注该日版本，附 Lean 4.33.1 形式化，约 2270 个文件、60 万行），并写明文稿未打磨且大量由大模型辅助。仓库写明论文所引证书及用 128 位区间算术核验附录条件的计算均未收录、证书将另行发布，且补丁后的 Lean 包在组装仓库时尚未重新编译。Scientific American 报道了这一宣布。",
+      "era": "2026 临界",
+      "tags": [
+        "数学",
+        "形式化",
+        "科学"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-20",
+      "title": "Inkling 2 Mini 开放权重",
+      "blurb": "Thinking Machines Lab 发布并在 Hugging Face 以 Apache 2.0 公开 Inkling 2 Mini 权重（thinkingmachines/Inkling-2-Mini）：26.4B 总参、3.4B 激活的多模态（图像+文本）MoE 循环 Transformer，中间层对每个 token 运行三轮，官方称等效激活 5.4B；检查点约 20GB，上下文最多 100 万 token，可在 32GB 及以上的 Apple Silicon 等本地设备运行。官方称在总参 100B 以下的开放权重模型中，DeepSWE v1.1 为 48.2%、Vals Index v2.2 为 46.5%，SWE-bench Pro v2 Hard 为 77.9%。已在 Tinker 提供推理与微调，并接入 SGLang、vLLM、Ollama 等。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "智能体"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
