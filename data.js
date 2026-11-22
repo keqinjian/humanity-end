@@ -1,8 +1,8 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-21",
+  "updated": "2026-11-22",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-21。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-22。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1991,8 +1991,8 @@ window.__HUMANITY_DATA__ = {
     },
     {
       "date": "2026-11-20",
-      "title": "宣布黎曼猜想与 GRH 的 Lean 证明",
-      "blurb": "Anthropic 数学家 Levent Alpöge 宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。MIT 的 Andrew Sutherland 核验页（截至 11 月 20 日 22:05 UTC）称源码可编译、五条主定理只依赖三条标准公理，leanchecker 重放全部模块通过，独立内核 nanoda 与 con-leche 接受完整导出，con-leche 的 --compare 确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；端到端 lake comparator 与 Lean 默认/paranoid 内核对导出的重放仍在进行。Nature、New Scientist 报道了宣布，Scientific American 称独立核验进展使数学家「几乎可以肯定」证明成立，但仍标为进行中的报道。",
+      "title": "黎曼猜想与 GRH 的 Lean 证明获社区核验",
+      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 21 日 12:55 UTC）称源码可编译、五条主定理只依赖三条标准公理，leanchecker 重放全部模块通过，独立内核 nanoda 与 con-leche 接受完整导出，con-leche 的 --compare 确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；端到端 lake comparator 与 Lean 默认/paranoid 内核对导出的重放仍在进行。该证明还与独立的 Robin1984 形式化合并，得到不依赖 ζ 函数陈述的 Robin 与 Lagarias 不等式；相关合并导出的 lake comparator 仍在进行。Nature、New Scientist 报道了最初的宣布。",
       "era": "2026 临界",
       "tags": [
         "数学",
@@ -2024,6 +2024,18 @@ window.__HUMANITY_DATA__ = {
         "智能体"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-11-20",
+      "title": "MOFGen 做出并合成四种「AI 构想」的金属有机框架",
+      "blurb": "加州大学伯克利分校的 Omar Yaghi、Théo Jaffrelot Inizan 等与 Google DeepMind 等合作者在《Nature Computational Science》发表智能体系统 MOFGen：由大模型提出组成、扩散模型按原子坐标生成晶体结构（可处理远超以往常见数十个原子尺度的大框架），再经量子力学优化筛选与可合成性评估。系统针对锌基框架生成了 259,559 个预测结构。作者用高通量实验在数周内合成并表征了四个「AI 构想」的金属有机框架（AI-MOF-1 至 4，粉末或单晶 X 射线衍射与模拟结构相符）：其一把文献中已有连接体改配到锌节点，其一由化学家对生成连接体稍作修改后合成，另两个使用模型给出的、文献中尚未报道的连接体。论文写明实验目前集中在锌基框架，系统尚未完全自动化，合成仍需人在环中。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "材料",
+        "智能体"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
@@ -2196,9 +2208,9 @@ window.__HUMANITY_DATA__ = {
         {
           "id": "formal-proof",
           "name": "形式化证明",
-          "remaining": 37,
-          "note": "模型已能批量写出 Lean 证明（Navier–Stokes 证明 17 小时完成形式化），Axiom 宣布用智能体集群 24 天把约 1.5 万页的有限单群分类写成约 4300 万行 Lean；PSI 系统又用 Lean 机检通过 Aaronson–Ambainis 猜想证明。形式陈述是否忠实原题、外部独立复核仍靠人。",
-          "movedBy": "GPT-6 Astra / Navier–Stokes 千禧年难题 / OpenAI 数学论文大轰炸 / Axiom 宣布形式化有限单群分类 / AI 证明 Aaronson–Ambainis 猜想"
+          "remaining": 32,
+          "note": "模型已能批量写出 Lean 证明（Navier–Stokes 证明 17 小时完成形式化），Axiom 宣布用智能体集群 24 天把约 1.5 万页的有限单群分类写成约 4300 万行 Lean；PSI 系统又用 Lean 机检通过 Aaronson–Ambainis 猜想证明。Lean 与 Mathlib 社区已联合核验 Alpöge 与 Claude 的黎曼猜想及 Dirichlet L 函数 GRH 形式化证明。把形式陈述写清楚、以及写出人类可读的证明思路，仍常要人。",
+          "movedBy": "GPT-6 Astra / Navier–Stokes 千禧年难题 / OpenAI 数学论文大轰炸 / Axiom 宣布形式化有限单群分类 / AI 证明 Aaronson–Ambainis 猜想 / 黎曼猜想与 GRH 的 Lean 证明获社区核验"
         },
         {
           "id": "physics-theory",
