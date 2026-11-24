@@ -1859,6 +1859,29 @@ window.__HUMANITY_DATA__ = {
       "impact": "low"
     },
     {
+      "date": "2026-11-13",
+      "title": "inclusionAI 开放互惠世界模型 Duo v1",
+      "blurb": "inclusionAI（GitHub 组织简介写明这些开源项目来自蚂蚁集团）发布互惠世界模型（Reciprocal World Model）的首个实现 Duo v1，并开放离线推理代码与权重：以意图（Intent）与实现（Realization）两个模块在统一时间线上同步。论文称两模块持续感知实时音视频与文本并支持全双工对话与插话；当前放出的离线管线则是用户视频与 ASR 文本经 Intent，再以意图状态引导 Realization。官方 README 将发布日写为 2026-11-13，并称其为面向研究者的预览版；交互按 17 帧、约 0.71 秒（24 fps）分块推进，实现模块经双滚动蒸馏得到四步流式生成器。已放出 Duo 1.0 因果基座、四步蒸馏与 FP8 量化实现层，以及画质改进的 Duo 1.2 因果基座（其蒸馏与量化权重尚未提供）。代码以 Apache 2.0 开放；模型卡写明权重点自 MiniMax H3 初始化后再训练，适用 MiniMax H3 社区许可。论文为 arXiv:2611.15131。官方称下一版将让实现模块直接以用户音视频为条件，以支持视觉交互。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "世界模型",
+        "多模态"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-15",
+      "title": "Agnes 2.5 Pro Theta 放出权重",
+      "blurb": "Agnes AI 在 Hugging Face 以 Apache 2.0 公开多模态 MoE 模型 Agnes 2.5 Pro Theta 的 BF16 权重（Agnes-AI/Agnes-2.5-Pro-Theta）：总参约 1878 亿（每 MoE 块 512 个路由专家、top-10 外加共享专家），配置上下文上限 262,144 token，并附带图像与视频处理器及 Transformers 自定义代码。模型卡给出的评测为发布方自报（如 GPQA Diamond 92.9、LiveCodeBench v6 90.5、AA-LCR 84.7、SWE-bench Pro 64.1），未附可复核实验包；权重张量约 375.5 GB，模型卡称全量驻留推理的可行起点为 4 张 H200 级 GPU。该检查点的首次提交时间为 2026-11-15T02:46:17Z。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布"
+      ],
+      "impact": "low"
+    },
+    {
       "date": "2026-11-16",
       "title": "Qwen4-Max",
       "blurb": "阿里通义千问团队发布新一代旗舰 Qwen4-Max：采用新的 Qwen4 稀疏 MoE 架构，总参 2.4 万亿、每 token 激活 710 亿，原生支持视觉理解，上下文 100 万 token；官方称激活参量较同为 2.4T 的 Qwen3.8-Max 少约 25%，在自办行业任务基准 Work360 上整体优于 Qwen3.8-Max，High 思考档少用约 35% token、单任务平均成本约降 60%，并在 Code Arena 排第 6。已在 QwenCloud 以 Token Plan 与 API 上线，亦可在 QwenWork、QwenStudio 使用；官方称随后将开放 Qwen4 系列更小尺寸权重。",
@@ -1891,6 +1914,18 @@ window.__HUMANITY_DATA__ = {
         "开源",
         "科学",
         "数据"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-16",
+      "title": "书生 S2.1 Flash",
+      "blurb": "上海人工智能实验室正式发布书生 S2.1 Flash：面向高难度科学研究的多模态智能体模型，采用约 3200 亿总参、每 token 激活 180 亿的 MoE 架构（部署说明称其基于 GLM-5.3-Flash），以 Sage SciPerception 将分子图、晶体结构、蛋白质序列与三维结构、核酸序列及光谱、质谱、衍射与电生理等十余类科学输入纳入统一表征，并支持检索、编程、工具调用与专业科研软件操作。权重以 MIT 许可放出（BF16 约 645 GB，另有 FP8 版本），官方部署示例为 8 张 H200；官方称在自报的 15 项评测、6 个对比模型中 4 项第一、7 项第二，其中 MLE-bench Lite 为 90.3。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "多模态"
       ],
       "impact": "low"
     },
