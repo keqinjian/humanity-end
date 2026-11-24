@@ -1,8 +1,8 @@
 window.__HUMANITY_DATA__ = {
-  "updated": "2026-11-23",
+  "updated": "2026-11-24",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-23。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-24。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1992,7 +1992,7 @@ window.__HUMANITY_DATA__ = {
     {
       "date": "2026-11-20",
       "title": "黎曼猜想与 GRH 的 Lean 证明获社区核验",
-      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 21 日 12:55 UTC）称源码可编译、五条主定理只依赖三条标准公理，leanchecker 重放全部模块通过，独立内核 nanoda 与 con-leche 接受完整导出，con-leche 的 --compare 确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；端到端 lake comparator 与 Lean 默认/paranoid 内核对导出的重放仍在进行。该证明还与独立的 Robin1984 形式化合并，得到不依赖 ζ 函数陈述的 Robin 与 Lagarias 不等式；相关合并导出的 lake comparator 仍在进行。Nature、New Scientist 报道了最初的宣布。",
+      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 23 日 23:45 UTC）称源码可编译、五条主定理只依赖三条标准公理，独立沙箱中的 lake build 导出与发布导出逐字节一致，leanchecker 重放全部模块通过，独立内核 nanoda、con-leche 及其 Rust 移植 con-ron 接受完整导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；Lean 默认内核与 paranoid 内核对完整导出的单线程重放已分别于 11 月 22 日与 23 日通过；独立的 Comparator v4.33.0 端到端报 “Your solution is okay!”（其 lake build 步骤由桩代替，比对用的是仓库 Challenge.lean 的自编译）。面向规范挑战导出的端到端 lake comparator（Lean v4.36.0）仍在进行：其 paranoid 与 nanoda 阶段已于 11 月 23 日通过，最后的默认内核阶段已开始。该证明还与独立的 Robin1984 形式化合并，得到不依赖 ζ 函数陈述的 Robin 与 Lagarias 不等式；对该合并导出，陈述比对与公理检查已通过，其 lake comparator 的内核阶段仍在进行。Nature、New Scientist 报道了最初的宣布。",
       "era": "2026 临界",
       "tags": [
         "数学",
@@ -2046,6 +2046,69 @@ window.__HUMANITY_DATA__ = {
         "安全",
         "密码分析",
         "MiniMax"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-23",
+      "title": "DeepMind 智能体写出并形式化验证更快的量子算法",
+      "blurb": "Google DeepMind 与 Google Quantum AI 于 11 月 23 日发表官方博客，介绍 11 月 16 日的论文（arXiv:2611.09822）：由研究者给出 Lean 规格后，多支 Gemini 4 智能体团队协作改进量子算法，并用基于量子 Hoare 逻辑的 Lean 程序库证明正确性与资源代价。官方称，用于计算惯性约束聚变一项关键性质的电路把综合计算代价（量子比特数与操作的乘积）降低 11.8 倍、纠错量子比特需求从 5,650 降至 4,338；对一种常见光敏分子的量子模拟便宜约 8 倍；对药物代谢关键酶细胞色素 P450 改进 2.5 倍、量子比特从 481 降至 333；某一具体实现的 Grover 算法加速 2.57 倍，arcsin 算术例程加速 290 倍。文中写明，即便如此，把这些算法用于科学模拟仍可能超出早期纠错量子计算机的资源。官方称将 Lean 库、问题规格与已核验方案开源（GitHub google-deepmind/formal-quantum-computation）。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "量子",
+        "形式化证明",
+        "Google",
+        "智能体"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-23",
+      "title": "智谱发布 GLM-5.4（Loop Transformer）",
+      "blurb": "智谱 Z.ai 发布旗舰模型 GLM-5.4：官方称这是其首款基于 Loop Transformer 架构的旗舰，把 GLM-5 基座中 28 层共享权重循环执行两轮，在约 7500 亿参数规模上以续训把已预训练基座改成循环深度，并称智能水平可与 2T–3T 参数模型相比。文中承认权重共享循环深度的想法并不新（可追溯到 2018 年 Universal Transformer），从零预训练的循环模型在同等预训练算力下仍落后于不共享权重的模型；对 GLM-5.4 本身，官方未公布独立公开基准分数，主要对照实验写在同架构的 30B 测试模型上（参数量相同、训练算力约多 10%，称数学、科学推理与长上下文提升最大）。模型支持文本、图像、视频与文件输入，上下文 1M、最大输出 128K；即日起向 GLM Coding Plan 全量用户及 ZCode、Z.ai Chat 开放，API 待安全评估后推出，权重称完成安全加固后计划开源。官方并写明该模型容易陷入过长的「马拉松式思考」循环。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "旗舰",
+        "智谱",
+        "编程"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-23",
+      "title": "自变量机器人发布 WALL-OSS-1.0",
+      "blurb": "自变量机器人（X Square Robot）发布视觉—语言—动作基础模型 WALL-OSS-1.0：官方称无需任务级演示或微调，单一预训练策略即可在开放指令下实时操作，并在由评测者自由选定的 312 项真机任务上自报零样本成功率 55.1%；在 ManipArena 15 项桌面任务上成功率为 50.67%（WALL-OSS-0.5 为 19.33%，经多任务微调的 π0.5 为 24.0%）。官方还称，以该模型为基座微调包裹分拣策略约需 10 小时任务数据（无预训练时称需 1,000 小时以上），跨场地仍能保留原场地超 90% 的分拣速度与成功率。上述数字均为公司自报，未见独立复核。目前公开可见的是面向 RoboDojo 仿真的 Lite 检查点（官方称截至 11 月 5 日在无智能体系统组别以 42.59 分居榜首）；完整 1.0 权重尚未普遍放出。",
+      "era": "2026 临界",
+      "tags": [
+        "机器人",
+        "具身智能"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-23",
+      "title": "蚂蚁开放 LingSante 医疗模型权重",
+      "blurb": "蚂蚁集团健康应用「阿福」（Afu）宣布推出 LingSante 医疗模型家族，并先以 MIT 许可证在 Hugging Face 开放两款核心权重：LingSante-3.1-air-VL（1240 亿总参、每 token 激活 55 亿的原生多模态 MoE，上下文 256K，面向医学影像、皮肤、饮食与报告等）与 LingSante-3.1-flash（5600 亿总参、约 250 亿激活、1M 上下文，面向复杂医学推理与长程任务）。官方称阿福服务 1.5 亿用户、日均健康咨询近 2,000 万次；模型卡写明权重仅供研究与评估，不是医疗器械，不得作为独立诊断、处方或治疗依据。官方新闻稿称，在其与斯坦福、哈佛、北京协和等 29 家机构推出的 InclusionMed 评测中，LingSante-3.1-flash 居开源医疗模型首位；模型卡则写该基准总分为 45.064，在 23 种受测配置中排第 5。同日还介绍了风险预测、安全护栏与实时视频问诊等未一并开放权重的组件。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "医疗",
+        "模型发布"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-23",
+      "title": "OpenAI 与 Cisco 开源 Shirudo 运行时",
+      "blurb": "OpenAI 与 Cisco 联合开源 Linux 防护运行时 Shirudo（BSD 2-Clause，BPF 程序双许可 BSD/GPL）：用 eBPF 在不停机、不重启的前提下为运行中的系统加载经签名的临时「盾」，以便在正式补丁就绪前挡住漏洞利用；部署需运维批准，并可用 TPM 记录加载与卸载。官方称在受控测试中，由 Codex 生成的盾为 Java Base64 解码器增加输入检查，并直接附加到正在运行的 Elasticsearch 进程，从而挡住对 Java4Shell（CVE-2026-114938）的利用尝试，同时服务保持运行；Cisco 新闻稿还称对前述 PHP 漏洞的利用尝试同样被检测到并阻断。项目仍是早期开放合作，并非已大规模部署的产品。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "安全",
+        "Linux",
+        "OpenAI"
       ],
       "impact": "mid"
     }
