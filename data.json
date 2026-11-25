@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-24",
+  "updated": "2026-11-25",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-24。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-25。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1992,7 +1992,7 @@
     {
       "date": "2026-11-20",
       "title": "黎曼猜想与 GRH 的 Lean 证明获社区核验",
-      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 23 日 23:45 UTC）称源码可编译、五条主定理只依赖三条标准公理，独立沙箱中的 lake build 导出与发布导出逐字节一致，leanchecker 重放全部模块通过，独立内核 nanoda、con-leche 及其 Rust 移植 con-ron 接受完整导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；Lean 默认内核与 paranoid 内核对完整导出的单线程重放已分别于 11 月 22 日与 23 日通过；独立的 Comparator v4.33.0 端到端报 “Your solution is okay!”（其 lake build 步骤由桩代替，比对用的是仓库 Challenge.lean 的自编译）。面向规范挑战导出的端到端 lake comparator（Lean v4.36.0）仍在进行：其 paranoid 与 nanoda 阶段已于 11 月 23 日通过，最后的默认内核阶段已开始。该证明还与独立的 Robin1984 形式化合并，得到不依赖 ζ 函数陈述的 Robin 与 Lagarias 不等式；对该合并导出，陈述比对与公理检查已通过，其 lake comparator 的内核阶段仍在进行。Nature、New Scientist 报道了最初的宣布。",
+      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 24 日 05:25 UTC）称源码可编译、五条主定理只依赖三条标准公理，独立沙箱中的 lake build 导出与发布导出逐字节一致，leanchecker 重放全部模块通过，独立内核 nanoda、con-leche 及其 Rust 移植 con-ron 接受完整导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；Lean 默认内核与 paranoid 内核对完整导出的单线程重放已分别于 11 月 22 日与 23 日通过；独立的 Comparator v4.33.0 端到端报 “Your solution is okay!”（其 lake build 步骤由桩代替，比对用的是仓库 Challenge.lean 的自编译）。面向规范挑战导出的端到端 lake comparator（Lean v4.36.0）仍在进行：其 paranoid 与 nanoda 阶段已于 11 月 23 日通过，最后的默认内核阶段已开始。该证明还与独立的 Robin1984 形式化（commit 5ce18bf3，11 月 23 日）合并，得到不依赖 ζ 函数零点陈述的 Robin 不等式、Lagarias 不等式，以及分圆域上的修正理想 Robin 准则；Sutherland 页称，对 Robin1984 仓库本身，lake build、con-leche 与 con-ron 的 --compare、独立 Comparator v4.33.0，以及 Lean v4.36.0 的 lake comparator（paranoid、nanoda 与默认内核均接受）已于 11 月 24 日通过；对合并导出，三条推论的公理检查、con-leche 与 con-ron 的 --compare，以及 nanoda 对完整合并导出的核验亦于 11 月 24 日通过。Nature、New Scientist 报道了最初的宣布。",
       "era": "2026 临界",
       "tags": [
         "数学",
@@ -2109,6 +2109,41 @@
         "安全",
         "Linux",
         "OpenAI"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-23",
+      "title": "ERNIE 5.5 Flash Preview 放出权重",
+      "blurb": "百度在 Hugging Face 与 ModelScope 公开 ERNIE 5.5 Flash Preview 后训练检查点权重（baidu/ERNIE-5.5-Flash-Preview，另有 FP8 与 BF16 构建）：与 11 月 5 日已开放的 Flash Base 同为稀疏 MoE，总参 2800 亿、每 token 激活 140 亿、上下文 100 万 token。模型卡写明能力来自 mid-training 与 post-training，mid-training 把训练上下文从 128K 延至 1M；许可为 Apache 2.0，且只覆盖 Preview 权重，Base 仍为其单独许可。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "百度"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-24",
+      "title": "GPT-6 展现内在蛋白质设计能力并经实验室验证",
+      "blurb": "OpenAI 于 11 月 24 日发表官方博客并放出预印本《GPT-6 as a Universal Foundation Model for Protein Biology: Beyond Specialized Models》，称 GPT-6 系列可仅凭推理与通用编程工具设计新的蛋白质三维结构与氨基酸序列，无需调用专用生物学模型来生成这些设计；其内部研究模型在多项蛋白质设计任务上达到或超过专用模型，但对从序列预测完整结构仍明显落后。与研究伙伴 Onava 的实验室测试中，以发布前版本 GPT-6.2 给出的三维设计为基础、由 SolubleMPNN 等专用模型提供序列并协助筛选后，322 个 minibinder 中有 35 个（10.9%）对五个预定靶点呈结合阳性（PD-L1 5 个、IL-7Rα 3 个、TrkA 1 个、VEGF-A 8 个、IL-17A 18 个）。在序列重设计实验中，官方称对已有 minibinder 结构，MDM2、VEGF-A 与 PD-1 的初筛结合率分别为 75/88（85%）、26/42（62%）与 8/59（14%）；对 GPT-6.2 早先给出且未经发表的三种结构，107 条新序列中有 14 条（13.1%）呈结合；对结合 IL-4Rα 的六种小抗体（VHH）重设计结合环，182 个设计中 128 个（70%）呈结合；对五种治疗性抗体结合环片段的 272 个设计中，179 个（66%）仍结合原靶点 PD-1 或 PD-L1。文中写明筛选仍依赖 Boltz-2、OpenDDE、ESMFold2 等专用结构预测模型，尚不能证明可在零样本、不借助专用模型的情况下端到端生成 de novo minibinder；实验室验证的是结合，距特异性、稳定性、生物活性及治疗上的安全有效仍有距离。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "生物",
+        "OpenAI"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-24",
+      "title": "Sand.ai 发布 MAGI-2 视频生成模型",
+      "blurb": "Sand.ai 于 11 月 24 日发布旗舰视频生成模型 MAGI-2：在 8 月约 1140 亿总参、约 60 亿激活的 MAGI-2 Preview 基础上，把基座扩大到 4800 亿总参、约 280 亿激活，预训练数据约扩大 3 倍至 4T token，并配合后训练与 1080p 升频。官方称单次可生成最长 30 秒、1080p、25 fps 的原生音视频（含对口型对白、拟音与音乐），支持最多 20 路参考（至多 10 张图像、5 段视频、5 段音频）、精确时间轴与镜头切分控制及对已有视频的编辑。官方称在 Artificial Analysis Video Arena v2.1 的四项任务平均 Elo 较 Preview 提升 151.8 分（998.5→1150.3）。文中写明将随后开源并发布详细技术报告。",
+      "era": "2026 临界",
+      "tags": [
+        "视频",
+        "模型发布"
       ],
       "impact": "mid"
     }
