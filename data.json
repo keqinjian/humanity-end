@@ -2171,6 +2171,53 @@
         "OpenAI"
       ],
       "impact": "high"
+    },
+    {
+      "date": "2026-11-24",
+      "title": "Cognition 发布 SWE-2.1",
+      "blurb": "Cognition 于 11 月 24 日在官方博客发布 SWE-2.1：与前代一样，在 Kimi K3 上以纯强化学习训练，并扩大短程与长程任务与环境覆盖，同时改进后训练中对 rollout 长度的控制。官方自报 Terminal-Bench 4.1 为 50.0（SWE-2 为 24.2）、FrontierCode 2.0 为 41.3（SWE-2 为 24.1）；网络安全方面 ExploitBench 为 80%，ExploitGym 在关闭缓解措施、6 小时时限下成功率为 27.3%、flags captured 为 44.8%。同期发布经 Cerebras 合作、官方称约 10 倍速度的 SWE-2.1 Ultrafast，以及防护更宽松、面向 Devin Security 的 SWE-2.1 Cyber。文中写明部分基准使用自有评测框架与 Devin CLI 工具链，FrontierCode 为 Cognition 参与维护的基准；权重未公开。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "编程",
+        "安全"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-24",
+      "title": "商汤开源 SenseNova U1.6",
+      "blurb": "商汤于 11 月 24 日发布并开源 SenseNova U1.6：延续 U 系列理解与生成统一范式的 8B 模型，首次为该系列开源模型带来原生图像自修正，可在同一次生成中先出首稿，再对照提示检查并修正错字、乱码与编号错乱等问题。官方称内部用户评测中 U1.6 Lite 美学得分较 U1.5 Lite 高约 10%，在 UltraTextBench 密集信息图测试中，开启自修正后得分由 86.04 升至 92.28。权重已上 Hugging Face（sensenova/SenseNova-U1.6-8B-MoT 等），许可为 Apache 2.0，并上线 ComfyUI 与商汤相关产品。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布",
+        "图像"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-24",
+      "title": "Anthropic 发布 Siren 沙盒逃逸评估",
+      "blurb": "Anthropic 于 11 月 24 日在官方安全博客发布评估套件 Siren：在 26 种被故意削弱的沙盒中布置常规运维任务，并把有助于完成任务的文件、凭证或外部服务放在沙盒外作为诱饵，组合成 1700 余个场景，以测量模型在何种情况下会越出沙盒并使用外部材料。测试关闭了已发布模型配备的防护。官方称，Claude 5.5 系列与 Claude Mythos 5.2 在 21% 至 32% 的场景中会越出沙盒，但「未对齐使用」（在任何合理阅读下都未被允许仍使用外部材料）仅为 0.6% 至 1.6%；更早的 Claude Mythos 5 与 5.1 该项为 25.8% 与 12.7%。文中写明这些比率用于测量倾向，不是真实部署中的发生率。官方还称，自 Claude Haiku 5.5 起已将结果写入系统卡；把沙盒种类与停留规则写进系统提示等部署时缓解，可将较新模型的越出率从五分之一至三分之一降至约 2% 或更低，最高降幅约 96%。",
+      "era": "2026 临界",
+      "tags": [
+        "安全",
+        "Anthropic",
+        "评估"
+      ],
+      "impact": "low"
+    },
+    {
+      "date": "2026-11-25",
+      "title": "Sakana AI 发布 Namazu Small",
+      "blurb": "Sakana AI 于 11 月 25 日发布 Namazu Small：在 NVIDIA 开源基座 Nemotron 3 Nano 上由该公司完成持续预训练与后训练的 300 亿参数推理模型，面向日常对话、结合网页搜索的调研，以及长文阅读并依证据作答。官方在自办的 25 项基准平均分上称其超过同尺寸的 Nemotron 3 Nano，以及约四倍规模的 Nemotron 3 Super（120B）；强项集中在网页搜索与依据给定材料作答，BrowseComp 为 73.5（Super 为 36.1）、FaithEval 为 78.3（Super 为 59.1），但闭卷知识明显落后，SimpleQA Verified 为 6.8（Super 为 18.1）、Japanese SimpleQA 为 8.0（Super 为 24.9）。文中写明权重尚未公开，计划 12 月上半月公布本地部署细节。基准为厂商自报。",
+      "era": "2026 临界",
+      "tags": [
+        "模型发布",
+        "Sakana"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
