@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-26",
+  "updated": "2026-11-27",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-26。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-27。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1992,7 +1992,7 @@
     {
       "date": "2026-11-20",
       "title": "黎曼猜想与 GRH 的 Lean 证明获社区核验",
-      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 25 日 22:05 UTC，并写明全部检查已结束）称源码可编译、五条主定理只依赖三条标准公理，独立沙箱中的 lake build 导出与发布导出逐字节一致，leanchecker 重放全部模块通过，独立内核 nanoda、con-leche 及其 Rust 移植 con-ron 接受完整导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；Lean 默认内核与 paranoid 内核对完整导出的单线程重放已分别于 11 月 22 日与 23 日通过；独立的 Comparator v4.33.0 端到端报 “Your solution is okay!”（其 lake build 步骤由桩代替，比对用的是仓库 Challenge.lean 的自编译）。面向规范挑战导出的端到端 lake comparator（Lean v4.36.0）已于 11 月 25 日 21:49 UTC 通过并报 “Your solution is okay!”（自 11 月 20 日 19:03 UTC 起总计约 122 小时 45 分钟）。该页并写明，11 月 25 日另有一份更短的 Lean 证明公布，其核验记录在单独页面。该证明还与独立的 Robin1984 形式化（commit 5ce18bf3，11 月 23 日）合并，得到不依赖 ζ 函数零点陈述的 Robin 不等式、Lagarias 不等式，以及分圆域上的修正理想 Robin 准则；Sutherland 页称，对 Robin1984 仓库本身，lake build、con-leche 与 con-ron 的 --compare、独立 Comparator v4.33.0，以及 Lean v4.36.0 的 lake comparator（paranoid、nanoda 与默认内核均接受）已于 11 月 24 日通过；对合并导出，三条推论的公理检查、con-leche 与 con-ron 的 --compare，以及 nanoda 对完整合并导出的核验亦于 11 月 24 日通过。Nature、New Scientist 报道了最初的宣布。",
+      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 25 日 22:05 UTC，并写明全部检查已结束）称源码可编译、五条主定理只依赖三条标准公理，独立沙箱中的 lake build 导出与发布导出逐字节一致，leanchecker 重放全部模块通过，独立内核 nanoda、con-leche 及其 Rust 移植 con-ron 接受完整导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；Lean 默认内核与 paranoid 内核对完整导出的单线程重放已分别于 11 月 22 日与 23 日通过；独立的 Comparator v4.33.0 端到端报 “Your solution is okay!”（其 lake build 步骤由桩代替，比对用的是仓库 Challenge.lean 的自编译）。面向规范挑战导出的端到端 lake comparator（Lean v4.36.0）已于 11 月 25 日 21:49 UTC 通过并报 “Your solution is okay!”（自 11 月 20 日 19:03 UTC 起总计约 122 小时 45 分钟）。该页并写明，11 月 25 日另有一份更短的 Lean 证明公布，其核验记录在单独页面。Sutherland 就该短证明的核验页（源为 lsernau/grh-lean，commit 72fead10；截至 11 月 26 日 20:46 UTC，并写明全部检查已结束）称，仓库含「可读」版（约 30 万行）与「紧凑」版（约 7.6 万行），均证明与原证明相同的五条定理；两版均可编译，五条定理只依赖三条标准公理，模块均经 Lean 内核重放，独立两台机器导出的五条定理逐字节一致，nanoda、con-leche 与 con-ron 均接受两版导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，且 Lean v4.35.0 的 lake comparator --paranoid 对两版均报 “Your solution is okay!”。原证明还与独立的 Robin1984 形式化（commit 5ce18bf3，11 月 23 日）合并，得到不依赖 ζ 函数零点陈述的 Robin 不等式、Lagarias 不等式，以及分圆域上的修正理想 Robin 准则；Sutherland 页称，对 Robin1984 仓库本身，lake build、con-leche 与 con-ron 的 --compare、独立 Comparator v4.33.0，以及 Lean v4.36.0 的 lake comparator（paranoid、nanoda 与默认内核均接受）已于 11 月 24 日通过；对合并导出，三条推论的公理检查、con-leche 与 con-ron 的 --compare，以及 nanoda 对完整合并导出的核验亦于 11 月 24 日通过。Nature、New Scientist 报道了最初的宣布。",
       "era": "2026 临界",
       "tags": [
         "数学",
@@ -2171,6 +2171,30 @@
         "OpenAI"
       ],
       "impact": "high"
+    },
+    {
+      "date": "2026-11-25",
+      "title": "商汤开源 SenseNova-RoboRSI-27B 正式版",
+      "blurb": "商汤于 11 月 25 日发布具身模型 SenseNova-RoboRSI-27B 正式版，并在 Hugging Face 与 GitHub 以 Apache 2.0 开源权重与框架。正式版可在统一工具集下自主决定何时调用视觉—语言—动作（VLA）轨迹、何时用代码计算夹爪目标位姿并直接控制机械臂（Code as Policy），再根据新的相机观测与机器人状态调整策略；官方称在仿真评测中 VLA 与 Code as Policy 的环境步占比分别为 41.9% 与 58.1%。训练上采用模型与执行框架（Harness）多轮递归自我改进（RSI）：由教师模型 GPT-6 Astra 探索并改进工具，再对 27B 学生做监督微调。官方称在 RoboDojo 智能体协议下（评测时不提供任务级示例、技能或预设流程），该模型均分 34.7，较其复测的 Preview（10.0）提升，并高出 RoboDojo 团队榜单上 GPT-6 Astra 的 27.6 分；在其共享 Harness 评测中亦略高于 GPT-6.1 Sol（33.7）。同一份仅在仿真中训练、未经真机数据训练或微调的权重，在 Piper 机械臂上仅用 Code as Policy 做多类型物体抓取放置为 10 次中成功 6 次，在 Piper X 上结合 VLA 与 Code as Policy 堆叠积木为 10 次中成功 9 次；Preview 分别为 2/10 与 3/10，未经机器人操作训练的对照模型则均未成功。上述仿真与真机数字主要为公司自报（Astra 的 27.6 分引自 RoboDojo 团队榜单），真机样本量为每项 10 次。",
+      "era": "2026 临界",
+      "tags": [
+        "机器人",
+        "具身智能",
+        "开源"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-25",
+      "title": "蚂蚁开源 Ming-Image-0.2-Design",
+      "blurb": "蚂蚁集团 inclusionAI 团队在 Hugging Face 以 MIT 许可证开放 Ming-Image-0.2-Design 权重（仓库创建于 11 月 25 日）：面向电商主图、界面草稿与空间效果图等设计向文生图。模型卡写明，截至 11 月 25 日在 Artificial Analysis 的 AA-Image-T2I v2.1 文生图榜上居开源权重模型首位；官方推荐默认生成 2048×2048，并称在单张 80 GB 显存的 CUDA GPU 上完成过验证。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "图像",
+        "模型发布"
+      ],
+      "impact": "low"
     }
   ],
   "domains": [
