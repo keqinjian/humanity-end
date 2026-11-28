@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-27",
+  "updated": "2026-11-28",
   "title": "记录人类完蛋全过程",
   "subtitle": "从计算机出现那天起，到每一个值得记下的模型。各个领域还剩多少人类的事。",
-  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-27。",
+  "scoreDisclaimer": "血条为编辑估算（估算），非测量值。基准日 2026-11-28。",
   "events": [
     {
       "date": "1946-02-14",
@@ -1992,7 +1992,7 @@
     {
       "date": "2026-11-20",
       "title": "黎曼猜想与 GRH 的 Lean 证明获社区核验",
-      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 25 日 22:05 UTC，并写明全部检查已结束）称源码可编译、五条主定理只依赖三条标准公理，独立沙箱中的 lake build 导出与发布导出逐字节一致，leanchecker 重放全部模块通过，独立内核 nanoda、con-leche 及其 Rust 移植 con-ron 接受完整导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；Lean 默认内核与 paranoid 内核对完整导出的单线程重放已分别于 11 月 22 日与 23 日通过；独立的 Comparator v4.33.0 端到端报 “Your solution is okay!”（其 lake build 步骤由桩代替，比对用的是仓库 Challenge.lean 的自编译）。面向规范挑战导出的端到端 lake comparator（Lean v4.36.0）已于 11 月 25 日 21:49 UTC 通过并报 “Your solution is okay!”（自 11 月 20 日 19:03 UTC 起总计约 122 小时 45 分钟）。该页并写明，11 月 25 日另有一份更短的 Lean 证明公布，其核验记录在单独页面。Sutherland 就该短证明的核验页（源为 lsernau/grh-lean，commit 72fead10；截至 11 月 26 日 20:46 UTC，并写明全部检查已结束）称，仓库含「可读」版（约 30 万行）与「紧凑」版（约 7.6 万行），均证明与原证明相同的五条定理；两版均可编译，五条定理只依赖三条标准公理，模块均经 Lean 内核重放，独立两台机器导出的五条定理逐字节一致，nanoda、con-leche 与 con-ron 均接受两版导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，且 Lean v4.35.0 的 lake comparator --paranoid 对两版均报 “Your solution is okay!”。原证明还与独立的 Robin1984 形式化（commit 5ce18bf3，11 月 23 日）合并，得到不依赖 ζ 函数零点陈述的 Robin 不等式、Lagarias 不等式，以及分圆域上的修正理想 Robin 准则；Sutherland 页称，对 Robin1984 仓库本身，lake build、con-leche 与 con-ron 的 --compare、独立 Comparator v4.33.0，以及 Lean v4.36.0 的 lake comparator（paranoid、nanoda 与默认内核均接受）已于 11 月 24 日通过；对合并导出，三条推论的公理检查、con-leche 与 con-ron 的 --compare，以及 nanoda 对完整合并导出的核验亦于 11 月 24 日通过。Nature、New Scientist 报道了最初的宣布。",
+      "blurb": "Anthropic 数学家 Levent Alpöge 于 11 月 20 日宣布与 Claude 合作发现黎曼猜想的证明，并称方法可推广到 Dirichlet L 函数上的广义黎曼猜想（GRH）；未发布人类可读完整论文（其称未刊稿超过 25 万页），同日在 alpo.ge 放出 Lean 4 形式化（175,187 个模块，Lean / Mathlib v4.33.1），主定理对齐 Mathlib 自带的 RiemannHypothesis 定义（非平凡零点实部为 1/2）。11 月 21 日，Lean 与 Mathlib 社区发表联合声明（由 Lean FRO 与 Mathlib Initiative 背书），称对证明正确有充分信心，并核验声明与证明均正确，四项核验标准均已满足。MIT 的 Andrew Sutherland 核验页（截至 11 月 27 日 17:27 UTC，并写明全部检查已结束）称源码可编译、五条主定理只依赖三条标准公理，独立沙箱中的 lake build 导出与发布导出逐字节一致，leanchecker 重放全部模块通过，独立内核 nanoda、con-leche 及其 Rust 移植 con-ron 接受完整导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，lean4lean 接受全部已编译模块；Lean 默认内核与 paranoid 内核对完整导出的单线程重放已分别于 11 月 22 日与 23 日通过；独立的 Comparator v4.33.0 端到端报 “Your solution is okay!”（其 lake build 步骤由桩代替，比对用的是仓库 Challenge.lean 的自编译）。面向规范挑战导出的端到端 lake comparator（Lean v4.36.0）已于 11 月 25 日 21:49 UTC 通过并报 “Your solution is okay!”（自 11 月 20 日 19:03 UTC 起总计约 122 小时 45 分钟）。该页并写明，11 月 25 日另有一份更短的 Lean 证明公布，其核验记录在单独页面。Sutherland 就该短证明的核验页（源为 lsernau/grh-lean，commit 72fead10；截至 11 月 27 日 17:27 UTC，并写明全部检查已结束）称，仓库含「可读」版（约 30 万行）与「紧凑」版（约 7.6 万行），均证明与原证明相同的五条定理；两版均可编译，五条定理只依赖三条标准公理，模块均经 Lean 内核重放，独立两台机器导出的五条定理逐字节一致，nanoda、con-leche 与 con-ron 均接受两版导出，con-leche 与 con-ron 的 --compare 均确认五条定理与挑战陈述一致，且 Lean v4.35.0 的 lake comparator --paranoid 对两版均报 “Your solution is okay!”。该页并补充：Schoenfeld 1976 年给出的显式界 |ψ(x) − x| < √x log²x / (8π)（对所有 x ≥ 73.2）与黎曼猜想等价；仓库 AndrewVSutherland/schoenfeld-rh-lean（commit 0e52d7b1）在与短证明相同的 Lean / Mathlib 版本上证明该等价，Lean v4.35.0 的 lake comparator --paranoid 于 11 月 26 日 17:23:34 UTC 报 “Your solution is okay!”（Lean paranoid 内核、lean4lean、nanoda、con-leche、con-ron 与 Lean 默认内核均接受，只依赖三条标准公理）；再与紧凑版的 riemannHypothesis 合成为只用 Mathlib 陈述的该界本身，同日 19:51:20 UTC 端到端 lake comparator --paranoid 亦报通过（9,929 项构建任务完成，上述内核与检查器均接受）。原证明还与独立的 Robin1984 形式化（commit 5ce18bf3，11 月 23 日）合并，得到不依赖 ζ 函数零点陈述的 Robin 不等式、Lagarias 不等式，以及分圆域上的修正理想 Robin 准则；Sutherland 页称，对 Robin1984 仓库本身，lake build、con-leche 与 con-ron 的 --compare、独立 Comparator v4.33.0，以及 Lean v4.36.0 的 lake comparator（paranoid、nanoda 与默认内核均接受）已于 11 月 24 日通过；对合并导出，三条推论的公理检查、con-leche 与 con-ron 的 --compare，以及 nanoda 对完整合并导出的核验亦于 11 月 24 日通过。Nature、New Scientist 报道了最初的宣布。",
       "era": "2026 临界",
       "tags": [
         "数学",
@@ -2195,6 +2195,29 @@
         "模型发布"
       ],
       "impact": "low"
+    },
+    {
+      "date": "2026-11-25",
+      "title": "腾讯 ORIDTP 登上 Nature：从头设计双靶点治疗多肽",
+      "blurb": "《Nature》于 11 月 25 日发表腾讯生命科学实验室为第一单位的论文《De novo design of high-potency dual-target therapeutic peptides with ORIDTP》，介绍 AI 平台 ORIDTP（PepDif 生成、PepDRL 双目标强化学习、PepDAF 亲和力评估，并与湿实验小样本迭代）。论文称，该平台设计的 GLP-1R/GCGR 双激动剂中有六条在生物活性上超过各受体最强的天然配体，先导肽 GA-Dual.R5.S3 在饮食诱导肥胖小鼠中带来显著减重与血糖改善，并在 db/db 小鼠中表现明显抗糖尿病作用、未引起恶心或厌食；平台还零样本设计了机制不同的 PD-1/CTLA-4 双靶点共抑制肽，15 条中有 8 条阻断两种检查点相互作用，其中 3 条在人源检查点敲入小鼠肿瘤模型中显示体内抗肿瘤效果，先导肽 IC-Dual.P3 使肿瘤体积较对照缩小 94.2%。上述均为小鼠临床前结果，研究尚未开展人体临床试验。代码开源，模型权重放在 Zenodo；新华社 11 月 27 日报道称平台已部署到腾讯健康 BioNexus 并向科研社区开放。",
+      "era": "2026 临界",
+      "tags": [
+        "科学",
+        "生物",
+        "腾讯"
+      ],
+      "impact": "mid"
+    },
+    {
+      "date": "2026-11-26",
+      "title": "Sber 开放 GigaChat 4 权重",
+      "blurb": "Sber 于 11 月 26 日发布 GigaChat 4，并开放权重：旗舰 708B（每 token 激活约 41B）以 MIT 许可证放在 Hugging Face，较小的 37B（激活约 4B）为面向个人的非商业许可。两款均为混合 MoE，交织 Gated DeltaNet 与 DeepSeek Sparse Attention，原生上下文 100 万 token，并在同一检查点中按请求切换 instant 与 reasoning 模式（3.5 代则分两个检查点）。官方自评 708B 质量与 GLM 5.3、DeepSeek-V4.1-Flash-1017 和 Mistral-Large-4-1T-A52B 相当，37B 与 Qwen3.6-35B-A3B 相当；在其评测中，708B 的 reasoning 模式 SWE-bench Verified 为 80.89%，Terminal-Bench 2.1 为 69.66%，Function Calling Benchmark（FCLv4）为 79.55%，GPQA Diamond 为 82.83%（同表中 GLM 5.3 的 Terminal-Bench 2.1 为 88.70%，DeepSeek V4.1 Flash 的 GPQA Diamond 为 90.91%）。上述分数均为官方自报，未见独立复核。",
+      "era": "2026 临界",
+      "tags": [
+        "开源",
+        "模型发布"
+      ],
+      "impact": "mid"
     }
   ],
   "domains": [
